@@ -73,17 +73,17 @@ repos:
         exclude: ^poetry\.lock$
         entry: poetry run codespell
       - id: debug-statements
-        name:  Debug Statements and imports (Python)
+        name: Debug Statements and imports (Python)
         language: system
         types: [python]
         entry: poetry run debug-statement-hook
       - id: detect-private-key
-        name:  Detect Private Keys
+        name: Detect Private Keys
         language: system
         types: [text]
         entry: poetry run detect-private-key
       - id: end-of-file-fixer
-        name:  Fix End of Files
+        name: Fix End of Files
         language: system
         types: [text]
         entry: poetry run end-of-file-fixer
@@ -149,7 +149,7 @@ repos:
         pass_filenames: false
         require_serial: true
       - id: yamllint
-        name:  Check YAML files with yamllint
+        name: Check YAML files with yamllint
         language: system
         types: [yaml]
         entry: poetry run yamllint
