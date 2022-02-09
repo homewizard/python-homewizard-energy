@@ -47,7 +47,7 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction
       - name: Run pytest
-        run: poetry run pytest --cov p1monitor tests
+        run: poetry run pytest --cov homewizard_energy tests
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v2.3.1
         with:
