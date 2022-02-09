@@ -70,7 +70,7 @@ class HomeWizardEnergy:
             )
 
         response = await self.request("api/v1/data")
-        return Device.from_dict(response)
+        return Data.from_dict(response)
 
     async def state(self) -> State | None:
         """Return the state object."""
