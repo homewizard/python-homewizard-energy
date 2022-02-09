@@ -2,7 +2,7 @@
 name: Testing
 
 # yamllint disable-line rule:truthy
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   pytest:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu]
+        os: [ubuntu, macos]
         python: ['3.9', '3.10']
     steps:
       - name: Check out code from GitHub
@@ -48,11 +48,11 @@ jobs:
         run: poetry install --no-interaction
       - name: Run pytest
         run: poetry run pytest --cov p1monitor tests
-      # - name: Upload coverage artifact
-      #   uses: actions/upload-artifact@v2.3.1
-      #   with:
-      #     name: coverage-${{ matrix.python }}-${{ matrix.os }}
-      #     path: .coverage
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v2.3.1
+        with:
+          name: coverage-${{ matrix.python }}-${{ matrix.os }}
+          path: .coverage
 
   coverage:
     runs-on: ubuntu-latest
@@ -97,5 +97,5 @@ jobs:
         run: |
           poetry run coverage combine coverage*/.coverage*
           poetry run coverage xml -i
-      # - name: Upload coverage report
-      #   uses: codecov/codecov-action@v2.1.0
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v2.1.0
