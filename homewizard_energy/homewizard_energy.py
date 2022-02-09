@@ -46,7 +46,7 @@ class HomeWizardEnergy:
 
     async def device(self) -> Device:
         """Return the device object."""
-        response = await self.request("api")
+        response = await self._request("api")
         device = Device.from_dict(response)
 
         self._detected_product_type = device.product_type
@@ -69,7 +69,7 @@ class HomeWizardEnergy:
                 f"Unsupported API version, detected {self._detected_api_version}"
             )
 
-        response = await self.request("api/v1/data")
+        response = await self._request("api/v1/data")
         return Data.from_dict(response)
 
     async def state(self) -> State | None:
@@ -86,10 +86,10 @@ class HomeWizardEnergy:
                 f"detected API:{self._detected_api_version} with {self._detected_product_type}"
             )
 
-        response = await self.request("api/v1/state")
+        response = await self._request("api/v1/state")
         return State.from_dict(response)
 
-    async def request(
+    async def _request(
         self, path: str, method: str = "get", data: object = None
     ) -> object | None:
         """Make a request to the API."""
