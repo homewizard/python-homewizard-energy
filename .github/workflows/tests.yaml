@@ -67,7 +67,7 @@ jobs:
         uses: actions/setup-python@v2.3.2
         with:
           python-version: 3.9
-      - name: 🏗 Get pip cache dir
+      - name: Get pip cache dir
         id: pip-cache
         run: |
           echo "::set-output name=dir::$(pip cache dir)"
@@ -78,7 +78,7 @@ jobs:
           key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
           restore-keys: |
             pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
-      - name: 🏗 Install workflow dependencies
+      - name: Install workflow dependencies
         run: |
           pip install -r .github/workflows/requirements.txt
           poetry config virtualenvs.create true
