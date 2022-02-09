@@ -34,6 +34,8 @@ async def main():
         print(await api.data())
         print(await api.state())
 
+        await api.state_set(power_on=True)
+
 
 if __name__ == "__main__":
     try:

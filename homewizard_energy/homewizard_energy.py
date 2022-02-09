@@ -89,6 +89,30 @@ class HomeWizardEnergy:
         response = await self._request("api/v1/state")
         return State.from_dict(response)
 
+    async def state_set(
+        self,
+        power_on: bool | None = None,
+        switch_lock: bool | None = None,
+        brightness: int | None = None,
+    ) -> bool:
+        """Set state of device."""
+        state = {}
+
+        if power_on is not None:
+            state["power_on"] = power_on
+        if switch_lock is not None:
+            state["switch_lock"] = switch_lock
+        if brightness is not None:
+            state["brightness"] = brightness
+
+        if not state:
+            _LOGGER.error("At least one state update is required")
+            return False
+
+        response = await self._request("api/v1/state", method="put", data=state)
+        if response is not None:
+            return True
+
     async def _request(
         self, path: str, method: str = "get", data: object = None
     ) -> object | None:
