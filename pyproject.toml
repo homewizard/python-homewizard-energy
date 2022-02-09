@@ -1,0 +1,113 @@
+[tool.poetry]
+name = "python-homewizard-energy"
+version = "0.0.0"
+description = "Asynchronous Python client for the HomeWizard Energy"
+authors = ["DCSBL"]
+maintainers = ["DCSBL"]
+license = "Apache License 2.0"
+readme = "README.md"
+homepage = "https://github.com/dcsbl/python-homewizard-energy"
+repository = "https://github.com/dcsbl/python-homewizard-energy"
+documentation = "https://github.com/dcsbl/python-homewizard-energy"
+classifiers = [
+]
+packages = [
+    { include = "homewizard_energy" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+aiohttp = ">=3.0.0"
+
+[tool.poetry.dev-dependencies]
+aresponses = "^2.1.5"
+black = "^22.1"
+blacken-docs = "^1.12.1"
+flake8 = "^4.0.1"
+flake8-docstrings = "^1.5.0"
+isort = "^5.10.1"
+pre-commit = "^2.17.0"
+pre-commit-hooks = "^4.1.0"
+pylint = "^2.12.2"
+pytest = "^7.0.0"
+pytest-asyncio = "^0.17.2"
+pytest-cov = "^3.0.0"
+yamllint = "^1.26.2"
+pyupgrade = "^2.31.0"
+flake8-simplify = "^0.15.1"
+vulture = "^2.3"
+flake8-bandit = "^2.1.2"
+flake8-bugbear = "^22.1.11"
+flake8-builtins = "^1.5.3"
+flake8-comprehensions = "^3.8.0"
+flake8-eradicate = "^1.2.0"
+flake8-markdown = "^0.3.0"
+darglint = "^1.8.1"
+safety = "^1.10.3"
+codespell = "^2.1.0"
+bandit = "^1.7.2"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/dcsbl/python-homewizard-energy/issues"
+Changelog = "https://github.com/dcsbl/python-homewizard-energy/releases"
+
+[tool.black]
+target-version = ['py39']
+
+[tool.coverage.paths]
+source = ["homewizard_energy"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+
+[tool.coverage.run]
+branch = true
+source = ["homewizard_energy"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.pylint.BASIC]
+good-names = [
+    "_",
+    "ex",
+    "fp",
+    "i",
+    "id",
+    "j",
+    "k",
+    "on",
+    "Run",
+    "T",
+]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable= [
+    "too-few-public-methods",
+    "duplicate-code",
+    "format",
+    "unsubscriptable-object",
+]
+
+[tool.pylint.SIMILARITIES]
+ignore-imports = true
+
+[tool.pylint.FORMAT]
+max-line-length=120
+
+[tool.pylint.DESIGN]
+max-attributes=20
+
+[tool.pytest.ini_options]
+addopts = "--cov"
+
+[tool.vulture]
+min_confidence = 80
+paths = ["homewizard_energy"]
+verbose = true
+
+[build-system]
+requires = ["setuptools", "poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
