@@ -6,6 +6,7 @@ import logging
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
+from aiohttp.hdrs import METH_GET, METH_PUT
 
 from .const import DEVICES_WITH_STATE, SUPPORTED_API_VERSION
 from .errors import DisabledError, RequestError, UnsupportedError
@@ -46,7 +47,7 @@ class HomeWizardEnergy:
 
     async def device(self) -> Device:
         """Return the device object."""
-        response = await self._request("api")
+        response = await self.request("api")
         device = Device.from_dict(response)
 
         self._detected_product_type = device.product_type
@@ -69,7 +70,7 @@ class HomeWizardEnergy:
                 f"Unsupported API version, detected {self._detected_api_version}"
             )
 
-        response = await self._request("api/v1/data")
+        response = await self.request("api/v1/data")
         return Data.from_dict(response)
 
     async def state(self) -> State | None:
@@ -86,7 +87,7 @@ class HomeWizardEnergy:
                 f"detected API:{self._detected_api_version} with {self._detected_product_type}"
             )
 
-        response = await self._request("api/v1/state")
+        response = await self.request("api/v1/state")
         return State.from_dict(response)
 
     async def state_set(
@@ -109,12 +110,12 @@ class HomeWizardEnergy:
             _LOGGER.error("At least one state update is required")
             return False
 
-        response = await self._request("api/v1/state", method="put", data=state)
+        response = await self.request("api/v1/state", method=METH_PUT, data=state)
         if response is not None:
             return True
 
-    async def _request(
-        self, path: str, method: str = "get", data: object = None
+    async def request(
+        self, path: str, method: str = METH_GET, data: object = None
     ) -> object | None:
         """Make a request to the API."""
         if self._session is None:
