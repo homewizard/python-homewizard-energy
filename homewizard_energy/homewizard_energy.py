@@ -6,6 +6,7 @@ import logging
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
+from aiohttp.hdrs import METH_GET, METH_PUT
 
 from .const import DEVICES_WITH_STATE, SUPPORTED_API_VERSION
 from .errors import DisabledError, RequestError, UnsupportedError
@@ -109,12 +110,12 @@ class HomeWizardEnergy:
             _LOGGER.error("At least one state update is required")
             return False
 
-        response = await self.request("api/v1/state", method="put", data=state)
+        response = await self.request("api/v1/state", method=METH_PUT, data=state)
         if response is not None:
             return True
 
     async def request(
-        self, path: str, method: str = "get", data: object = None
+        self, path: str, method: str = METH_GET, data: object = None
     ) -> object | None:
         """Make a request to the API."""
         if self._session is None:
