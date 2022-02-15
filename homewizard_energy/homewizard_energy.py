@@ -46,7 +46,7 @@ class HomeWizardEnergy:
 
     async def device(self) -> Device:
         """Return the device object."""
-        response = await self._request("api")
+        response = await self.request("api")
         device = Device.from_dict(response)
 
         self._detected_product_type = device.product_type
@@ -69,7 +69,7 @@ class HomeWizardEnergy:
                 f"Unsupported API version, detected {self._detected_api_version}"
             )
 
-        response = await self._request("api/v1/data")
+        response = await self.request("api/v1/data")
         return Data.from_dict(response)
 
     async def state(self) -> State | None:
@@ -86,7 +86,7 @@ class HomeWizardEnergy:
                 f"detected API:{self._detected_api_version} with {self._detected_product_type}"
             )
 
-        response = await self._request("api/v1/state")
+        response = await self.request("api/v1/state")
         return State.from_dict(response)
 
     async def state_set(
@@ -109,11 +109,11 @@ class HomeWizardEnergy:
             _LOGGER.error("At least one state update is required")
             return False
 
-        response = await self._request("api/v1/state", method="put", data=state)
+        response = await self.request("api/v1/state", method="put", data=state)
         if response is not None:
             return True
 
-    async def _request(
+    async def request(
         self, path: str, method: str = "get", data: object = None
     ) -> object | None:
         """Make a request to the API."""
