@@ -20,11 +20,14 @@ class HomeWizardEnergy:
 
     _session: ClientSession | None
     _close_session: bool = False
+    _request_timeout: int = 10
 
     _detected_product_type: str | None = None
     _detected_api_version: str | None = None
 
-    def __init__(self, host: str, clientsession: ClientSession = None):
+    def __init__(
+        self, host: str, clientsession: ClientSession = None, timeout: int = 10
+    ):
         """Create a HomeWizard Energy object.
 
         Args:
@@ -34,6 +37,7 @@ class HomeWizardEnergy:
 
         self._host = host
         self._session = clientsession
+        self._request_timeout = timeout
 
     @property
     def host(self) -> str:
@@ -65,11 +69,6 @@ class HomeWizardEnergy:
         if not self._detected_api_version:
             await self.device()
 
-        if self._detected_api_version != SUPPORTED_API_VERSION:
-            raise UnsupportedError(
-                f"Unsupported API version, detected {self._detected_api_version}"
-            )
-
         response = await self.request("api/v1/data")
         return Data.from_dict(response)
 
@@ -80,12 +79,6 @@ class HomeWizardEnergy:
 
         if self._detected_product_type not in DEVICES_WITH_STATE:
             return None
-
-        if self._detected_api_version != SUPPORTED_API_VERSION:
-            raise UnsupportedError(
-                f"Unsupported device or API version, "
-                f"detected API:{self._detected_api_version} with {self._detected_product_type}"
-            )
 
         response = await self.request("api/v1/state")
         return State.from_dict(response)
@@ -110,9 +103,8 @@ class HomeWizardEnergy:
             _LOGGER.error("At least one state update is required")
             return False
 
-        response = await self.request("api/v1/state", method=METH_PUT, data=state)
-        if response is not None:
-            return True
+        await self.request("api/v1/state", method=METH_PUT, data=state)
+        return True
 
     async def request(
         self, path: str, method: str = METH_GET, data: object = None
@@ -128,7 +120,7 @@ class HomeWizardEnergy:
         _LOGGER.debug("%s, %s, %s", method, url, data)
 
         try:
-            async with async_timeout.timeout(8):
+            async with async_timeout.timeout(self._request_timeout):
                 resp = await self._session.request(
                     method,
                     url,
@@ -156,10 +148,10 @@ class HomeWizardEnergy:
             raise RequestError(f"API request error ({resp.status})")
 
         content_type = resp.headers.get("Content-Type", "")
-        if "application/json" not in content_type:
-            raise RequestError("Unexpected content type")
+        if "application/json" in content_type:
+            return await resp.json()
 
-        return await resp.json()
+        return await resp.text()
 
     async def close(self):
         """Close client session."""
