@@ -25,16 +25,12 @@ The example below is available as a runnable script in the repository.
 from homewizard_energy import HomeWizardEnergy
 
 # Make contact with a energy device
-device = HomeWizardEnergy(args.host)
+async with HomeWizardEnergy(args.host) as api:
 
-# Update device value
-await device.update()
+    # Use the data
+    print(await api.device())
+    print(await api.data())
+    print(await api.state())
 
-# Use the data
-print(device.device.product_name)
-print(device.device.serial)
-print(device.data.wifi_ssid)
-
-# Close connection
-await device.close()
+    await api.state_set(power_on=True)
 ```
