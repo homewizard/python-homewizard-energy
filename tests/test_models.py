@@ -108,6 +108,17 @@ def test_data_p1_single_phase():
     assert data.gas_timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
 
+def test_data_watermeter():
+    """TODO."""
+    data: Data = Data.from_dict(json.loads(load_fixtures("data_watermeter.json")))
+
+    assert data
+    assert data.wifi_ssid == "My Wi-Fi"
+    assert data.wifi_strength == 100
+    assert data.active_m3h == 0.798
+    assert data.total_m3 == 8.124
+
+
 def test_data_kwh_single_phase():
     """TODO."""
 
