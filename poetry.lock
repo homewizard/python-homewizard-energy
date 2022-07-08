@@ -113,7 +113,7 @@ yaml = ["pyyaml"]
 
 [[package]]
 name = "black"
-version = "22.3.0"
+version = "22.6.0"
 description = "The uncompromising code formatter."
 category = "dev"
 optional = false
@@ -124,7 +124,7 @@ click = ">=8.0.0"
 mypy-extensions = ">=0.4.3"
 pathspec = ">=0.9.0"
 platformdirs = ">=2"
-tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
+tomli = {version = ">=1.1.0", markers = "python_full_version < \"3.11.0a7\""}
 typing-extensions = {version = ">=3.10.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
@@ -943,7 +943,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "4cce6caf897d379e607025450485fcc788e819f99db63695f42cfbd477f99e84"
+content-hash = "9f688a16b316910efd9f4621dcab9e3312fb84f5c58e7b7f980f2aa09a3879c3"
 
 [metadata.files]
 aiohttp = []
