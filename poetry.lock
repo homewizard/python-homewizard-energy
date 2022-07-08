@@ -899,7 +899,7 @@ testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", 
 
 [[package]]
 name = "vulture"
-version = "2.3"
+version = "2.5"
 description = "Find dead code"
 category = "dev"
 optional = false
@@ -943,7 +943,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "f19b4b557ce775792f2a335fb0b8f146654ff04549fb85f9f814fc5f244af3a2"
+content-hash = "7ad046a7112c1926d8e5a5002e348b26a475092411352e184053c16c78ebb2c6"
 
 [metadata.files]
 aiohttp = []
@@ -1004,10 +1004,7 @@ pycodestyle = []
 pydocstyle = []
 pyflakes = []
 pylint = []
-pyparsing = [
-    {file = "pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
-    {file = "pyparsing-3.0.7.tar.gz", hash = "sha256:18ee9022775d270c55187733956460083db60b37d0d0fb357445f3094eed3eea"},
-]
+pyparsing = []
 pytest = []
 pytest-asyncio = []
 pytest-cov = []
@@ -1025,10 +1022,7 @@ tokenize-rt = []
 toml = []
 tomli = []
 tomlkit = []
-typing-extensions = [
-    {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},
-    {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
-]
+typing-extensions = []
 urllib3 = []
 virtualenv = []
 vulture = []
