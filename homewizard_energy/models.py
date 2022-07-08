@@ -59,6 +59,9 @@ class Data:
     total_gas_m3: float | None
     gas_timestamp: float | None
 
+    active_liter_lpm: float | None
+    total_liter_m3: float | None
+
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Data:
         """Return State object from API response.
@@ -99,6 +102,8 @@ class Data:
             active_power_l3_w=data.get("active_power_l3_w"),
             total_gas_m3=data.get("total_gas_m3"),
             gas_timestamp=convert_gas_timestamp(data.get("gas_timestamp")),
+            active_liter_lpm=data.get("active_liter_lpm"),
+            total_liter_m3=data.get("total_liter_m3"),
         )
 
 
