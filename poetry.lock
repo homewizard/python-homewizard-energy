@@ -585,7 +585,7 @@ virtualenv = ">=20.0.8"
 
 [[package]]
 name = "pre-commit-hooks"
-version = "4.2.0"
+version = "4.3.0"
 description = "Some out-of-the-box hooks for pre-commit."
 category = "dev"
 optional = false
@@ -593,7 +593,7 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 "ruamel.yaml" = ">=0.15"
-toml = "*"
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "py"
@@ -943,7 +943,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c80e0a335682c180f2088b6b5f1f2e371cafc6b3590b73901621643ebae7a4d9"
+content-hash = "4cce6caf897d379e607025450485fcc788e819f99db63695f42cfbd477f99e84"
 
 [metadata.files]
 aiohttp = []
