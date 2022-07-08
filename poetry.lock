@@ -308,7 +308,7 @@ pycodestyle = "*"
 
 [[package]]
 name = "flake8-bugbear"
-version = "22.4.25"
+version = "22.7.1"
 description = "A plugin for flake8 finding likely bugs and design problems in your program. Contains warnings that don't belong in pyflakes and pycodestyle."
 category = "dev"
 optional = false
@@ -943,7 +943,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "9f688a16b316910efd9f4621dcab9e3312fb84f5c58e7b7f980f2aa09a3879c3"
+content-hash = "4b7250c5082229d910ad4ec0392fed2224a094e2fd4e64457dc4efaf9edbf1e3"
 
 [metadata.files]
 aiohttp = []
