@@ -115,8 +115,8 @@ def test_data_watermeter():
     assert data
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.active_m3h == 0.798
-    assert data.total_m3 == 8.124
+    assert data.active_liter_lpm == 13.12
+    assert data.total_liter_m3 == 8129.123
 
 
 def test_data_kwh_single_phase():

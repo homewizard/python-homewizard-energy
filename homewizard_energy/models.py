@@ -59,8 +59,8 @@ class Data:
     total_gas_m3: float | None
     gas_timestamp: float | None
 
-    active_m3h: float | None
-    total_m3: float | None
+    active_liter_lpm: float | None
+    total_liter_m3: float | None
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Data:
@@ -87,49 +87,6 @@ class Data:
 
             return datetime.strptime(str(timestamp), "%y%m%d%H%M%S")
 
-        def convert_dl_to_m3(volume_dl: float | None) -> float | None:
-            """Convert dl to m3.
-
-            Args:
-                volume_dl: Volume in deciliter or None
-
-            Returns:
-                Volume in liters.
-            """
-            if volume_dl is None:
-                return None
-
-            return volume_dl / 10000
-
-        def convert_m3m_to_m3h(volume_m3m: float | None) -> float | None:
-            """Convert m3/minute to m3/hour.
-
-            Args:
-                volume_m3m: Volume in cubic meters per minute
-
-            Returns:
-                Volume in cubic meters per hour
-            """
-            if volume_m3m is None:
-                return None
-
-            return volume_m3m * 60
-
-        def optional_round(value: float | None, decimals: int) -> float | None:
-            """Round number if not None.
-
-            Args:
-                value: Number to round
-                decimals: Max numbers of decimals
-
-            Returns:
-                Rounded number
-            """
-            if value is None:
-                return None
-
-            return round(value, decimals)
-
         return Data(
             smr_version=data.get("smr_version"),
             meter_model=data.get("meter_model"),
@@ -145,10 +102,8 @@ class Data:
             active_power_l3_w=data.get("active_power_l3_w"),
             total_gas_m3=data.get("total_gas_m3"),
             gas_timestamp=convert_gas_timestamp(data.get("gas_timestamp")),
-            active_m3h=optional_round(
-                convert_m3m_to_m3h(convert_dl_to_m3(data.get("active_dl"))), 3
-            ),
-            total_m3=optional_round(convert_dl_to_m3(data.get("total_dl")), 3),
+            active_liter_lpm=data.get("active_liter_lpm"),
+            total_liter_m3=data.get("total_liter_m3"),
         )
 
 
