@@ -756,7 +756,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "ruamel.yaml"
-version = "0.17.20"
+version = "0.17.21"
 description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order"
 category = "dev"
 optional = false
@@ -779,17 +779,18 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "safety"
-version = "1.10.3"
-description = "Checks installed dependencies for known vulnerabilities."
+version = "2.0.0"
+description = "Checks installed dependencies for known vulnerabilities and licenses."
 category = "dev"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 
 [package.dependencies]
-Click = ">=6.0"
+Click = ">=8.0.2"
 dparse = ">=0.5.1"
-packaging = "*"
+packaging = ">=21.0"
 requests = "*"
+"ruamel.yaml" = ">=0.17.21"
 
 [[package]]
 name = "six"
@@ -943,7 +944,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "1518ea3c69f2193ae5c212ed2d06ab6e06c75f48babd61e644823ffad9147306"
+content-hash = "b2b57c222edf2301c16f1db1dfd2812ec4173cab62da4ee3fd0edc967a05c333"
 
 [metadata.files]
 aiohttp = []
