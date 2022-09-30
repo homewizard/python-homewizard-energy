@@ -44,7 +44,7 @@ flake8-eradicate = "^1.2.1"
 flake8-markdown = "^0.3.0"
 darglint = "^1.8.1"
 safety = "^2.2.0"
-codespell = "^2.1.0"
+codespell = "^2.2.1"
 bandit = "^1.7.3"
 
 [tool.poetry.urls]
