@@ -134,7 +134,8 @@ class HomeWizardEnergy:
             ) from exception
         except (ClientError, ClientResponseError) as exception:
             raise RequestError(
-                "Error occurred while communicating with the HomeWizard Energy device"
+                "Error occurred while communicating with the HomeWizard Energy device",
+                {"reason": exception},
             ) from exception
 
         if resp.status == 403:
@@ -143,11 +144,19 @@ class HomeWizardEnergy:
                 "API disabled. API must be enabled in HomeWizard Energy app"
             )
 
+        content_type = resp.headers.get("Content-Type", "")
+
         if resp.status != 200:
             # Something else went wrong
-            raise RequestError(f"API request error ({resp.status})")
+            raise RequestError(
+                "API request error",
+                {
+                    "Content-Type": content_type,
+                    "status": resp.status,
+                    "response": await resp.text(),
+                },
+            )
 
-        content_type = resp.headers.get("Content-Type", "")
         if "application/json" in content_type:
             return await resp.json()
 
