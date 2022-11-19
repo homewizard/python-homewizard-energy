@@ -18,6 +18,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 aiohttp = ">=3.0.0"
+awesomeversion = ">=22.9.0"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^2.1.6"

@@ -6,6 +6,7 @@ import pytest
 
 from homewizard_energy import HomeWizardEnergy
 from homewizard_energy.errors import DisabledError, RequestError, UnsupportedError
+from homewizard_energy.features import Features
 
 from . import load_fixtures
 
@@ -152,8 +153,7 @@ async def test_get_device_object(aresponses):
         assert device.product_type == "HWE-P1"
 
         # pylint: disable=protected-access
-        assert api._detected_api_version == "v1"
-        assert api._detected_product_type == "HWE-P1"
+        assert api._features is not None
 
         await api.close()
 
@@ -276,6 +276,9 @@ async def test_get_state_object(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "1.00")
+
         state = await api.state()
         assert state
         assert not state.power_on
@@ -313,8 +316,7 @@ async def test_get_state_object_with_known_device(aresponses):
         api = HomeWizardEnergy("example.com", clientsession=session)
 
         # pylint: disable=protected-access
-        api._detected_api_version = "v1"
-        api._detected_product_type = "HWE-SKT"
+        api._features = Features("HWE-SKT", "1.00")
 
         state = await api.state()
         assert state
@@ -352,6 +354,9 @@ async def test_get_state_object_returns_null_not_supported(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
+        # pylint: disable=protected-access
+        api._features = Features("HWE-P1", "1.00")
+
         state = await api.state()
         assert not state
 
@@ -376,6 +381,9 @@ async def test_state_set(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "1.00")
+
         state = await api.state_set(power_on=False, switch_lock=False, brightness=255)
         assert state
 
@@ -399,6 +407,9 @@ async def test_state_set_detects_no_statechange(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "1.00")
 
         state = await api.state_set()
         assert not state

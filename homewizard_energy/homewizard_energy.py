@@ -8,8 +8,9 @@ import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_PUT
 
-from .const import DEVICES_WITH_STATE, SUPPORTED_API_VERSION
+from .const import SUPPORTED_API_VERSION
 from .errors import DisabledError, RequestError, UnsupportedError
+from .features import Features
 from .models import Data, Device, State
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,8 +23,7 @@ class HomeWizardEnergy:
     _close_session: bool = False
     _request_timeout: int = 10
 
-    _detected_product_type: str | None = None
-    _detected_api_version: str | None = None
+    _features: Features | None = None
 
     def __init__(
         self, host: str, clientsession: ClientSession = None, timeout: int = 10
@@ -49,13 +49,19 @@ class HomeWizardEnergy:
         """
         return self._host
 
+    async def features(self) -> Features:
+        """Create or return Features object."""
+        if self.features is None:
+            await self.device()
+
+        return self._features
+
     async def device(self) -> Device:
         """Return the device object."""
         response = await self.request("api")
         device = Device.from_dict(response)
 
-        self._detected_product_type = device.product_type
-        self._detected_api_version = device.api_version
+        self._features = Features(device.product_type, device.firmware_version)
 
         if device.api_version != SUPPORTED_API_VERSION:
             raise UnsupportedError(
@@ -66,18 +72,13 @@ class HomeWizardEnergy:
 
     async def data(self) -> Data:
         """Return the data object."""
-        if not self._detected_api_version:
-            await self.device()
-
         response = await self.request("api/v1/data")
         return Data.from_dict(response)
 
     async def state(self) -> State | None:
         """Return the state object."""
-        if not self._detected_api_version or not self._detected_product_type:
-            await self.device()
-
-        if self._detected_product_type not in DEVICES_WITH_STATE:
+        features = await self.features()
+        if not features.has_state:
             return None
 
         response = await self.request("api/v1/state")
@@ -91,6 +92,9 @@ class HomeWizardEnergy:
     ) -> bool:
         """Set state of device."""
         state = {}
+        features = await self.features()
+        if not features.has_state:
+            raise UnsupportedError("Setting state is not supported with this device")
 
         if power_on is not None:
             state["power_on"] = power_on
@@ -134,8 +138,7 @@ class HomeWizardEnergy:
             ) from exception
         except (ClientError, ClientResponseError) as exception:
             raise RequestError(
-                "Error occurred while communicating with the HomeWizard Energy device",
-                {"reason": exception},
+                "Error occurred while communicating with the HomeWizard Energy device"
             ) from exception
 
         if resp.status == 403:
@@ -144,19 +147,11 @@ class HomeWizardEnergy:
                 "API disabled. API must be enabled in HomeWizard Energy app"
             )
 
-        content_type = resp.headers.get("Content-Type", "")
-
         if resp.status != 200:
             # Something else went wrong
-            raise RequestError(
-                "API request error",
-                {
-                    "Content-Type": content_type,
-                    "status": resp.status,
-                    "response": await resp.text(),
-                },
-            )
+            raise RequestError(f"API request error ({resp.status})")
 
+        content_type = resp.headers.get("Content-Type", "")
         if "application/json" in content_type:
             return await resp.json()
 
