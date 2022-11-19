@@ -413,3 +413,57 @@ async def test_state_set_detects_no_statechange(aresponses):
 
         state = await api.state_set()
         assert not state
+
+
+@pytest.mark.asyncio
+async def test_identify(aresponses):
+    """Test identify call."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/identify",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures("identify.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "3.02")
+
+        state = await api.identify()
+        assert state
+
+        await api.close()
+
+
+@pytest.mark.asyncio
+async def test_identify_not_available(aresponses):
+    """Test identify call when not supported."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/identify",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures("identify.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "1.00")
+
+        with pytest.raises(UnsupportedError):
+            await api.identify()
+
+        await api.close()
