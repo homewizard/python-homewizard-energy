@@ -338,17 +338,17 @@ dev = ["coverage", "hypothesis", "hypothesmith (>=0.2)", "pre-commit", "tox"]
 
 [[package]]
 name = "flake8-builtins"
-version = "1.5.3"
+version = "2.0.1"
 description = "Check for python builtins being used as variables or parameters."
 category = "dev"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 
 [package.dependencies]
 flake8 = "*"
 
 [package.extras]
-test = ["coverage", "coveralls", "mock", "pytest", "pytest-cov"]
+test = ["pytest"]
 
 [[package]]
 name = "flake8-comprehensions"
@@ -963,7 +963,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b149733849e726a1f5b6752532ba23cef13d543b8739a46b5fc1bbc73e5d1df3"
+content-hash = "a415cc1e6e8138c9972f34d8ac959531e8d088334737abaf7f4c87bef3e7eeb4"
 
 [metadata.files]
 aiohttp = [
@@ -1231,8 +1231,8 @@ flake8-bugbear = [
     {file = "flake8_bugbear-22.10.27-py3-none-any.whl", hash = "sha256:6ad0ab754507319060695e2f2be80e6d8977cfcea082293089a9226276bd825d"},
 ]
 flake8-builtins = [
-    {file = "flake8-builtins-1.5.3.tar.gz", hash = "sha256:09998853b2405e98e61d2ff3027c47033adbdc17f9fe44ca58443d876eb00f3b"},
-    {file = "flake8_builtins-1.5.3-py2.py3-none-any.whl", hash = "sha256:7706babee43879320376861897e5d1468e396a40b8918ed7bccf70e5f90b8687"},
+    {file = "flake8-builtins-2.0.1.tar.gz", hash = "sha256:5aeb420130efe8acbdaf8708a582492413293a3ca25653518f687937879650a5"},
+    {file = "flake8_builtins-2.0.1-py3-none-any.whl", hash = "sha256:a5b9ca9cbc921c4455ea02e2e9963c990ac66d028c15b654625e012a1e3bbb4d"},
 ]
 flake8-comprehensions = [
     {file = "flake8-comprehensions-3.10.1.tar.gz", hash = "sha256:412052ac4a947f36b891143430fef4859705af11b2572fbb689f90d372cf26ab"},
