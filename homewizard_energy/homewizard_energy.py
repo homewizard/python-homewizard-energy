@@ -110,6 +110,17 @@ class HomeWizardEnergy:
         await self.request("api/v1/state", method=METH_PUT, data=state)
         return True
 
+    async def identify(
+        self,
+    ) -> bool:
+        """Send identify request."""
+        features = await self.features()
+        if not features.has_identify:
+            raise UnsupportedError("Identify is not supported")
+
+        await self.request("api/v1/identify", method=METH_PUT)
+        return True
+
     async def request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> object | None:
