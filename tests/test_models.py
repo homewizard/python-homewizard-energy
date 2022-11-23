@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 
-from homewizard_energy import Data, Device, State
+from homewizard_energy import Data, Device, State, System
 
 from . import load_fixtures
 
@@ -200,3 +200,20 @@ def test_state():
     assert state.power_on
     assert state.switch_lock
     assert state.brightness == 10
+
+
+def test_system():
+    """TODO."""
+    system: System = System.from_dict(
+        json.loads(load_fixtures("system_cloud_enabled.json"))
+    )
+
+    assert system
+    assert system.cloud_enabled
+
+    system: System = System.from_dict(
+        json.loads(load_fixtures("system_cloud_disabled.json"))
+    )
+
+    assert system
+    assert not system.cloud_enabled

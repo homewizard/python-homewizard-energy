@@ -2,7 +2,7 @@
 from .errors import DisabledError, InvalidStateError, RequestError, UnsupportedError
 from .features import Features
 from .homewizard_energy import HomeWizardEnergy
-from .models import Data, Device, State
+from .models import Data, Device, State, System
 
 __all__ = [
     "HomeWizardEnergy",
@@ -13,5 +13,6 @@ __all__ = [
     "Data",
     "Device",
     "State",
+    "System",
     "Features",
 ]

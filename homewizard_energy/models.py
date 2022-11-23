@@ -130,3 +130,24 @@ class State:
             switch_lock=data.get("switch_lock"),
             brightness=data.get("brightness"),
         )
+
+
+@dataclass
+class System:
+    """Represent current state."""
+
+    cloud_enabled: bool | None
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> dict:
+        """Return System object from API response.
+
+        Args:
+            data: The data from the HomeWizard Energy `api/v1/system` API.
+
+        Returns:
+            A System object.
+        """
+        return System(
+            cloud_enabled=data.get("cloud_enabled"),
+        )

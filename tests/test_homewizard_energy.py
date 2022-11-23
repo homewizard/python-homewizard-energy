@@ -467,3 +467,84 @@ async def test_identify_not_available(aresponses):
             await api.identify()
 
         await api.close()
+
+
+@pytest.mark.asyncio
+async def test_get_system_object(aresponses):
+    """Test fetches system object and device object when unknown."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("device_energysocket.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("system_cloud_enabled.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("system_cloud_disabled.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "1.00")
+
+        system = await api.system()
+        assert system
+        assert system.cloud_enabled
+
+        system = await api.system()
+        assert system
+        assert not system.cloud_enabled
+
+        await api.close()
+
+
+@pytest.mark.asyncio
+async def test_system_set(aresponses):
+    """Test system set."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures("system_cloud_disabled.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-SKT", "3.01")
+
+        system = await api.system_set(enable_cloud=False)
+        assert system
+
+        await api.close()

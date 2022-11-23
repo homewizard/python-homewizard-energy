@@ -38,3 +38,10 @@ class Features:
         if self.device_type == "HWE-SKT" and self.version >= AwesomeVersion("3.01"):
             return True
         return False
+
+    @property
+    def has_system(self) -> bool:
+        """Return if device supports `System` API."""
+        if self.device_type == "HWE-SKT" and self.version >= AwesomeVersion("3.01"):
+            return True
+        return False
