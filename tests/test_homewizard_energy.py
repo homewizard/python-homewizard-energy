@@ -544,7 +544,7 @@ async def test_system_set(aresponses):
         # pylint: disable=protected-access
         api._features = Features("HWE-SKT", "3.01")
 
-        system = await api.system_set(enable_cloud=False)
+        system = await api.system_set(cloud_enabled=False)
         assert system
 
         await api.close()

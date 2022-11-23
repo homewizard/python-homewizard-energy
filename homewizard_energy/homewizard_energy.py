@@ -117,7 +117,7 @@ class HomeWizardEnergy:
 
     async def system_set(
         self,
-        enable_cloud: bool | None = None,
+        cloud_enabled: bool | None = None,
     ) -> bool:
         """Set state of device."""
         state = {}
@@ -125,8 +125,8 @@ class HomeWizardEnergy:
         if not features.has_system:
             raise UnsupportedError("Setting system is not supported with this device")
 
-        if enable_cloud is not None:
-            state["cloud_enabled"] = enable_cloud
+        if cloud_enabled is not None:
+            state["cloud_enabled"] = cloud_enabled
 
         if not state:
             _LOGGER.error("At least one state update is required")
