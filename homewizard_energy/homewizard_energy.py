@@ -11,7 +11,7 @@ from aiohttp.hdrs import METH_GET, METH_PUT
 from .const import SUPPORTED_API_VERSION
 from .errors import DisabledError, RequestError, UnsupportedError
 from .features import Features
-from .models import Data, Device, State
+from .models import Data, Device, State, System
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,6 +108,31 @@ class HomeWizardEnergy:
             return False
 
         await self.request("api/v1/state", method=METH_PUT, data=state)
+        return True
+
+    async def system(self) -> System:
+        """Return the system object."""
+        response = await self.request("api/v1/system")
+        return System.from_dict(response)
+
+    async def system_set(
+        self,
+        enable_cloud: bool | None = None,
+    ) -> bool:
+        """Set state of device."""
+        state = {}
+        features = await self.features()
+        if not features.has_system:
+            raise UnsupportedError("Setting system is not supported with this device")
+
+        if enable_cloud is not None:
+            state["cloud_enabled"] = enable_cloud
+
+        if not state:
+            _LOGGER.error("At least one state update is required")
+            return False
+
+        await self.request("api/v1/system", method=METH_PUT, data=state)
         return True
 
     async def identify(
