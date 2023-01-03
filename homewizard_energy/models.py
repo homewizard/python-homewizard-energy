@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Any
 
 
@@ -95,6 +96,37 @@ class Data:
     active_liter_lpm: float | None
     total_liter_m3: float | None
 
+    external_devices: list[ExternalDevice]
+
+    @staticmethod
+    def convert_timestamp_to_datetime(timestamp: str | None) -> datetime | None:
+        """Convert SRM gas-timestamp to datetime object.
+
+        Args:
+            timestamp: Timestamp string, formatted as yymmddhhmmss
+
+        Returns:
+            A datetime object.
+        """
+        if timestamp is None:
+            return None
+
+        return datetime.strptime(str(timestamp), "%y%m%d%H%M%S")
+
+    @staticmethod
+    def get_external_devices(external_devices) -> list[ExternalDevice] | None:
+        """Convert external device object to ExternalDevice Object List."""
+
+        if external_devices is None:
+            return None
+
+        devices: list[ExternalDevice] = []
+
+        for external in external_devices:
+            devices.append(ExternalDevice.from_dict(external))
+
+        return devices
+
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Data:
         """Return State object from API response.
@@ -105,20 +137,6 @@ class Data:
         Returns:
             A State object.
         """
-
-        def convert_gas_timestamp(timestamp: str | None) -> datetime | None:
-            """Convert SRM gas-timestamp to datetime object.
-
-            Args:
-                timestamp: Timestamp string, formatted as yymmddhhmmss
-
-            Returns:
-                A datetime object.
-            """
-            if timestamp is None:
-                return None
-
-            return datetime.strptime(str(timestamp), "%y%m%d%H%M%S")
 
         return Data(
             smr_version=data.get("smr_version"),
@@ -157,14 +175,76 @@ class Data:
             long_power_fail_count=data.get("long_power_fail_count"),
             active_power_average_w=data.get("active_power_average_w"),
             montly_power_peak_w=data.get("montly_power_peak_w"),
-            active_power_peak_timestamp=convert_gas_timestamp(
+            active_power_peak_timestamp=Data.convert_timestamp_to_datetime(
                 data.get("active_power_peak_timestamp")
             ),
             total_gas_m3=data.get("total_gas_m3"),
-            gas_timestamp=convert_gas_timestamp(data.get("gas_timestamp")),
+            gas_timestamp=Data.convert_timestamp_to_datetime(data.get("gas_timestamp")),
             gas_unique_id=data.get("gas_unique_id"),
             active_liter_lpm=data.get("active_liter_lpm"),
             total_liter_m3=data.get("total_liter_m3"),
+            external_devices=Data.get_external_devices(data.get("external")),
+        )
+
+
+@dataclass
+class ExternalDevice:
+    """Represents externally connected device."""
+
+    class DeviceType(Enum):
+        """Device type allocations.
+
+        Based on:
+          https://oms-group.org/fileadmin/files/download4all/omsSpezifikationen/generation4/spezifikation/vol2/OMS-Spec_Vol2_Primary_v442.pdf
+          Page 18, Chapter 2.3, Table 2
+        """
+
+        UNKNOWN = -1
+        GAS_METER = 3
+        HEAT_METER = 4
+        WARM_WATER_METER = 6
+        WATER_METER = 7
+        INLET_HEAT_METER = 12
+
+        @classmethod
+        def _missing_(cls, _):
+            return cls.UNKNOWN
+
+        @staticmethod
+        def from_string(value: str) -> ExternalDevice.DeviceType:
+            """Convert string to enum."""
+            try:
+                return {
+                    "gas_meter": ExternalDevice.DeviceType.GAS_METER,
+                    "heat_meter": ExternalDevice.DeviceType.HEAT_METER,
+                    "warm_water_meter": ExternalDevice.DeviceType.WARM_WATER_METER,
+                    "water_meter": ExternalDevice.DeviceType.WATER_METER,
+                    "inlet_heat_meter": ExternalDevice.DeviceType.INLET_HEAT_METER,
+                }[value]
+            except (KeyError):
+                return ExternalDevice.DeviceType.UNKNOWN
+
+    unique_id: str
+    meter_type: DeviceType
+    value: float
+    unit: str
+    timestamp: datetime
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> dict:
+        """Return State object from API response.
+
+        Args:
+            data: The data from a external device in the HomeWizard Energy `api/v1/state` API.
+        Returns:
+            An ExternalDevice Device object.
+        """
+        return ExternalDevice(
+            unique_id=data.get("unique_id"),
+            meter_type=ExternalDevice.DeviceType.from_string(data.get("type")),
+            value=data.get("value"),
+            unit=data.get("unit"),
+            timestamp=Data.convert_timestamp_to_datetime(data.get("timestamp")),
         )
 
 
