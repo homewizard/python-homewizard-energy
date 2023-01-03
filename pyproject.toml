@@ -90,6 +90,7 @@ disable= [
     "duplicate-code",
     "format",
     "unsubscriptable-object",
+    "too-many-instance-attributes",
 ]
 
 [tool.pylint.SIMILARITIES]
