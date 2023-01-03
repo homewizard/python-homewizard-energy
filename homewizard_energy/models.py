@@ -41,12 +41,14 @@ class Device:
 class Data:
     """Represent Device config."""
 
+    wifi_ssid: str | None
+    wifi_strength: int | None
+
     smr_version: int | None
     meter_model: str | None
     unique_meter_id: str | None
 
-    wifi_ssid: str | None
-    wifi_strength: int | None
+    active_tariff: int | None
 
     total_power_import_kwh: float | None
     total_power_import_t1_kwh: float | None
@@ -87,7 +89,7 @@ class Data:
 
     active_power_average_w: float | None
     montly_power_peak_w: float | None
-    active_power_peak_timestamp: datetime | None
+    montly_power_peak_timestamp: datetime | None
 
     total_gas_m3: float | None
     gas_timestamp: datetime | None
@@ -139,11 +141,12 @@ class Data:
         """
 
         return Data(
+            wifi_ssid=data.get("wifi_ssid"),
+            wifi_strength=data.get("wifi_strength"),
             smr_version=data.get("smr_version"),
             meter_model=data.get("meter_model"),
             unique_meter_id=data.get("unique_id"),
-            wifi_ssid=data.get("wifi_ssid"),
-            wifi_strength=data.get("wifi_strength"),
+            active_tariff=data.get("active_tariff"),
             total_power_import_kwh=data.get("total_power_import_kwh"),
             total_power_import_t1_kwh=data.get("total_power_import_t1_kwh"),
             total_power_import_t2_kwh=data.get("total_power_import_t2_kwh"),
@@ -175,8 +178,8 @@ class Data:
             long_power_fail_count=data.get("long_power_fail_count"),
             active_power_average_w=data.get("active_power_average_w"),
             montly_power_peak_w=data.get("montly_power_peak_w"),
-            active_power_peak_timestamp=Data.convert_timestamp_to_datetime(
-                data.get("active_power_peak_timestamp")
+            montly_power_peak_timestamp=Data.convert_timestamp_to_datetime(
+                data.get("montly_power_peak_timestamp")
             ),
             total_gas_m3=data.get("total_gas_m3"),
             gas_timestamp=Data.convert_timestamp_to_datetime(data.get("gas_timestamp")),
