@@ -17,3 +17,5 @@ __pycache__/
 
 # VS Code
 .vscode/
+
+example.py
