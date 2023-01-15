@@ -22,7 +22,7 @@ awesomeversion = ">=22.9.0"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^2.1.6"
-black = "^22.10"
+black = "^22.12"
 blacken-docs = "^1.12.1"
 flake8 = "^4.0.1"
 flake8-docstrings = "^1.5.0"
