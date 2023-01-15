@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 
-from homewizard_energy import Data, Device, ExternalDevice, State, System
+from homewizard_energy import Data, Decryption, Device, ExternalDevice, State, System
 
 from . import load_fixtures
 
@@ -297,3 +297,14 @@ def test_system():
 
     assert system
     assert not system.cloud_enabled
+
+
+def test_decryption():
+    """TODO."""
+    decryption: Decryption = Decryption.from_dict(
+        json.loads(load_fixtures("decryption.json"))
+    )
+
+    assert decryption
+    assert decryption.key_set
+    assert decryption.aad_set
