@@ -548,3 +548,114 @@ async def test_system_set(aresponses):
         assert system
 
         await api.close()
+
+
+@pytest.mark.asyncio
+async def test_get_decryption_object(aresponses):
+    """Test fetches decryption object."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/decryption",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("decryption.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-P1", "4.14")
+
+        decryption = await api.decryption()
+        assert decryption
+        assert decryption.key_set
+        assert decryption.aad_set
+
+        await api.close()
+
+
+@pytest.mark.asyncio
+async def test_decryption_set(aresponses):
+    """Test decryption set."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/decryption",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures("decryption.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-P1", "4.14")
+
+        # Catches invalid length
+        with pytest.raises(ValueError):
+            await api.decryption_set(key="00")
+
+        with pytest.raises(ValueError):
+            await api.decryption_set(aad="00")
+
+        # Catches invalid content
+        with pytest.raises(ValueError):
+            await api.decryption_set(key="FAILccddeeff00112233445566778899")
+
+        with pytest.raises(ValueError):
+            await api.decryption_set(aad="30FAILccddeeff00112233445566778899")
+
+        response = await api.decryption_set(
+            key="aabbccddeeff00112233445566778899",
+            aad="30aabbccddeeff00112233445566778899",
+        )
+        assert response
+
+        await api.close()
+
+
+@pytest.mark.asyncio
+async def test_decryption_reset(aresponses):
+    """Test decryption reset."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/decryption",
+        "DELETE",
+        aresponses.Response(
+            text=load_fixtures("decryption.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        # pylint: disable=protected-access
+        api._features = Features("HWE-P1", "4.14")
+
+        response = await api.decryption_reset(aad=True, key=True)
+        assert response
+
+        await api.close()

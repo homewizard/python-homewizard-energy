@@ -49,3 +49,10 @@ class Features:
         if self.device_type == "HWE-P1" and self.version >= AwesomeVersion("4.00"):
             return True
         return False
+
+    @property
+    def has_decryption(self) -> bool:
+        """Return if device supports `Decryption` API."""
+        if self.device_type == "HWE-P1" and self.version >= AwesomeVersion("4.00"):
+            return True
+        return False
