@@ -119,7 +119,7 @@ def test_data_p1_full():
     assert data.wifi_strength == 100
     assert data.smr_version == 50
     assert data.meter_model == "ISKRA  2M550T-101"
-    assert data.unique_meter_id == "00112233445566778899AABBCCDDEEFF"
+    assert data.unique_meter_id == "NGGYU"
     assert data.active_tariff == 2
     assert data.total_power_import_kwh == 13779.338
     assert data.total_power_import_t1_kwh == 10830.511
@@ -145,7 +145,7 @@ def test_data_p1_full():
     assert data.long_power_fail_count == 5
     assert data.total_gas_m3 == 2569.646
     assert data.gas_timestamp == datetime(2021, 6, 6, 14, 0, 10)
-    assert data.gas_unique_id == "01FFEEDDCCBBAA99887766554433221100"
+    assert data.gas_unique_id == "NGLYD"
     assert data.active_power_average_w == 123.000
     assert data.montly_power_peak_w == 1111.000
     assert data.montly_power_peak_timestamp == datetime(2023, 1, 1, 8, 0, 10)
@@ -153,39 +153,49 @@ def test_data_p1_full():
     assert len(data.external_devices) == 5
 
     device = data.external_devices[0]
-    assert device.unique_id == "01FFEEDDCCBBAA99887766554433221100"
+    assert device.unique_id == "NGLYD"
     assert device.meter_type == ExternalDevice.DeviceType.GAS_METER
     assert device.value == 111.111
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
     device = data.external_devices[1]
-    assert device.unique_id == "02FFEEDDCCBBAA99887766554433221100"
+    assert device.unique_id == "NGRAADY"
     assert device.meter_type == ExternalDevice.DeviceType.HEAT_METER
     assert device.value == 222.222
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
     device = data.external_devices[2]
-    assert device.unique_id == "03FFEEDDCCBBAA99887766554433221100"
+    assert device.unique_id == "NGMYC"
     assert device.meter_type == ExternalDevice.DeviceType.WARM_WATER_METER
     assert device.value == 333.333
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
     device = data.external_devices[3]
-    assert device.unique_id == "04FFEEDDCCBBAA99887766554433221100"
+    assert device.unique_id == "NGSG"
     assert device.meter_type == ExternalDevice.DeviceType.WATER_METER
     assert device.value == 444.444
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
     device = data.external_devices[4]
-    assert device.unique_id == "05FFEEDDCCBBAA99887766554433221100"
+    assert device.unique_id == "NGTALAHY"
     assert device.meter_type == ExternalDevice.DeviceType.INLET_HEAT_METER
     assert device.value == 555.555
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
+
+
+def test_unique_id_is_not_parsed_when_invalid():
+    """TODO."""
+    # pylint: disable=too-many-statements
+
+    data: Data = Data.from_dict({"unique_id": "not_parsable"})
+
+    assert data
+    assert data.unique_meter_id == "not_parsable"
 
 
 def test_data_watermeter():
