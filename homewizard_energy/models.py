@@ -88,8 +88,8 @@ class Data:
     long_power_fail_count: int | None
 
     active_power_average_w: float | None
-    montly_power_peak_w: float | None
-    montly_power_peak_timestamp: datetime | None
+    monthly_power_peak_w: float | None
+    monthly_power_peak_timestamp: datetime | None
 
     total_gas_m3: float | None
     gas_timestamp: datetime | None
@@ -177,8 +177,8 @@ class Data:
             any_power_fail_count=data.get("any_power_fail_count"),
             long_power_fail_count=data.get("long_power_fail_count"),
             active_power_average_w=data.get("active_power_average_w"),
-            montly_power_peak_w=data.get("montly_power_peak_w"),
-            montly_power_peak_timestamp=Data.convert_timestamp_to_datetime(
+            monthly_power_peak_w=data.get("montly_power_peak_w"),
+            monthly_power_peak_timestamp=Data.convert_timestamp_to_datetime(
                 data.get("montly_power_peak_timestamp")
             ),
             total_gas_m3=data.get("total_gas_m3"),
