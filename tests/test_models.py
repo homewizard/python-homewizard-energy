@@ -147,8 +147,8 @@ def test_data_p1_full():
     assert data.gas_timestamp == datetime(2021, 6, 6, 14, 0, 10)
     assert data.gas_unique_id == "01FFEEDDCCBBAA99887766554433221100"
     assert data.active_power_average_w == 123.000
-    assert data.montly_power_peak_w == 1111.000
-    assert data.montly_power_peak_timestamp == datetime(2023, 1, 1, 8, 0, 10)
+    assert data.monthly_power_peak_w == 1111.000
+    assert data.monthly_power_peak_timestamp == datetime(2023, 1, 1, 8, 0, 10)
 
     assert len(data.external_devices) == 5
 
