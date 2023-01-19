@@ -3,7 +3,7 @@
     "wifi_strength": 100,
     "smr_version": 50,
     "meter_model": "ISKRA  2M550T-101",
-    "unique_id": "00112233445566778899AABBCCDDEEFF",
+    "unique_id": "4E47475955",
     "active_tariff": 2,
     "total_power_import_kwh": 13779.338,
     "total_power_import_t1_kwh": 10830.511,
@@ -29,41 +29,41 @@
     "long_power_fail_count": 5,
     "total_gas_m3": 2569.646,
     "gas_timestamp": 210606140010,
-    "gas_unique_id": "01FFEEDDCCBBAA99887766554433221100",
+    "gas_unique_id": "4E474C5944",
     "active_power_average_w": 123.000,
     "montly_power_peak_w": 1111.000,
     "montly_power_peak_timestamp": 230101080010,
     "external": [
         {
-            "unique_id": "01FFEEDDCCBBAA99887766554433221100",
+            "unique_id": "4E474C5944",
             "type": "gas_meter",
             "timestamp": 210606140010,
             "value": 111.111,
             "unit": "m3"
         },
         {
-            "unique_id": "02FFEEDDCCBBAA99887766554433221100",
+            "unique_id": "4E475241414459",
             "type": "heat_meter",
             "timestamp": 210606140010,
             "value": 222.222,
             "unit": "m3"
         },
         {
-            "unique_id": "03FFEEDDCCBBAA99887766554433221100",
+            "unique_id": "4E474D5943",
             "type": "warm_water_meter",
             "timestamp": 210606140010,
             "value": 333.333,
             "unit": "m3"
         },
         {
-            "unique_id": "04FFEEDDCCBBAA99887766554433221100",
+            "unique_id": "4E475347",
             "type": "water_meter",
             "timestamp": 210606140010,
             "value": 444.444,
             "unit": "m3"
         },
         {
-            "unique_id": "05FFEEDDCCBBAA99887766554433221100",
+            "unique_id": "4E4754414C414859",
             "type": "inlet_heat_meter",
             "timestamp": 210606140010,
             "value": 555.555,

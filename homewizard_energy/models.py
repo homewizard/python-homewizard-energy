@@ -116,6 +116,21 @@ class Data:
         return datetime.strptime(str(timestamp), "%y%m%d%H%M%S")
 
     @staticmethod
+    def convert_hex_string_to_readable(value: str | None) -> str | None:
+        """Convert hex 'SMS' string to readable string, if possible.
+
+        Args:
+            value: String to convert, e.g. '4E47475955'
+
+        Returns:
+            A string formatted or original value when failed.
+        """
+        try:
+            return bytes.fromhex(value).decode("utf-8")
+        except (TypeError, ValueError):
+            return value
+
+    @staticmethod
     def get_external_devices(external_devices) -> list[ExternalDevice] | None:
         """Convert external device object to ExternalDevice Object List."""
 
@@ -145,7 +160,7 @@ class Data:
             wifi_strength=data.get("wifi_strength"),
             smr_version=data.get("smr_version"),
             meter_model=data.get("meter_model"),
-            unique_meter_id=data.get("unique_id"),
+            unique_meter_id=Data.convert_hex_string_to_readable(data.get("unique_id")),
             active_tariff=data.get("active_tariff"),
             total_power_import_kwh=data.get("total_power_import_kwh"),
             total_power_import_t1_kwh=data.get("total_power_import_t1_kwh"),
@@ -183,7 +198,9 @@ class Data:
             ),
             total_gas_m3=data.get("total_gas_m3"),
             gas_timestamp=Data.convert_timestamp_to_datetime(data.get("gas_timestamp")),
-            gas_unique_id=data.get("gas_unique_id"),
+            gas_unique_id=Data.convert_hex_string_to_readable(
+                data.get("gas_unique_id")
+            ),
             active_liter_lpm=data.get("active_liter_lpm"),
             total_liter_m3=data.get("total_liter_m3"),
             external_devices=Data.get_external_devices(data.get("external")),
@@ -243,7 +260,7 @@ class ExternalDevice:
             An ExternalDevice Device object.
         """
         return ExternalDevice(
-            unique_id=data.get("unique_id"),
+            unique_id=Data.convert_hex_string_to_readable(data.get("unique_id")),
             meter_type=ExternalDevice.DeviceType.from_string(data.get("type")),
             value=data.get("value"),
             unit=data.get("unit"),
