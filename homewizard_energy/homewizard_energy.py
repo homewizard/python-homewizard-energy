@@ -4,6 +4,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import string
+from http import HTTPStatus
+from typing import Any, cast
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
@@ -34,6 +36,7 @@ class HomeWizardEnergy:
         Args:
             host: IP or URL for device.
             clientsession: The clientsession.
+            timeout: Request timeout in seconds.
         """
 
         self._host = host
@@ -55,7 +58,7 @@ class HomeWizardEnergy:
         if self.features is None:
             await self.device()
 
-        return self._features
+        return cast(Features, self._features)
 
     async def device(self) -> Device:
         """Return the device object."""
@@ -92,7 +95,7 @@ class HomeWizardEnergy:
         brightness: int | None = None,
     ) -> bool:
         """Set state of device."""
-        state = {}
+        state: dict[str, bool | str] = {}
         features = await self.features()
         if not features.has_state:
             raise UnsupportedError("Setting state is not supported with this device")
@@ -147,7 +150,7 @@ class HomeWizardEnergy:
         await self.request("api/v1/identify", method=METH_PUT)
         return True
 
-    async def decryption(self) -> bool:
+    async def decryption(self) -> Decryption:
         """Return the decryption object."""
         response = await self.request("api/v1/decryption")
         return Decryption.from_dict(response)
@@ -218,7 +221,7 @@ class HomeWizardEnergy:
 
     async def request(
         self, path: str, method: str = METH_GET, data: object = None
-    ) -> object | None:
+    ) -> Any:
         """Make a request to the API."""
         if self._session is None:
             self._session = ClientSession()
@@ -247,13 +250,13 @@ class HomeWizardEnergy:
                 "Error occurred while communicating with the HomeWizard Energy device"
             ) from exception
 
-        if resp.status == 403:
+        if resp.status == HTTPStatus.FORBIDDEN:
             # Known case: API disabled
             raise DisabledError(
                 "API disabled. API must be enabled in HomeWizard Energy app"
             )
 
-        if resp.status != 200:
+        if resp.status != HTTPStatus.OK:
             # Something else went wrong
             raise RequestError(f"API request error ({resp.status})")
 
@@ -263,7 +266,7 @@ class HomeWizardEnergy:
 
         return await resp.text()
 
-    async def close(self):
+    async def close(self) -> None:
         """Close client session."""
         _LOGGER.debug("Closing clientsession")
         if self._session and self._close_session:
@@ -277,7 +280,7 @@ class HomeWizardEnergy:
         """
         return self
 
-    async def __aexit__(self, *_exc_info) -> None:
+    async def __aexit__(self, *_exc_info: Any) -> None:
         """Async exit.
 
         Args:
