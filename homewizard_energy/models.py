@@ -131,13 +131,14 @@ class Data:
             return value
 
     @staticmethod
-    def get_external_devices(external_devices) -> list[ExternalDevice] | None:
+    def get_external_devices(
+        external_devices: list[dict[str, Any]] | None
+    ) -> list[ExternalDevice]:
         """Convert external device object to ExternalDevice Object List."""
+        devices: list[ExternalDevice] = []
 
         if external_devices is None:
-            return None
-
-        devices: list[ExternalDevice] = []
+            return devices
 
         for external in external_devices:
             devices.append(ExternalDevice.from_dict(external))
@@ -227,7 +228,7 @@ class ExternalDevice:
         INLET_HEAT_METER = 12
 
         @classmethod
-        def _missing_(cls, _):
+        def _missing_(cls, _: Any) -> ExternalDevice.DeviceType:
             return cls.UNKNOWN
 
         @staticmethod
@@ -251,19 +252,20 @@ class ExternalDevice:
     timestamp: datetime
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> dict:
+    def from_dict(data: dict[str, Any]) -> ExternalDevice:
         """Return State object from API response.
 
         Args:
-            data: The data from a external device in the HomeWizard Energy `api/v1/state` API.
+            data: The data from a external device in the HomeWizard Energy
+            `api/v1/state` API.
         Returns:
             An ExternalDevice Device object.
         """
         return ExternalDevice(
             unique_id=Data.convert_hex_string_to_readable(data.get("unique_id")),
-            meter_type=ExternalDevice.DeviceType.from_string(data.get("type")),
-            value=data.get("value"),
-            unit=data.get("unit"),
+            meter_type=ExternalDevice.DeviceType.from_string(data.get("type", "")),
+            value=data.get("value", 0),
+            unit=data.get("unit", ""),
             timestamp=Data.convert_timestamp_to_datetime(data.get("timestamp")),
         )
 
@@ -277,7 +279,7 @@ class State:
     brightness: int | None
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> dict:
+    def from_dict(data: dict[str, Any]) -> State:
         """Return State object from API response.
 
         Args:
@@ -300,7 +302,7 @@ class System:
     cloud_enabled: bool | None
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> dict:
+    def from_dict(data: dict[str, Any]) -> System:
         """Return System object from API response.
 
         Args:
@@ -322,7 +324,7 @@ class Decryption:
     aad_set: bool | None
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> dict:
+    def from_dict(data: dict[str, Any]) -> Decryption:
         """Return Decryption object from API response.
 
         Args:
