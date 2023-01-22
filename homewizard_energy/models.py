@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -98,7 +99,7 @@ class Data:
     active_liter_lpm: float | None
     total_liter_m3: float | None
 
-    external_devices: list[ExternalDevice]
+    external_devices: dict[str, ExternalDevice] | None
 
     @staticmethod
     def convert_timestamp_to_datetime(timestamp: str | None) -> datetime | None:
@@ -133,15 +134,17 @@ class Data:
     @staticmethod
     def get_external_devices(
         external_devices: list[dict[str, Any]] | None
-    ) -> list[ExternalDevice]:
+    ) -> dict[str, ExternalDevice] | None:
         """Convert external device object to ExternalDevice Object List."""
-        devices: list[ExternalDevice] = []
+        devices: dict[str, ExternalDevice] = {}
 
         if external_devices is None:
-            return devices
+            return None
 
         for external in external_devices:
-            devices.append(ExternalDevice.from_dict(external))
+            with suppress(ValueError, KeyError):
+                device = ExternalDevice.from_dict(external)
+            devices[device.unique_id] = device
 
         return devices
 
@@ -261,12 +264,15 @@ class ExternalDevice:
         Returns:
             An ExternalDevice Device object.
         """
+        if data.get("unique_id") is None:
+            raise KeyError("unique_id must be set")
+
         return ExternalDevice(
             unique_id=Data.convert_hex_string_to_readable(data.get("unique_id")),
             meter_type=ExternalDevice.DeviceType.from_string(data.get("type", "")),
             value=data.get("value", 0),
             unit=data.get("unit", ""),
-            timestamp=Data.convert_timestamp_to_datetime(data.get("timestamp")),
+            timestamp=datetime.strptime(str(data.get("timestamp")), "%y%m%d%H%M%S"),
         )
 
 

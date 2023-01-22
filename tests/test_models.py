@@ -152,35 +152,35 @@ def test_data_p1_full():
 
     assert len(data.external_devices) == 5
 
-    device = data.external_devices[0]
+    device = data.external_devices["NGLYD"]
     assert device.unique_id == "NGLYD"
     assert device.meter_type == ExternalDevice.DeviceType.GAS_METER
     assert device.value == 111.111
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
-    device = data.external_devices[1]
+    device = data.external_devices["NGRAADY"]
     assert device.unique_id == "NGRAADY"
     assert device.meter_type == ExternalDevice.DeviceType.HEAT_METER
     assert device.value == 222.222
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
-    device = data.external_devices[2]
+    device = data.external_devices["NGMYC"]
     assert device.unique_id == "NGMYC"
     assert device.meter_type == ExternalDevice.DeviceType.WARM_WATER_METER
     assert device.value == 333.333
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
-    device = data.external_devices[3]
+    device = data.external_devices["NGSG"]
     assert device.unique_id == "NGSG"
     assert device.meter_type == ExternalDevice.DeviceType.WATER_METER
     assert device.value == 444.444
     assert device.unit == "m3"
     assert device.timestamp == datetime(2021, 6, 6, 14, 0, 10)
 
-    device = data.external_devices[4]
+    device = data.external_devices["NGTALAHY"]
     assert device.unique_id == "NGTALAHY"
     assert device.meter_type == ExternalDevice.DeviceType.INLET_HEAT_METER
     assert device.value == 555.555
