@@ -68,6 +68,12 @@
             "timestamp": 210606140010,
             "value": 555.555,
             "unit": "m3"
+        },
+        {
+            "type": "inlet_heat_meter",
+            "timestamp": 210606140010,
+            "value": 555.555,
+            "unit": "should_not_be_included_because_of_missing_id"
         }
     ]
 }
