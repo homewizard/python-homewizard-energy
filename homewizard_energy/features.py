@@ -48,6 +48,11 @@ class Features:
             return True
         if self.device_type == "HWE-P1" and self.version >= AwesomeVersion("4.00"):
             return True
+        if self.device_type in (
+            "SDM230-WIFI",
+            "SDM630-WIFI",
+        ) and self.version >= AwesomeVersion("3.00"):
+            return True
         return False
 
     @property
