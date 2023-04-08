@@ -6,7 +6,7 @@ import logging
 import string
 from collections.abc import Callable, Coroutine
 from http import HTTPStatus
-from typing import Any
+from typing import Any, TypeVar
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
@@ -19,6 +19,7 @@ from .models import Data, Decryption, Device, State, System
 _LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
+
 
 def optional_method(
     func: Callable[..., Coroutine[Any, Any, T]]
