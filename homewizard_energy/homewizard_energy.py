@@ -18,14 +18,13 @@ from .models import Data, Decryption, Device, State, System
 
 _LOGGER = logging.getLogger(__name__)
 
-T = TypeVar("T")
 
 def optional_method(
-    func: Callable[..., Coroutine[Any, Any, T]]
-) -> Callable[..., Coroutine[Any, Any, T]]:
+    func: Callable[..., Coroutine[Any, Any, None]]
+) -> Callable[..., Coroutine[Any, Any, None]]:
     """Check if method is supported."""
 
-    async def wrapper(self, *args, **kwargs) -> T:
+    async def wrapper(self, *args, **kwargs):
         try:
             return await func(self, *args, **kwargs)
         except NotFoundError as ex:
