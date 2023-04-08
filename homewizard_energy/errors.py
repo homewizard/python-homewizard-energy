@@ -12,6 +12,13 @@ class RequestError(HomeWizardEnergyException):
     """
 
 
+class NotFoundError(HomeWizardEnergyException):
+    """Request not found.
+
+    Raised when API responds with '404'
+    """
+
+
 class InvalidStateError(HomeWizardEnergyException):
     """Raised when the device is not in the correct state."""
 
