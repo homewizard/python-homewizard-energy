@@ -4,19 +4,33 @@ from __future__ import annotations
 import asyncio
 import logging
 import string
+from collections.abc import Callable, Coroutine
 from http import HTTPStatus
-from typing import Any, cast
+from typing import Any
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_PUT
 
 from .const import SUPPORTED_API_VERSION
-from .errors import DisabledError, RequestError, UnsupportedError
-from .features import Features
+from .errors import DisabledError, NotFoundError, RequestError, UnsupportedError
 from .models import Data, Decryption, Device, State, System
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def optional_method(
+    func: Callable[..., Coroutine[Any, Any, None]]
+) -> Callable[..., Coroutine[Any, Any, None]]:
+    """Check if method is supported."""
+
+    async def wrapper(self, *args, **kwargs):
+        try:
+            return await func(self, *args, **kwargs)
+        except NotFoundError as ex:
+            raise UnsupportedError(f"{func.__name__} is not supported") from ex
+
+    return wrapper
 
 
 class HomeWizardEnergy:
@@ -25,8 +39,6 @@ class HomeWizardEnergy:
     _session: ClientSession | None
     _close_session: bool = False
     _request_timeout: int = 10
-
-    _features: Features | None = None
 
     def __init__(
         self, host: str, clientsession: ClientSession = None, timeout: int = 10
@@ -53,19 +65,10 @@ class HomeWizardEnergy:
         """
         return self._host
 
-    async def features(self) -> Features:
-        """Create or return Features object."""
-        if self.features is None:
-            await self.device()
-
-        return cast(Features, self._features)
-
     async def device(self) -> Device:
         """Return the device object."""
         response = await self.request("api")
         device = Device.from_dict(response)
-
-        self._features = Features(device.product_type, device.firmware_version)
 
         if device.api_version != SUPPORTED_API_VERSION:
             raise UnsupportedError(
@@ -79,15 +82,13 @@ class HomeWizardEnergy:
         response = await self.request("api/v1/data")
         return Data.from_dict(response)
 
+    @optional_method
     async def state(self) -> State | None:
         """Return the state object."""
-        features = await self.features()
-        if not features.has_state:
-            return None
-
         response = await self.request("api/v1/state")
         return State.from_dict(response)
 
+    @optional_method
     async def state_set(
         self,
         power_on: bool | None = None,
@@ -96,9 +97,6 @@ class HomeWizardEnergy:
     ) -> bool:
         """Set state of device."""
         state: dict[str, bool | str] = {}
-        features = await self.features()
-        if not features.has_state:
-            raise UnsupportedError("Setting state is not supported with this device")
 
         if power_on is not None:
             state["power_on"] = power_on
@@ -114,21 +112,19 @@ class HomeWizardEnergy:
         await self.request("api/v1/state", method=METH_PUT, data=state)
         return True
 
+    @optional_method
     async def system(self) -> System:
         """Return the system object."""
         response = await self.request("api/v1/system")
         return System.from_dict(response)
 
+    @optional_method
     async def system_set(
         self,
         cloud_enabled: bool | None = None,
     ) -> bool:
         """Set state of device."""
         state = {}
-        features = await self.features()
-        if not features.has_system:
-            raise UnsupportedError("Setting system is not supported with this device")
-
         if cloud_enabled is not None:
             state["cloud_enabled"] = cloud_enabled
 
@@ -139,22 +135,21 @@ class HomeWizardEnergy:
         await self.request("api/v1/system", method=METH_PUT, data=state)
         return True
 
+    @optional_method
     async def identify(
         self,
     ) -> bool:
         """Send identify request."""
-        features = await self.features()
-        if not features.has_identify:
-            raise UnsupportedError("Identify is not supported")
-
         await self.request("api/v1/identify", method=METH_PUT)
         return True
 
+    @optional_method
     async def decryption(self) -> Decryption:
         """Return the decryption object."""
         response = await self.request("api/v1/decryption")
         return Decryption.from_dict(response)
 
+    @optional_method
     async def decryption_set(
         self,
         key: str | None = None,
@@ -162,11 +157,6 @@ class HomeWizardEnergy:
     ) -> bool:
         """Set state of device."""
         data = {}
-        features = await self.features()
-        if not features.has_decryption:
-            raise UnsupportedError(
-                "Setting decryption is not supported with this device"
-            )
 
         if key is not None:
             if len(key) != 32:
@@ -199,18 +189,13 @@ class HomeWizardEnergy:
         await self.request("api/v1/decryption", method=METH_PUT, data=data)
         return True
 
+    @optional_method
     async def decryption_reset(
         self,
         key: bool = False,
         aad: bool = False,
     ) -> bool:
         """Reset decryption keys of device."""
-        features = await self.features()
-        if not features.has_decryption:
-            raise UnsupportedError(
-                "Setting decryption is not supported with this device"
-            )
-
         data = {
             "key": key,
             "aad": aad,
@@ -255,6 +240,10 @@ class HomeWizardEnergy:
             raise DisabledError(
                 "API disabled. API must be enabled in HomeWizard Energy app"
             )
+
+        if resp.status == HTTPStatus.NOT_FOUND:
+            # Known case: API endpoint not supported
+            raise NotFoundError("Resource not found")
 
         if resp.status != HTTPStatus.OK:
             # Something else went wrong

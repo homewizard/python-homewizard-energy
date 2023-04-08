@@ -6,7 +6,6 @@ import pytest
 
 from homewizard_energy import HomeWizardEnergy
 from homewizard_energy.errors import DisabledError, RequestError, UnsupportedError
-from homewizard_energy.features import Features
 
 from . import load_fixtures
 
@@ -152,9 +151,6 @@ async def test_get_device_object(aresponses):
         assert device
         assert device.product_type == "HWE-P1"
 
-        # pylint: disable=protected-access
-        assert api._features is not None
-
         await api.close()
 
 
@@ -276,9 +272,6 @@ async def test_get_state_object(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "1.00")
-
         state = await api.state()
         assert state
         assert not state.power_on
@@ -315,50 +308,9 @@ async def test_get_state_object_with_known_device(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "1.00")
-
         state = await api.state()
         assert state
         assert not state.power_on
-
-        await api.close()
-
-
-@pytest.mark.asyncio
-async def test_get_state_object_returns_null_not_supported(aresponses):
-    """Test detects device has no support for state."""
-
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("device.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
-
-    aresponses.add(
-        "example.com",
-        "/api/v1/data",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("state.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._features = Features("HWE-P1", "1.00")
-
-        state = await api.state()
-        assert not state
 
         await api.close()
 
@@ -380,9 +332,6 @@ async def test_state_set(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "1.00")
 
         state = await api.state_set(power_on=False, switch_lock=False, brightness=255)
         assert state
@@ -408,9 +357,6 @@ async def test_state_set_detects_no_statechange(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "1.00")
-
         state = await api.state_set()
         assert not state
 
@@ -433,9 +379,6 @@ async def test_identify(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "3.02")
-
         state = await api.identify()
         assert state
 
@@ -452,16 +395,13 @@ async def test_identify_not_available(aresponses):
         "PUT",
         aresponses.Response(
             text=load_fixtures("identify.json"),
-            status=200,
+            status=404,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
     )
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "1.00")
 
         with pytest.raises(UnsupportedError):
             await api.identify()
@@ -509,9 +449,6 @@ async def test_get_system_object(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "1.00")
-
         system = await api.system()
         assert system
         assert system.cloud_enabled
@@ -540,9 +477,6 @@ async def test_system_set(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._features = Features("HWE-SKT", "3.01")
 
         system = await api.system_set(cloud_enabled=False)
         assert system
@@ -579,9 +513,6 @@ async def test_get_decryption_object(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        # pylint: disable=protected-access
-        api._features = Features("HWE-P1", "4.14")
-
         decryption = await api.decryption()
         assert decryption
         assert decryption.key_set
@@ -607,9 +538,6 @@ async def test_decryption_set(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._features = Features("HWE-P1", "4.14")
 
         # Catches invalid length
         with pytest.raises(ValueError):
@@ -651,9 +579,6 @@ async def test_decryption_reset(aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._features = Features("HWE-P1", "4.14")
 
         response = await api.decryption_reset(aad=True, key=True)
         assert response
