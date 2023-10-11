@@ -24,8 +24,10 @@ The example below is available as a runnable script in the repository.
 ```python
 from homewizard_energy import HomeWizardEnergy
 
-# Make contact with a energy device
-async with HomeWizardEnergy(args.host) as api:
+IP_ADDRESS = "192.168.1.123"
+
+# Make contact with an energy device
+async with HomeWizardEnergy(IP_ADDRESS) as api:
 
     # Use the data
     print(await api.device())
