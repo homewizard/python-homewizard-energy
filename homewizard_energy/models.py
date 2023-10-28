@@ -51,16 +51,16 @@ class Data:
 
     active_tariff: int | None
 
-    total_power_import_kwh: float | None
-    total_power_import_t1_kwh: float | None
-    total_power_import_t2_kwh: float | None
-    total_power_import_t3_kwh: float | None
-    total_power_import_t4_kwh: float | None
-    total_power_export_kwh: float | None
-    total_power_export_t1_kwh: float | None
-    total_power_export_t2_kwh: float | None
-    total_power_export_t3_kwh: float | None
-    total_power_export_t4_kwh: float | None
+    total_energy_import_kwh: float | None
+    total_energy_import_t1_kwh: float | None
+    total_energy_import_t2_kwh: float | None
+    total_energy_import_t3_kwh: float | None
+    total_energy_import_t4_kwh: float | None
+    total_energy_export_kwh: float | None
+    total_energy_export_t1_kwh: float | None
+    total_energy_export_t2_kwh: float | None
+    total_energy_export_t3_kwh: float | None
+    total_energy_export_t4_kwh: float | None
 
     active_power_w: float | None
     active_power_l1_w: float | None
@@ -166,16 +166,16 @@ class Data:
             meter_model=data.get("meter_model"),
             unique_meter_id=Data.convert_hex_string_to_readable(data.get("unique_id")),
             active_tariff=data.get("active_tariff"),
-            total_power_import_kwh=data.get("total_power_import_kwh"),
-            total_power_import_t1_kwh=data.get("total_power_import_t1_kwh"),
-            total_power_import_t2_kwh=data.get("total_power_import_t2_kwh"),
-            total_power_import_t3_kwh=data.get("total_power_import_t3_kwh"),
-            total_power_import_t4_kwh=data.get("total_power_import_t4_kwh"),
-            total_power_export_kwh=data.get("total_power_export_kwh"),
-            total_power_export_t1_kwh=data.get("total_power_export_t1_kwh"),
-            total_power_export_t2_kwh=data.get("total_power_export_t2_kwh"),
-            total_power_export_t3_kwh=data.get("total_power_export_t3_kwh"),
-            total_power_export_t4_kwh=data.get("total_power_export_t4_kwh"),
+            total_energy_import_kwh=data.get("total_power_import_kwh"),
+            total_energy_import_t1_kwh=data.get("total_power_import_t1_kwh"),
+            total_energy_import_t2_kwh=data.get("total_power_import_t2_kwh"),
+            total_energy_import_t3_kwh=data.get("total_power_import_t3_kwh"),
+            total_energy_import_t4_kwh=data.get("total_power_import_t4_kwh"),
+            total_energy_export_kwh=data.get("total_power_export_kwh"),
+            total_energy_export_t1_kwh=data.get("total_power_export_t1_kwh"),
+            total_energy_export_t2_kwh=data.get("total_power_export_t2_kwh"),
+            total_energy_export_t3_kwh=data.get("total_power_export_t3_kwh"),
+            total_energy_export_t4_kwh=data.get("total_power_export_t4_kwh"),
             active_power_w=data.get("active_power_w"),
             active_power_l1_w=data.get("active_power_l1_w"),
             active_power_l2_w=data.get("active_power_l2_w"),
