@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-homewizard-energy"
-version = "2.1.2"
+version = "3.0.1"
 description = "Asynchronous Python client for the HomeWizard Energy"
 authors = ["DCSBL"]
 maintainers = ["DCSBL"]
