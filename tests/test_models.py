@@ -54,10 +54,10 @@ def test_data_p1():
     assert data.meter_model == "ISKRA  2M550T-101"
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh == 2948.827
-    assert data.total_power_export_t1_kwh == 1285.951
-    assert data.total_power_export_t2_kwh == 2876.51
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh == 2948.827
+    assert data.total_energy_export_t1_kwh == 1285.951
+    assert data.total_energy_export_t2_kwh == 2876.51
     assert data.active_power_w == -543
     assert data.active_power_l1_w == -676
     assert data.active_power_l2_w == 133
@@ -75,10 +75,10 @@ def test_data_p1_no_gas():
     assert data.meter_model == "ISKRA  2M550T-101"
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh == 2948.827
-    assert data.total_power_export_t1_kwh == 1285.951
-    assert data.total_power_export_t2_kwh == 2876.51
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh == 2948.827
+    assert data.total_energy_export_t1_kwh == 1285.951
+    assert data.total_energy_export_t2_kwh == 2876.51
     assert data.active_power_w == -543
     assert data.active_power_l1_w == -676
     assert data.active_power_l2_w == 133
@@ -96,10 +96,10 @@ def test_data_p1_single_phase():
     assert data.meter_model == "ISKRA  2M550T-101"
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh == 2948.827
-    assert data.total_power_export_t1_kwh == 1285.951
-    assert data.total_power_export_t2_kwh == 2876.51
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh == 2948.827
+    assert data.total_energy_export_t1_kwh == 1285.951
+    assert data.total_energy_export_t2_kwh == 2876.51
     assert data.active_power_w == -543
     assert data.active_power_l1_w == -676
     assert data.active_power_l2_w is None
@@ -121,12 +121,12 @@ def test_data_p1_full():
     assert data.meter_model == "ISKRA  2M550T-101"
     assert data.unique_meter_id == "NGGYU"
     assert data.active_tariff == 2
-    assert data.total_power_import_kwh == 13779.338
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh == 2948.827
-    assert data.total_power_export_kwh == 0
-    assert data.total_power_export_t1_kwh == 0
-    assert data.total_power_export_t2_kwh == 0
+    assert data.total_energy_import_kwh == 13779.338
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh == 2948.827
+    assert data.total_energy_export_kwh == 0
+    assert data.total_energy_export_t1_kwh == 0
+    assert data.total_energy_export_t2_kwh == 0
     assert data.active_power_w == -543
     assert data.active_power_l1_w == -676
     assert data.active_power_l2_w == 133
@@ -219,10 +219,10 @@ def test_data_kwh_single_phase():
     assert data.meter_model is None
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh is None
-    assert data.total_power_export_t1_kwh == 2948.827
-    assert data.total_power_export_t2_kwh is None
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh is None
+    assert data.total_energy_export_t1_kwh == 2948.827
+    assert data.total_energy_export_t2_kwh is None
     assert data.active_power_w == 640
     assert data.active_power_l1_w == 640
     assert data.active_power_l2_w is None
@@ -240,10 +240,10 @@ def test_data_kwh_three_phase():
     assert data.meter_model is None
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh is None
-    assert data.total_power_export_t1_kwh == 2948.827
-    assert data.total_power_export_t2_kwh is None
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh is None
+    assert data.total_energy_export_t1_kwh == 2948.827
+    assert data.total_energy_export_t2_kwh is None
     assert data.active_power_w == -543
     assert data.active_power_l1_w == -676
     assert data.active_power_l2_w == 133
@@ -261,10 +261,10 @@ def test_data_energysocket():
     assert data.meter_model is None
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
-    assert data.total_power_import_t1_kwh == 10830.511
-    assert data.total_power_import_t2_kwh is None
-    assert data.total_power_export_t1_kwh == 2948.827
-    assert data.total_power_export_t2_kwh is None
+    assert data.total_energy_import_t1_kwh == 10830.511
+    assert data.total_energy_import_t2_kwh is None
+    assert data.total_energy_export_t1_kwh == 2948.827
+    assert data.total_energy_export_t2_kwh is None
     assert data.active_power_w == 123
     assert data.active_power_l1_w == 123
     assert data.active_power_l2_w is None
