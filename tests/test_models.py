@@ -261,8 +261,10 @@ def test_data_energysocket():
     assert data.meter_model is None
     assert data.wifi_ssid == "My Wi-Fi"
     assert data.wifi_strength == 100
+    assert data.total_energy_import_kwh == 10830.511
     assert data.total_energy_import_t1_kwh == 10830.511
     assert data.total_energy_import_t2_kwh is None
+    assert data.total_energy_export_kwh == 2948.827
     assert data.total_energy_export_t1_kwh == 2948.827
     assert data.total_energy_export_t2_kwh is None
     assert data.active_power_w == 123
