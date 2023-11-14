@@ -4,15 +4,15 @@ updates:
   - package-ecosystem: pip
     directory: "/"
     schedule:
-      interval: weekly
-      time: "04:00"
+      interval: monthly
+      day: 14
   - package-ecosystem: pip
     directory: "/.github/workflows"
     schedule:
-      interval: weekly
-      time: "04:00"
+      interval: monthly
+      day: 14
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: weekly
-      time: "04:00"
+      interval: monthly
+      day: 14
