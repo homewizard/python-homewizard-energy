@@ -42,7 +42,7 @@ repos:
         entry: poetry run check-executables-have-shebangs
         stages: [commit, push, manual]
       - id: check-json
-        name: ｛ Check JSON files
+        name: Check JSON files
         language: system
         types: [json]
         entry: poetry run check-json

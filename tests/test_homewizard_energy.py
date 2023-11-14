@@ -9,8 +9,9 @@ from homewizard_energy.errors import DisabledError, RequestError, UnsupportedErr
 
 from . import load_fixtures
 
+pytestmark = [pytest.mark.asyncio]
 
-@pytest.mark.asyncio
+
 async def test_request_returns_json(aresponses):
     """Test JSON response is handled correctly."""
     aresponses.add(
@@ -31,7 +32,6 @@ async def test_request_returns_json(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_request_internal_session(aresponses):
     """Test session is closed when created internally."""
     aresponses.add(
@@ -50,7 +50,6 @@ async def test_request_internal_session(aresponses):
     await api.close()
 
 
-@pytest.mark.asyncio
 async def test_request_returns_txt(aresponses):
     """Test request returns raw text when non-json."""
     aresponses.add(
@@ -71,7 +70,6 @@ async def test_request_returns_txt(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_request_detects_403(aresponses):
     """Test request detects disabled API."""
     aresponses.add(
@@ -93,7 +91,6 @@ async def test_request_detects_403(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_request_detects_non_200(aresponses):
     """Test detects non-ok response."""
     aresponses.add(
@@ -115,7 +112,6 @@ async def test_request_detects_non_200(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_request_detects_clienterror():
     """Test other clienterror."""
     async with aiohttp.ClientSession() as session:
@@ -129,7 +125,6 @@ async def test_request_detects_clienterror():
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_device_object(aresponses):
     """Test device object is fetched and sets detected values."""
 
@@ -154,7 +149,6 @@ async def test_get_device_object(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_device_object_detects_invalid_api(aresponses):
     """Test raises error when invalid API is used."""
 
@@ -178,7 +172,6 @@ async def test_get_device_object_detects_invalid_api(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_data_object(aresponses):
     """Test fetches data object and device object when unknown."""
 
@@ -215,7 +208,6 @@ async def test_get_data_object(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_data_object_with_known_device(aresponses):
     """Test fetches data object."""
 
@@ -243,7 +235,6 @@ async def test_get_data_object_with_known_device(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_state_object(aresponses):
     """Test fetches state object and device object when unknown."""
 
@@ -279,7 +270,6 @@ async def test_get_state_object(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_state_object_with_known_device(aresponses):
     """Test fetches state object."""
 
@@ -315,7 +305,6 @@ async def test_get_state_object_with_known_device(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_state_set(aresponses):
     """Test state set."""
 
@@ -339,7 +328,6 @@ async def test_state_set(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_state_set_detects_no_statechange(aresponses):
     """Test state set does not send request when nothing is changed."""
 
@@ -361,7 +349,6 @@ async def test_state_set_detects_no_statechange(aresponses):
         assert not state
 
 
-@pytest.mark.asyncio
 async def test_identify(aresponses):
     """Test identify call."""
 
@@ -385,7 +372,6 @@ async def test_identify(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_identify_not_available(aresponses):
     """Test identify call when not supported."""
 
@@ -409,7 +395,6 @@ async def test_identify_not_available(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_system_object(aresponses):
     """Test fetches system object and device object when unknown."""
 
@@ -460,7 +445,6 @@ async def test_get_system_object(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_system_set(aresponses):
     """Test system set."""
 
@@ -484,7 +468,6 @@ async def test_system_set(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_get_decryption_object(aresponses):
     """Test fetches decryption object."""
 
@@ -521,7 +504,6 @@ async def test_get_decryption_object(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_decryption_set(aresponses):
     """Test decryption set."""
 
@@ -562,7 +544,6 @@ async def test_decryption_set(aresponses):
         await api.close()
 
 
-@pytest.mark.asyncio
 async def test_decryption_reset(aresponses):
     """Test decryption reset."""
 
