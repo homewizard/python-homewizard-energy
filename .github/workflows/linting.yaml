@@ -15,8 +15,6 @@ jobs:
             name: Check with bandit
           - id: black
             name: Check code style
-          - id: blacken-docs
-            name: Check code style in documentation
           - id: check-ast
             name: Check Python AST
           - id: check-case-conflict
@@ -61,18 +59,22 @@ jobs:
             name: Check for unused Python code
           - id: yamllint
             name: Check YAML style
+
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
+
       - name: Set up Python 3.9
         id: python
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
           echo "::set-output name=dir::$(pip cache dir)"
+
       - name: Restore cached Python PIP packages
         uses: actions/cache@v3
         with:
@@ -80,11 +82,13 @@ jobs:
           key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
           restore-keys: |
             pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: 🏗 Install workflow dependencies
         run: |
           pip install -r .github/workflows/requirements.txt
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
+
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
         uses: actions/cache@v3
@@ -93,7 +97,9 @@ jobs:
           key: >-
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: Install Python dependencies
         run: poetry install --no-interaction
+
       - name: Run pre-commit for ${{ matrix.id }}
         run: poetry run pre-commit run ${{ matrix.id }} --all-files

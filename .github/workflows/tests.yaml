@@ -11,19 +11,23 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, macos]
-        python: ['3.9', '3.10']
+        python: ['3.9', '3.10', '3.11']
+
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python }}
         id: python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
           echo "::set-output name=dir::$(pip cache dir)"
+
       - name: Restore cached Python PIP packages
         uses: actions/cache@v3
         with:
@@ -31,11 +35,13 @@ jobs:
           key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
           restore-keys: |
             pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: Install workflow dependencies
         run: |
           pip install -r .github/workflows/requirements.txt
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
+
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
         uses: actions/cache@v3
@@ -44,10 +50,13 @@ jobs:
           key: venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
           restore-keys: |
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: Install dependencies
         run: poetry install --no-interaction
+
       - name: Run pytest
         run: poetry run pytest --cov homewizard_energy tests
+
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v3
         with:
@@ -60,17 +69,21 @@ jobs:
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
+
       - name: Download coverage data
         uses: actions/download-artifact@v3
+
       - name: Set up Python 3.9
         id: python
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
           echo "::set-output name=dir::$(pip cache dir)"
+
       - name: Restore cached Python PIP packages
         uses: actions/cache@v3
         with:
@@ -78,11 +91,13 @@ jobs:
           key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
           restore-keys: |
             pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: Install workflow dependencies
         run: |
           pip install -r .github/workflows/requirements.txt
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
+
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
         uses: actions/cache@v3
@@ -91,11 +106,14 @@ jobs:
           key: >-
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
             venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+
       - name: Install dependencies
         run: poetry install --no-interaction
+
       - name: Process coverage results
         run: |
           poetry run coverage combine coverage*/.coverage*
           poetry run coverage xml -i
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v3.1.4
