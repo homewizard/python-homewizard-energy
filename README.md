@@ -18,21 +18,39 @@ Instantiate the HWEnergy class and access the API.
 For more details on the API see the official API documentation on
 https://homewizard-energy-api.readthedocs.io
 
-# Example
-The example below is available as a runnable script in the repository.
-
+## Example
 ```python
+import asyncio
 from homewizard_energy import HomeWizardEnergy
 
 IP_ADDRESS = "192.168.1.123"
 
-# Make contact with an energy device
-async with HomeWizardEnergy(IP_ADDRESS) as api:
 
-    # Use the data
+async def main():
+
+    async with HomeWizardEnergy(host=IP_ADDRESS) as api
+
     print(await api.device())
     print(await api.data())
-    print(await api.state())
 
     await api.state_set(power_on=True)
+
+
+asyncio.run(main())
 ```
+
+# Development and contribution
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## Requirements
+- Python 3.9 or higher
+- [Poetry](https://python-poetry.org/docs/#installing-with-pipx)
+
+## Installation and setup
+```bash
+poetry install
+poetry shell
+pre-commit install
+```
+
+You can now start developing. The pre-commit hooks will run automatically when you commit your changes. Please note that a failed pre-commit hook will prevent you from committing your changes. This is to make sure that the code is formatted correctly and that the tests pass.
