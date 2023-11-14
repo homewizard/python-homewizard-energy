@@ -15,12 +15,6 @@ repos:
         types: [python]
         entry: poetry run black
         require_serial: true
-      - id: blacken-docs
-        name: Format documentation examples using black
-        language: system
-        files: '\.(rst|md|markdown|py|tex)$'
-        entry: poetry run blacken-docs
-        require_serial: true
       - id: check-ast
         name: Check Python AST
         language: system
