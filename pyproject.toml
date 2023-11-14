@@ -18,7 +18,6 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 aiohttp = ">=3.0.0"
-awesomeversion = ">=22.9.0"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^2.1.6"
@@ -47,6 +46,7 @@ darglint = "^1.8.1"
 safety = "^2.3.5"
 codespell = "^2.2.6"
 bandit = "^1.7.5"
+syrupy = "^4.6.0"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/dcsbl/python-homewizard-energy/issues"
