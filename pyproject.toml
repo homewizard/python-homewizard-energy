@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "python-homewizard-energy"
-version = "2.1.2"
+version = "0.0.0"
 description = "Asynchronous Python client for the HomeWizard Energy"
 authors = ["DCSBL"]
 maintainers = ["DCSBL"]
 license = "Apache License 2.0"
 readme = "README.md"
-homepage = "https://github.com/dcsbl/python-homewizard-energy"
-repository = "https://github.com/dcsbl/python-homewizard-energy"
-documentation = "https://github.com/dcsbl/python-homewizard-energy"
+homepage = "https://github.com/homewizard/python-homewizard-energy"
+repository = "https://github.com/homewizard/python-homewizard-energy"
+documentation = "https://github.com/homewizard/python-homewizard-energy"
 classifiers = [
 ]
 packages = [
@@ -49,8 +49,8 @@ bandit = "^1.7.5"
 syrupy = "^4.6.0"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/dcsbl/python-homewizard-energy/issues"
-Changelog = "https://github.com/dcsbl/python-homewizard-energy/releases"
+"Bug Tracker" = "https://github.com/homewizard/python-homewizard-energy/issues"
+Changelog = "https://github.com/homewizard/python-homewizard-energy/releases"
 
 [tool.black]
 target-version = ['py39']
