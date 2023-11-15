@@ -11,8 +11,7 @@ python3 -m pip install python-homewizard-energy
 # Usage
 Instantiate the HWEnergy class and access the API.
 
-For more details on the API see the official API documentation on
-https://homewizard-energy-api.readthedocs.io
+For more details on the API see the API documentation for HomeWizard Energy on https://api-documentation.homewizard.com
 
 ## Example
 ```python
