@@ -3,10 +3,6 @@
 Asyncio package to communicate with HomeWizard Energy devices
 This package is aimed at basic control of the device. Initial setup and configuration is assumed to done with the official HomeWizard Energy app.
 
-## Disclaimer
-
-This package is not developed, nor supported by HomeWizard.
-
 ## Installation
 ```bash
 python3 -m pip install python-homewizard-energy
