@@ -4,7 +4,10 @@ name: Testing
 # yamllint disable-line rule:truthy
 on:
   pull_request:
+    types: [opened, reopened, synchronize]
   push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
