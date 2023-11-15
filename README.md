@@ -1,7 +1,12 @@
-# python-homewizard-energy
+# HomeWizard Energy: `python-homewizard-energy`
 
 Asyncio package to communicate with HomeWizard Energy devices
 This package is aimed at basic control of the device. Initial setup and configuration is assumed to done with the official HomeWizard Energy app.
+
+[![Testing](https://github.com/homewizard/python-homewizard-energy/actions/workflows/tests.yaml/badge.svg?branch=main)](https://github.com/homewizard/python-homewizard-energy/actions/workflows/tests.yaml)
+[![Codecov](https://img.shields.io/codecov/c/github/homewizard/python-homewizard-energy)](https://app.codecov.io/gh/homewizard/python-homewizard-energy)
+[![Release](https://img.shields.io/github/v/release/homewizard/python-homewizard-energy)](https://github.com/homewizard/python-homewizard-energy/releases)
+
 
 # Usage
 Instantiate the HomeWizard class and access the API.
