@@ -234,10 +234,6 @@ class ExternalDevice:
         WATER_METER = 7
         INLET_HEAT_METER = 12
 
-        @classmethod
-        def _missing_(cls, _: Any) -> ExternalDevice.DeviceType:
-            return cls.UNKNOWN
-
         @staticmethod
         def from_string(value: str) -> ExternalDevice.DeviceType:
             """Convert string to enum."""

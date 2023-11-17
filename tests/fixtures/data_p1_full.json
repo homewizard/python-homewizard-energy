@@ -74,6 +74,19 @@
             "timestamp": 210606140010,
             "value": 555.555,
             "unit": "should_not_be_included_because_of_missing_id"
+        },
+        {
+            "unique_id": "4E4754414C414859",
+            "type": "catfish",
+            "timestamp": 210606140010,
+            "value": 555.555,
+            "unit": ",3"
+        },
+        {
+            "unique_id": "4E4754414C414859",
+            "timestamp": 210606140010,
+            "value": 555.555,
+            "unit": ",3"
         }
     ]
 }

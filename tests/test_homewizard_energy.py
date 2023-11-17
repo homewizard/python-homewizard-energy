@@ -1,5 +1,6 @@
 """Test for HomeWizard Energy."""
-from unittest.mock import patch
+import asyncio
+from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
@@ -468,6 +469,25 @@ async def test_system_set(aresponses):
         await api.close()
 
 
+async def test_system_set_missing_arguments(aresponses):
+    """Test system set when no arguments are given."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures("system_cloud_disabled.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+        assert await api.system_set() is False
+
+
 async def test_get_decryption_object(aresponses):
     """Test fetches decryption object."""
 
@@ -544,6 +564,25 @@ async def test_decryption_set(aresponses):
         await api.close()
 
 
+async def test_decryption_set_no_arguments():
+    """Test decryption set without arguments."""
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+        assert await api.decryption_set() is False
+
+
+async def test_decryption_set_generates_hit():
+    """Test decryption set when len(AAD)==32."""
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergy("example.com", clientsession=session)
+
+        with pytest.raises(ValueError) as ex:
+            await api.decryption_set(aad="aabbccddeeff00112233445566778899")
+            assert "Hint" in str(ex.value)
+
+
 async def test_decryption_reset(aresponses):
     """Test decryption reset."""
 
@@ -565,3 +604,28 @@ async def test_decryption_reset(aresponses):
         assert response
 
         await api.close()
+
+
+# pylint: disable=protected-access
+async def test_request_timeout():
+    """Test request raises timeout when request takes too long."""
+
+    api = HomeWizardEnergy("example.com")
+    api._session = AsyncMock()
+    api._session.request = AsyncMock(side_effect=asyncio.TimeoutError())
+
+    with pytest.raises(RequestError):
+        await api.request("api/v1/data")
+
+    assert api._session.request.call_count == 1
+
+
+async def test_close_when_out_of_scope():
+    """Test close called when object goes out of scope."""
+    api = HomeWizardEnergy("example.com")
+    api.close = AsyncMock()
+
+    async with api as hwe:
+        assert hwe == api
+
+    assert api.close.call_count == 1
