@@ -67,13 +67,30 @@ class Data:
     active_power_l2_w: float | None
     active_power_l3_w: float | None
 
+    active_voltage_v: float | None
     active_voltage_l1_v: float | None
     active_voltage_l2_v: float | None
     active_voltage_l3_v: float | None
 
+    active_current_a: float | None
     active_current_l1_a: float | None
     active_current_l2_a: float | None
     active_current_l3_a: float | None
+
+    active_apparent_power_va: float | None
+    active_apparent_power_l1_va: float | None
+    active_apparent_power_l2_va: float | None
+    active_apparent_power_l3_va: float | None
+
+    active_reactive_power_var: float | None
+    active_reactive_power_l1_var: float | None
+    active_reactive_power_l2_var: float | None
+    active_reactive_power_l3_var: float | None
+
+    active_power_factor: float | None
+    active_power_factor_l1: float | None
+    active_power_factor_l2: float | None
+    active_power_factor_l3: float | None
 
     active_frequency_hz: float | None
 
@@ -184,12 +201,26 @@ class Data:
             active_power_l1_w=data.get("active_power_l1_w"),
             active_power_l2_w=data.get("active_power_l2_w"),
             active_power_l3_w=data.get("active_power_l3_w"),
+            active_voltage_v=data.get("active_voltage_v"),
             active_voltage_l1_v=data.get("active_voltage_l1_v"),
             active_voltage_l2_v=data.get("active_voltage_l2_v"),
             active_voltage_l3_v=data.get("active_voltage_l3_v"),
+            active_current_a=data.get("active_current_a"),
             active_current_l1_a=data.get("active_current_l1_a"),
             active_current_l2_a=data.get("active_current_l2_a"),
             active_current_l3_a=data.get("active_current_l3_a"),
+            active_apparent_power_va=data.get("active_apparent_power_va"),
+            active_apparent_power_l1_va=data.get("active_apparent_power_l1_va"),
+            active_apparent_power_l2_va=data.get("active_apparent_power_l2_va"),
+            active_apparent_power_l3_va=data.get("active_apparent_power_l3_va"),
+            active_reactive_power_var=data.get("active_reactive_power_var"),
+            active_reactive_power_l1_var=data.get("active_reactive_power_l1_var"),
+            active_reactive_power_l2_var=data.get("active_reactive_power_l2_var"),
+            active_reactive_power_l3_var=data.get("active_reactive_power_l3_var"),
+            active_power_factor=data.get("active_power_factor"),
+            active_power_factor_l1=data.get("active_power_factor_l1"),
+            active_power_factor_l2=data.get("active_power_factor_l2"),
+            active_power_factor_l3=data.get("active_power_factor_l3"),
             active_frequency_hz=data.get("active_frequency_hz"),
             voltage_sag_l1_count=data.get("voltage_sag_l1_count"),
             voltage_sag_l2_count=data.get("voltage_sag_l2_count"),
