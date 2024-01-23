@@ -82,7 +82,6 @@ class HomeWizardEnergy:
     async def data(self) -> Data:
         """Return the data object."""
         response = await self.request("api/v1/data")
-        print(response)
         return Data.from_dict(response)
 
     @optional_method
