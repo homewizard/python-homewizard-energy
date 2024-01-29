@@ -1,9 +1,11 @@
 """Test for HomeWizard Energy."""
 import asyncio
+import json
 from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
+from syrupy.assertion import SnapshotAssertion
 
 from homewizard_energy import HomeWizardEnergy
 from homewizard_energy.errors import DisabledError, RequestError, UnsupportedError
@@ -126,28 +128,42 @@ async def test_request_detects_clienterror():
         await api.close()
 
 
-async def test_get_device_object(aresponses):
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        ("HWE-P1", ["device"]),
+        ("HWE-SKT", ["device"]),
+        ("SDM230-wifi", ["device"]),
+        ("SDM630-wifi", ["device"]),
+    ],
+)
+async def test_get_device_object(
+    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+):
     """Test device object is fetched and sets detected values."""
 
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("device.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
+    for fixture in fixtures:
+        aresponses.add(
+            "example.com",
+            "/api",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/{fixture}.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
 
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
-        device = await api.device()
+        async with aiohttp.ClientSession() as session:
+            api = HomeWizardEnergy("example.com", clientsession=session)
+            device = await api.device()
 
-        assert device
-        assert device.product_type == "HWE-P1"
+            assert device
+            assert device.product_type == model
 
-        await api.close()
+            assert device == snapshot
+
+            await api.close()
 
 
 async def test_get_device_object_detects_invalid_api(aresponses):
@@ -158,7 +174,7 @@ async def test_get_device_object_detects_invalid_api(aresponses):
         "/api",
         "GET",
         aresponses.Response(
-            text=load_fixtures("device_invalid_api.json"),
+            text=load_fixtures("exceptions/device_invalid_api.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -173,175 +189,183 @@ async def test_get_device_object_detects_invalid_api(aresponses):
         await api.close()
 
 
-async def test_get_data_object(aresponses):
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        (
+            "HWE-P1",
+            ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
+        ),
+        ("HWE-SKT", ["data"]),
+        ("SDM230-wifi", ["data"]),
+        ("SDM630-wifi", ["data"]),
+    ],
+)
+async def test_get_data_object(
+    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+):
     """Test fetches data object and device object when unknown."""
 
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("device.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
+    for fixture in fixtures:
+        aresponses.add(
+            "example.com",
+            "/api",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/device.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
+
+        aresponses.add(
+            "example.com",
+            "/api/v1/data",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/{fixture}.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
+
+        async with aiohttp.ClientSession() as session:
+            api = HomeWizardEnergy("example.com", clientsession=session)
+
+            data = await api.data()
+            assert data is not None
+            assert data == snapshot
+
+            await api.close()
+
+
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        (
+            "HWE-P1",
+            ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
-    )
-
-    aresponses.add(
-        "example.com",
-        "/api/v1/data",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("data_p1.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
-
-        data = await api.data()
-
-        assert data
-        assert data.smr_version == 50
-
-        await api.close()
-
-
-async def test_get_data_object_with_known_device(aresponses):
+        ("HWE-SKT", ["data"]),
+        ("SDM230-wifi", ["data"]),
+        ("SDM630-wifi", ["data"]),
+    ],
+)
+async def test_get_data_object_with_known_device(
+    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+):
     """Test fetches data object."""
 
-    aresponses.add(
-        "example.com",
-        "/api/v1/data",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("data_p1.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
+    for fixture in fixtures:
+        aresponses.add(
+            "example.com",
+            "/api/v1/data",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/{fixture}.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
+
+        async with aiohttp.ClientSession() as session:
+            api = HomeWizardEnergy("example.com", clientsession=session)
+
+            # pylint: disable=protected-access
+            api._detected_api_version = "v1"
+
+            data = await api.data()
+            assert data is not None
+            assert data == snapshot
+
+            await api.close()
+
+
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        (
+            "HWE-SKT",
+            ["state_all", "state_power_on", "state_switch_lock", "state_brightness"],
         ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
-
-        # pylint: disable=protected-access
-        api._detected_api_version = "v1"
-        data = await api.data()
-
-        assert data
-        assert data.smr_version == 50
-
-        await api.close()
-
-
-async def test_get_state_object(aresponses):
+    ],
+)
+async def test_get_state_object(
+    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+):
     """Test fetches state object and device object when unknown."""
 
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("device_energysocket.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
+    for fixture in fixtures:
+        aresponses.add(
+            "example.com",
+            "/api",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/device.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
 
-    aresponses.add(
-        "example.com",
-        "/api/v1/state",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("state.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
+        aresponses.add(
+            "example.com",
+            "/api/v1/state",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/{fixture}.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
 
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        async with aiohttp.ClientSession() as session:
+            api = HomeWizardEnergy("example.com", clientsession=session)
 
-        state = await api.state()
-        assert state
-        assert not state.power_on
+            state = await api.state()
+            assert state is not None
+            assert state == snapshot
 
-        await api.close()
-
-
-async def test_get_state_object_with_known_device(aresponses):
-    """Test fetches state object."""
-
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("device_energysocket.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
-
-    aresponses.add(
-        "example.com",
-        "/api/v1/state",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("state.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
-
-        state = await api.state()
-        assert state
-        assert not state.power_on
-
-        await api.close()
+            await api.close()
 
 
-async def test_state_set(aresponses):
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        ("HWE-SKT", ["state_all"]),
+    ],
+)
+async def test_state_set(
+    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+):
     """Test state set."""
 
-    aresponses.add(
-        "example.com",
-        "/api/v1/state",
-        "PUT",
-        aresponses.Response(
-            text=load_fixtures("state.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
+    for fixture in fixtures:
+        aresponses.add(
+            "example.com",
+            "/api/v1/state",
+            "PUT",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/{fixture}.json"),
+                status=200,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+            ),
+        )
 
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        async with aiohttp.ClientSession() as session:
+            api = HomeWizardEnergy("example.com", clientsession=session)
 
-        state = await api.state_set(power_on=False, switch_lock=False, brightness=255)
-        assert state
+            state = await api.state_set(
+                power_on=False, switch_lock=False, brightness=255
+            )
+            assert state
 
-        await api.close()
+            assert state == snapshot
+
+            await api.close()
 
 
-async def test_state_set_detects_no_statechange(aresponses):
+async def test_state_set_detects_no_statechange():
     """Test state set does not send request when nothing is changed."""
-
-    aresponses.add(
-        "example.com",
-        "/api/v1/state",
-        "PUT",
-        aresponses.Response(
-            text=load_fixtures("state.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
@@ -350,7 +374,14 @@ async def test_state_set_detects_no_statechange(aresponses):
         assert not state
 
 
-async def test_identify(aresponses):
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-P1",
+        "HWE-SKT",
+    ],
+)
+async def test_identify(model: str, snapshot: SnapshotAssertion, aresponses):
     """Test identify call."""
 
     aresponses.add(
@@ -358,7 +389,7 @@ async def test_identify(aresponses):
         "/api/v1/identify",
         "PUT",
         aresponses.Response(
-            text=load_fixtures("identify.json"),
+            text=load_fixtures(f"{model}/identify.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -369,21 +400,41 @@ async def test_identify(aresponses):
 
         state = await api.identify()
         assert state
+        assert state == snapshot
 
         await api.close()
 
 
-async def test_identify_not_available(aresponses):
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-WTR",
+        "SDM230-wifi",
+        "SDM630-wifi",
+    ],
+)
+async def test_identify_not_supported(model: str, aresponses):
     """Test identify call when not supported."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
 
     aresponses.add(
         "example.com",
         "/api/v1/identify",
         "PUT",
         aresponses.Response(
-            text=load_fixtures("identify.json"),
+            text="404 Not Found",
             status=404,
-            headers={"Content-Type": "application/json; charset=utf-8"},
+            headers={"Content-Type": "application/txt; charset=utf-8"},
         ),
     )
 
@@ -404,7 +455,7 @@ async def test_get_system_object(aresponses):
         "/api",
         "GET",
         aresponses.Response(
-            text=load_fixtures("device_energysocket.json"),
+            text=load_fixtures("HWE-SKT/device.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -415,7 +466,7 @@ async def test_get_system_object(aresponses):
         "/api/v1/system",
         "GET",
         aresponses.Response(
-            text=load_fixtures("system_cloud_enabled.json"),
+            text=json.dumps({"cloud_enabled": True}),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -426,7 +477,7 @@ async def test_get_system_object(aresponses):
         "/api/v1/system",
         "GET",
         aresponses.Response(
-            text=load_fixtures("system_cloud_disabled.json"),
+            text=json.dumps({"cloud_enabled": False}),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -446,7 +497,16 @@ async def test_get_system_object(aresponses):
         await api.close()
 
 
-async def test_system_set(aresponses):
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-P1",
+        "HWE-SKT",
+        "SDM230-wifi",
+        "SDM630-wifi",
+    ],
+)
+async def test_system_set(model: str, snapshot: SnapshotAssertion, aresponses):
     """Test system set."""
 
     aresponses.add(
@@ -454,7 +514,7 @@ async def test_system_set(aresponses):
         "/api/v1/system",
         "PUT",
         aresponses.Response(
-            text=load_fixtures("system_cloud_disabled.json"),
+            text=load_fixtures(f"{model}/system.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -465,30 +525,28 @@ async def test_system_set(aresponses):
 
         system = await api.system_set(cloud_enabled=False)
         assert system
+        assert system == snapshot
 
         await api.close()
 
 
-async def test_system_set_missing_arguments(aresponses):
+async def test_system_set_missing_arguments():
     """Test system set when no arguments are given."""
-
-    aresponses.add(
-        "example.com",
-        "/api/v1/system",
-        "PUT",
-        aresponses.Response(
-            text=load_fixtures("system_cloud_disabled.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
         assert await api.system_set() is False
 
 
-async def test_get_decryption_object(aresponses):
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-P1",
+    ],
+)
+async def test_get_decryption_object(
+    model: str, snapshot: SnapshotAssertion, aresponses
+):
     """Test fetches decryption object."""
 
     aresponses.add(
@@ -496,7 +554,7 @@ async def test_get_decryption_object(aresponses):
         "/api",
         "GET",
         aresponses.Response(
-            text=load_fixtures("device.json"),
+            text=load_fixtures(f"{model}/device.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -507,7 +565,7 @@ async def test_get_decryption_object(aresponses):
         "/api/v1/decryption",
         "GET",
         aresponses.Response(
-            text=load_fixtures("decryption.json"),
+            text=load_fixtures(f"{model}/decryption.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -518,13 +576,18 @@ async def test_get_decryption_object(aresponses):
 
         decryption = await api.decryption()
         assert decryption
-        assert decryption.key_set
-        assert decryption.aad_set
+        assert decryption == snapshot
 
         await api.close()
 
 
-async def test_decryption_set(aresponses):
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-P1",
+    ],
+)
+async def test_decryption_set(model: str, snapshot: SnapshotAssertion, aresponses):
     """Test decryption set."""
 
     aresponses.add(
@@ -532,7 +595,7 @@ async def test_decryption_set(aresponses):
         "/api/v1/decryption",
         "PUT",
         aresponses.Response(
-            text=load_fixtures("decryption.json"),
+            text=load_fixtures(f"{model}/decryption.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -560,6 +623,7 @@ async def test_decryption_set(aresponses):
             aad="30aabbccddeeff00112233445566778899",
         )
         assert response
+        assert response == snapshot
 
         await api.close()
 
@@ -572,7 +636,7 @@ async def test_decryption_set_no_arguments():
         assert await api.decryption_set() is False
 
 
-async def test_decryption_set_generates_hit():
+async def test_decryption_set_generates_hint():
     """Test decryption set when len(AAD)==32."""
 
     async with aiohttp.ClientSession() as session:
@@ -583,7 +647,13 @@ async def test_decryption_set_generates_hit():
             assert "Hint" in str(ex.value)
 
 
-async def test_decryption_reset(aresponses):
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-P1",
+    ],
+)
+async def test_decryption_reset(model: str, snapshot: SnapshotAssertion, aresponses):
     """Test decryption reset."""
 
     aresponses.add(
@@ -591,7 +661,7 @@ async def test_decryption_reset(aresponses):
         "/api/v1/decryption",
         "DELETE",
         aresponses.Response(
-            text=load_fixtures("decryption.json"),
+            text=load_fixtures(f"{model}/decryption.json"),
             status=200,
             headers={"Content-Type": "application/json; charset=utf-8"},
         ),
@@ -602,6 +672,7 @@ async def test_decryption_reset(aresponses):
 
         response = await api.decryption_reset(aad=True, key=True)
         assert response
+        assert response == snapshot
 
         await api.close()
 
