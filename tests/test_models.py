@@ -13,82 +13,94 @@ pytestmark = [pytest.mark.asyncio]
 
 
 @pytest.mark.parametrize(
-    "fixture",
+    ("model", "fixtures"),
     [
-        "device.json",
-        "device_energysocket.json",
-        "device_extra_parameters.json",
-        "device_invalid_api.json",
+        ("HWE-P1", ["device"]),
+        ("HWE-SKT", ["device"]),
+        ("HWE-WTR", ["device"]),
+        ("SDM230-wifi", ["device"]),
+        ("SDM630-wifi", ["device"]),
     ],
 )
-async def test_device(fixture: str, snapshot: SnapshotAssertion):
+async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test Device model."""
-    data = Device.from_dict(json.loads(load_fixtures(fixture)))
-    assert data
+    for fixture in fixtures:
+        data = Device.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        assert data
 
-    assert snapshot == data
+        assert snapshot == data
 
 
 @pytest.mark.parametrize(
-    "fixture",
+    ("model", "fixtures"),
     [
-        "data_energysocket.json",
-        "data_kwh_single_phase.json",
-        "data_kwh_three_phase.json",
-        "data_p1_full.json",
-        "data_p1_no_gas.json",
-        "data_p1_single_phase.json",
-        "data_p1.json",
-        "data_watermeter.json",
+        (
+            "HWE-P1",
+            ["data_minimal", "data_all_data", "data_no_gas", "data_single_phase"],
+        ),
+        ("HWE-SKT", ["data"]),
+        ("HWE-WTR", ["data"]),
+        ("SDM230-wifi", ["data"]),
+        ("SDM630-wifi", ["data"]),
     ],
 )
-async def test_data(fixture: str, snapshot: SnapshotAssertion):
+async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test Data model."""
-    data = Data.from_dict(json.loads(load_fixtures(fixture)))
-    assert data
+    for fixture in fixtures:
+        data = Data.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        assert data
 
-    assert snapshot == data
+        assert snapshot == data
 
 
 @pytest.mark.parametrize(
-    "fixture",
+    ("model", "fixtures"),
     [
-        "decryption.json",
+        ("HWE-P1", ["decryption"]),
     ],
 )
-async def test_decryption(fixture: str, snapshot: SnapshotAssertion):
+async def test_decryption(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test Decryption model."""
-    data = Decryption.from_dict(json.loads(load_fixtures(fixture)))
-    assert data
+    for fixture in fixtures:
+        data = Decryption.from_dict(
+            json.loads(load_fixtures(f"{model}/{fixture}.json"))
+        )
+        assert data
 
-    assert snapshot == data
+        assert snapshot == data
 
 
 @pytest.mark.parametrize(
-    "fixture",
+    ("model", "fixtures"),
     [
-        "state.json",
-        "state_switch_lock_and_brightness.json",
+        (
+            "HWE-SKT",
+            ["state_all", "state_power_on", "state_switch_lock", "state_brightness"],
+        ),
     ],
 )
-async def test_state(fixture: str, snapshot: SnapshotAssertion):
+async def test_state(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test State model."""
-    data = State.from_dict(json.loads(load_fixtures(fixture)))
-    assert data
+    for fixture in fixtures:
+        data = State.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        assert data
 
-    assert snapshot == data
+        assert snapshot == data
 
 
 @pytest.mark.parametrize(
-    "fixture",
+    ("model", "fixtures"),
     [
-        "system_cloud_disabled.json",
-        "system_cloud_enabled.json",
+        ("HWE-P1", ["system"]),
+        ("HWE-SKT", ["system"]),
+        ("SDM230-wifi", ["system"]),
+        ("SDM630-wifi", ["system"]),
     ],
 )
-async def test_system(fixture: str, snapshot: SnapshotAssertion):
+async def test_system(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test System model."""
-    data = System.from_dict(json.loads(load_fixtures(fixture)))
-    assert data
+    for fixture in fixtures:
+        data = System.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        assert data
 
-    assert snapshot == data
+        assert snapshot == data
