@@ -28,12 +28,12 @@ IP_ADDRESS = "192.168.1.123"
 
 async def main():
 
-    async with HomeWizardEnergy(host=IP_ADDRESS) as api
+    async with HomeWizardEnergy(host=IP_ADDRESS) as api:
 
-    print(await api.device())
-    print(await api.data())
+        print(await api.device()) # Get device information, like firmware version
+        print(await api.data()) # Get measurements, like power or water usage
 
-    await api.state_set(power_on=True)
+        await api.state_set(power_on=True) # Turn on the Energy Socket outlet
 
 
 asyncio.run(main())
