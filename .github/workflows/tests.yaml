@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, macos]
-        python: ['3.9', '3.10', '3.11']
+        python: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
       - name: Check out code from GitHub
