@@ -47,7 +47,7 @@ darglint = "^1.8.1"
 safety = "^3.0.1"
 codespell = "^2.2.6"
 bandit = "^1.7.7"
-syrupy = "^4.6.0"
+syrupy = "^4.6.1"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/homewizard/python-homewizard-energy/issues"
