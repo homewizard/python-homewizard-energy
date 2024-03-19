@@ -65,10 +65,10 @@
 # name: test_state[HWE-SKT-fixtures0].3
   State(power_on=None, switch_lock=None, brightness=255)
 # ---
-# name: test_system[HWE-KWH1-fixtures2]
+# name: test_system[HWE-KWH1-fixtures3]
   System(cloud_enabled=True)
 # ---
-# name: test_system[HWE-KWH3-fixtures3]
+# name: test_system[HWE-KWH3-fixtures4]
   System(cloud_enabled=True)
 # ---
 # name: test_system[HWE-P1-fixtures0]
@@ -77,9 +77,12 @@
 # name: test_system[HWE-SKT-fixtures1]
   System(cloud_enabled=True)
 # ---
-# name: test_system[SDM230-wifi-fixtures4]
+# name: test_system[HWE-WTR-fixtures2]
   System(cloud_enabled=True)
 # ---
-# name: test_system[SDM630-wifi-fixtures5]
+# name: test_system[SDM230-wifi-fixtures5]
+  System(cloud_enabled=True)
+# ---
+# name: test_system[SDM630-wifi-fixtures6]
   System(cloud_enabled=True)
 # ---
