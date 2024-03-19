@@ -97,6 +97,7 @@ async def test_state(model: str, fixtures: str, snapshot: SnapshotAssertion):
     [
         ("HWE-P1", ["system"]),
         ("HWE-SKT", ["system"]),
+        ("HWE-WTR", ["system"]),
         ("HWE-KWH1", ["system"]),
         ("HWE-KWH3", ["system"]),
         ("SDM230-wifi", ["system"]),

@@ -133,6 +133,7 @@ async def test_request_detects_clienterror():
     [
         ("HWE-P1", ["device"]),
         ("HWE-SKT", ["device"]),
+        ("HWE-WTR", ["device"]),
         ("HWE-KWH1", ["device"]),
         ("HWE-KWH3", ["device"]),
         ("SDM230-wifi", ["device"]),
@@ -199,6 +200,7 @@ async def test_get_device_object_detects_invalid_api(aresponses):
             ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
         ("HWE-SKT", ["data"]),
+        ("HWE-WTR", ["data"]),
         ("HWE-KWH1", ["data"]),
         ("HWE-KWH3", ["data"]),
         ("SDM230-wifi", ["data"]),
@@ -251,6 +253,7 @@ async def test_get_data_object(
             ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
         ("HWE-SKT", ["data"]),
+        ("HWE-WTR", ["data"]),
         ("HWE-KWH1", ["data"]),
         ("HWE-KWH3", ["data"]),
         ("SDM230-wifi", ["data"]),
@@ -385,6 +388,7 @@ async def test_state_set_detects_no_statechange():
     [
         "HWE-P1",
         "HWE-SKT",
+        "HWE-WTR",
     ],
 )
 async def test_identify(model: str, snapshot: SnapshotAssertion, aresponses):
@@ -414,7 +418,6 @@ async def test_identify(model: str, snapshot: SnapshotAssertion, aresponses):
 @pytest.mark.parametrize(
     "model",
     [
-        "HWE-WTR",
         "HWE-KWH1",
         "HWE-KWH3",
         "SDM230-wifi",
@@ -510,6 +513,7 @@ async def test_get_system_object(aresponses):
     [
         "HWE-P1",
         "HWE-SKT",
+        "HWE-WTR",
         "HWE-KWH1",
         "HWE-KWH3",
         "SDM230-wifi",
