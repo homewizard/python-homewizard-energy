@@ -22,7 +22,7 @@ async-timeout = "^4.0.3"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^3.0.0"
-black = "^22.12"
+black = "^24.4"
 blacken-docs = "^1.16.0"
 flake8 = "^4.0.1"
 flake8-docstrings = "^1.7.0"
