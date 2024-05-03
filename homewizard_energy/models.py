@@ -276,7 +276,7 @@ class ExternalDevice:
                     "water_meter": ExternalDevice.DeviceType.WATER_METER,
                     "inlet_heat_meter": ExternalDevice.DeviceType.INLET_HEAT_METER,
                 }[value]
-            except (KeyError):
+            except KeyError:
                 return ExternalDevice.DeviceType.UNKNOWN
 
     unique_id: str

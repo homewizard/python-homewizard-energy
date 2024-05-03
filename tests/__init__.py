@@ -1,4 +1,5 @@
 """Tests for python-homewizard-energy."""
+
 import os
 
 

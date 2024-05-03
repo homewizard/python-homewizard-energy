@@ -1,4 +1,5 @@
 """Representation of a HomeWizard Energy device."""
+
 from __future__ import annotations
 
 import asyncio
