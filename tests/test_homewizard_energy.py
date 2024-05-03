@@ -1,4 +1,5 @@
 """Test for HomeWizard Energy."""
+
 import asyncio
 import json
 from unittest.mock import AsyncMock, patch
@@ -120,9 +121,10 @@ async def test_request_detects_clienterror():
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergy("example.com", clientsession=session)
 
-        with patch.object(
-            session, "request", side_effect=aiohttp.ClientError
-        ), pytest.raises(RequestError):
+        with (
+            patch.object(session, "request", side_effect=aiohttp.ClientError),
+            pytest.raises(RequestError),
+        ):
             await api.request("api")
 
         await api.close()
