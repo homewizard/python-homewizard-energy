@@ -5,7 +5,7 @@ import json
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy import Data, Decryption, Device, State, System
+from homewizard_energy import Data, Device, State, System
 
 from . import load_fixtures
 
@@ -52,23 +52,6 @@ async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test Data model."""
     for fixture in fixtures:
         data = Data.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
-        assert data
-
-        assert snapshot == data
-
-
-@pytest.mark.parametrize(
-    ("model", "fixtures"),
-    [
-        ("HWE-P1", ["decryption"]),
-    ],
-)
-async def test_decryption(model: str, fixtures: str, snapshot: SnapshotAssertion):
-    """Test Decryption model."""
-    for fixture in fixtures:
-        data = Decryption.from_dict(
-            json.loads(load_fixtures(f"{model}/{fixture}.json"))
-        )
         assert data
 
         assert snapshot == data

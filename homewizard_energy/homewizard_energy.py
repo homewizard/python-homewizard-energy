@@ -4,18 +4,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import string
 from collections.abc import Callable, Coroutine
 from http import HTTPStatus
 from typing import Any, TypeVar
 
 import async_timeout
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
-from aiohttp.hdrs import METH_DELETE, METH_GET, METH_PUT
+from aiohttp.hdrs import METH_GET, METH_PUT
 
 from .const import SUPPORTED_API_VERSION
 from .errors import DisabledError, NotFoundError, RequestError, UnsupportedError
-from .models import Data, Decryption, Device, State, System
+from .models import Data, Device, State, System
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -144,67 +143,6 @@ class HomeWizardEnergy:
     ) -> bool:
         """Send identify request."""
         await self.request("api/v1/identify", method=METH_PUT)
-        return True
-
-    @optional_method
-    async def decryption(self) -> Decryption:
-        """Return the decryption object."""
-        response = await self.request("api/v1/decryption")
-        return Decryption.from_dict(response)
-
-    @optional_method
-    async def decryption_set(
-        self,
-        key: str | None = None,
-        aad: str | None = None,
-    ) -> bool:
-        """Set state of device."""
-        data = {}
-
-        if key is not None:
-            if len(key) != 32:
-                raise ValueError("Key length should be 32 characters long")
-            if not all(c in string.hexdigits for c in key):
-                raise ValueError(
-                    "Key should only contain hexadecimal characters (0-9/a-f)"
-                )
-
-            data["key"] = key
-
-        if aad is not None:
-            if len(aad) != 34:
-
-                hint: str | None = None
-                if len(aad) == 32:
-                    hint = "Hint: Try prefixing AAD with '30', e.g. '30<AAD>'"
-                raise ValueError("AAD length should be 34 characters long", hint)
-            if not all(c in string.hexdigits for c in aad):
-                raise ValueError(
-                    "AAD should only contain hexadecimal characters (0-9/a-f)"
-                )
-
-            data["aad"] = aad
-
-        if not data:
-            _LOGGER.error("At least one decryption key is required")
-            return False
-
-        await self.request("api/v1/decryption", method=METH_PUT, data=data)
-        return True
-
-    @optional_method
-    async def decryption_reset(
-        self,
-        key: bool = False,
-        aad: bool = False,
-    ) -> bool:
-        """Reset decryption keys of device."""
-        data = {
-            "key": key,
-            "aad": aad,
-        }
-
-        await self.request("api/v1/decryption", method=METH_DELETE, data=data)
         return True
 
     async def request(
