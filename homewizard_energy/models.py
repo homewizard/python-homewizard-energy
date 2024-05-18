@@ -351,26 +351,3 @@ class System:
         return System(
             cloud_enabled=data.get("cloud_enabled"),
         )
-
-
-@dataclass
-class Decryption:
-    """Represent decryption API."""
-
-    key_set: bool | None
-    aad_set: bool | None
-
-    @staticmethod
-    def from_dict(data: dict[str, Any]) -> Decryption:
-        """Return Decryption object from API response.
-
-        Args:
-            data: The data from the HomeWizard Energy `api/v1/decryption` API.
-
-        Returns:
-            A Decryption object.
-        """
-        return Decryption(
-            key_set=data.get("key"),
-            aad_set=data.get("aad"),
-        )
