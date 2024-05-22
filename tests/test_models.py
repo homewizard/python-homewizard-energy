@@ -38,7 +38,13 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
     [
         (
             "HWE-P1",
-            ["data_minimal", "data_all_data", "data_no_gas", "data_single_phase"],
+            [
+                "data_minimal",
+                "data_all_data",
+                "data_no_gas",
+                "data_single_phase",
+                "data_invalid_external_ean",
+            ],
         ),
         ("HWE-SKT", ["data"]),
         ("HWE-WTR", ["data"]),
