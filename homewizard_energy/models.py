@@ -161,7 +161,9 @@ class Data:
         for external in external_devices:
             with suppress(ValueError, KeyError):
                 device = ExternalDevice.from_dict(external)
-            devices[device.unique_id] = device
+                type_unique_id = f"{external.get('type')}_{device.unique_id}"
+
+            devices[type_unique_id] = device
 
         return devices
 
