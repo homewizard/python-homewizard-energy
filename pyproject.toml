@@ -46,7 +46,7 @@ flake8-markdown = "^0.3.0"
 darglint = "^1.8.1"
 safety = "^3.0.1"
 codespell = "^2.3.0"
-bandit = "^1.7.8"
+bandit = "^1.7.9"
 syrupy = "^4.6.0"
 
 [tool.poetry.urls]
