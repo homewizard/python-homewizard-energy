@@ -118,6 +118,10 @@ class Data:
 
     external_devices: dict[str, ExternalDevice] | None
 
+    def __iter__(self):
+        for field in dataclasses.fields(self):
+            yield getattr(self, field.name)
+
     @staticmethod
     def convert_timestamp_to_datetime(timestamp: str | None) -> datetime | None:
         """Convert SRM gas-timestamp to datetime object.
