@@ -32,11 +32,11 @@ async def main():
 
          # Get device information, like firmware version
         print(await api.device())
-        
+
          # Get measurements, like energy or water usage
         data = await api.data()
         print(data.total_energy_import_kwh)
-        
+
          # Turn on the Energy Socket outlet
         await api.state_set(power_on=True)
 
