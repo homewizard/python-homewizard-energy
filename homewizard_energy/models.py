@@ -119,12 +119,27 @@ class Data:
     external_devices: dict[str, ExternalDevice] | None
 
     def __iter__(self):
+        '''Magic method that allows for looping through the Data class
+
+        Args:
+            None
+
+        Returns:
+            A list with all values
+        '''
         for field in dataclasses.fields(self):
             yield getattr(self, field.name)
 
-    def __getitem__(self, key):
-        return getattr(self,key)
+    def __getitem__(self, key: str) -> str | int | float | datetime | None:
+        '''Magic method that allows for dictionary logic
 
+        Args:
+            key: property name, string
+
+        Returns:
+            The associated value in the Data class
+        '''
+        return getattr(self,key)
 
     @staticmethod
     def convert_timestamp_to_datetime(timestamp: str | None) -> datetime | None:
