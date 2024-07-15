@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -119,27 +119,27 @@ class Data:
     external_devices: dict[str, ExternalDevice] | None
 
     def __iter__(self):
-        '''Magic method that allows for looping through the Data class
+        """Magic method that allows for looping through the Data class.
 
         Args:
             None
 
         Returns:
             A list with all values
-        '''
-        for field in dataclasses.fields(self):
+        """
+        for field in fields(self):
             yield getattr(self, field.name)
 
     def __getitem__(self, key: str) -> str | int | float | datetime | None:
-        '''Magic method that allows for dictionary logic
+        """Magic method that allows for dictionary logic.
 
         Args:
             key: property name, string
 
         Returns:
             The associated value in the Data class
-        '''
-        return getattr(self,key)
+        """
+        return getattr(self, key)
 
     @staticmethod
     def convert_timestamp_to_datetime(timestamp: str | None) -> datetime | None:
