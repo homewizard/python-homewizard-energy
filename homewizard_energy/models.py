@@ -9,7 +9,39 @@ from enum import Enum
 from typing import Any
 
 
+def dataclass_as_dict(cls):
+    """Add dictionary and iteration magic methods to a dataclass."""
+
+    def __iter__(self):
+        """Magic method that allows for looping through the Data class.
+
+        Args:
+            None
+
+        Returns:
+            A list with all values
+        """
+        for field in fields(self):
+            yield getattr(self, field.name)
+
+    def __getitem__(self, key: str) -> str | int | float | datetime | None:
+        """Magic method that allows for dictionary logic.
+
+        Args:
+            key: property name, string
+
+        Returns:
+            The associated value in the Data class
+        """
+        return getattr(self, key)
+
+    cls.__iter__ = __iter__
+    cls.__getitem__ = __getitem__
+    return cls
+
+
 @dataclass
+@dataclass_as_dict
 class Device:
     """Represent Device config."""
 
@@ -39,6 +71,7 @@ class Device:
 
 
 @dataclass
+@dataclass_as_dict
 class Data:
     """Represent Device config."""
 
@@ -117,29 +150,6 @@ class Data:
     total_liter_m3: float | None
 
     external_devices: dict[str, ExternalDevice] | None
-
-    def __iter__(self):
-        """Magic method that allows for looping through the Data class.
-
-        Args:
-            None
-
-        Returns:
-            A list with all values
-        """
-        for field in fields(self):
-            yield getattr(self, field.name)
-
-    def __getitem__(self, key: str) -> str | int | float | datetime | None:
-        """Magic method that allows for dictionary logic.
-
-        Args:
-            key: property name, string
-
-        Returns:
-            The associated value in the Data class
-        """
-        return getattr(self, key)
 
     @staticmethod
     def convert_timestamp_to_datetime(timestamp: str | None) -> datetime | None:
@@ -272,6 +282,7 @@ class Data:
 
 
 @dataclass
+@dataclass_as_dict
 class ExternalDevice:
     """Represents externally connected device."""
 
@@ -333,6 +344,7 @@ class ExternalDevice:
 
 
 @dataclass
+@dataclass_as_dict
 class State:
     """Represent current state."""
 
@@ -358,6 +370,7 @@ class State:
 
 
 @dataclass
+@dataclass_as_dict
 class System:
     """Represent current state."""
 
