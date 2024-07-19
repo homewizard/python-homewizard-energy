@@ -8,11 +8,14 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from .brand import Product, from_type
+
 
 @dataclass
 class Device:
     """Represent Device config."""
 
+    product: Product | None
     product_name: str | None
     product_type: str | None
     serial: str | None
@@ -30,6 +33,7 @@ class Device:
             A Device object.
         """
         return Device(
+            product=from_type(data.get("product_type")),
             product_name=data.get("product_name"),
             product_type=data.get("product_type"),
             serial=data.get("serial"),
