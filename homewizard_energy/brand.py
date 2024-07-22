@@ -14,6 +14,10 @@ class Product:
     url: str | None
     description: str | None
 
+    def __str__(self):
+        """Return a string representation of the product."""
+        return f"HomeWizard {self.name} - {self.model}"
+
     def __hash__(self):
         """Hash a product for unit-test snapshots."""
         return hash((self.model, self.name, self.url, self.description))
