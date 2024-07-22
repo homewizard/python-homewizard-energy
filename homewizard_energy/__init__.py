@@ -1,5 +1,6 @@
 """HomeWizard Energy API library."""
 
+from .brand import Product
 from .errors import DisabledError, InvalidStateError, RequestError, UnsupportedError
 from .homewizard_energy import HomeWizardEnergy
 from .models import Data, Device, ExternalDevice, State, System
@@ -15,4 +16,5 @@ __all__ = [
     "ExternalDevice",
     "State",
     "System",
+    "Product",
 ]
