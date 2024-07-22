@@ -1,45 +1,45 @@
 # serializer version: 1
 # name: test_known_product_strings[HWE-KWH1]
-  'HomeWizard Wi-Fi kWh meter 1-phase - HWE-KWH1'
+  'HomeWizard Wi-Fi kWh Meter 1-phase - HWE-KWH1'
 # ---
 # name: test_known_product_strings[HWE-KWH3]
-  'HomeWizard Wi-Fi kWh meter 3-phase - HWE-KWH3'
+  'HomeWizard Wi-Fi kWh Meter 3-phase - HWE-KWH3'
 # ---
 # name: test_known_product_strings[HWE-P1]
   'HomeWizard Wi-Fi P1 Meter - HWE-P1'
 # ---
 # name: test_known_product_strings[HWE-SKT]
-  'HomeWizard Energy Socket - HWE-SKT'
+  'HomeWizard Wi-Fi Energy Socket - HWE-SKT'
 # ---
 # name: test_known_product_strings[HWE-WTR]
   'HomeWizard Wi-Fi Watermeter - HWE-WTR'
 # ---
 # name: test_known_product_strings[SDM230-wifi]
-  'HomeWizard Wi-Fi kWh meter 1-phase - SDM230-wifi'
+  'HomeWizard Wi-Fi kWh Meter 1-phase - SDM230-wifi'
 # ---
 # name: test_known_product_strings[SDM630-wifi]
-  'HomeWizard Wi-Fi kWh meter 3-phase - SDM630-wifi'
+  'HomeWizard Wi-Fi kWh Meter 3-phase - SDM630-wifi'
 # ---
 # name: test_known_products[HWE-KWH1]
-  Product(model='HWE-KWH1', name='Wi-Fi kWh meter 1-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
+  Product(model='HWE-KWH1', name='Wi-Fi kWh Meter 1-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
 # ---
 # name: test_known_products[HWE-KWH3]
-  Product(model='HWE-KWH3', name='Wi-Fi kWh meter 3-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
+  Product(model='HWE-KWH3', name='Wi-Fi kWh Meter 3-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
 # ---
 # name: test_known_products[HWE-P1]
   Product(model='HWE-P1', name='Wi-Fi P1 Meter', url='https://www.homewizard.com/p1-meter/', description='The HomeWizard P1 Meter gives you detailed insight in your electricity-, gas consumption and solar surplus.')
 # ---
 # name: test_known_products[HWE-SKT]
-  Product(model='HWE-SKT', name='Energy Socket', url='https://www.homewizard.com/energy-socket/', description='Measure and switch every device.')
+  Product(model='HWE-SKT', name='Wi-Fi Energy Socket', url='https://www.homewizard.com/energy-socket/', description='Measure and switch every device.')
 # ---
 # name: test_known_products[HWE-WTR]
   Product(model='HWE-WTR', name='Wi-Fi Watermeter', url='https://www.homewizard.com/watermeter/', description='Real-time water consumption insights')
 # ---
 # name: test_known_products[SDM230-wifi]
-  Product(model='SDM230-wifi', name='Wi-Fi kWh meter 1-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
+  Product(model='SDM230-wifi', name='Wi-Fi kWh Meter 1-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
 # ---
 # name: test_known_products[SDM630-wifi]
-  Product(model='SDM630-wifi', name='Wi-Fi kWh meter 3-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
+  Product(model='SDM630-wifi', name='Wi-Fi kWh Meter 3-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')
 # ---
 # name: test_unknown_or_invalid_products[HWE-P2]
   None
