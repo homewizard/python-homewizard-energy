@@ -43,7 +43,7 @@ PRODUCTS = {
     ),
     Product(
         "HWE-SKT",
-        "Energy Socket",
+        "Wi-Fi Energy Socket",
         "https://www.homewizard.com/energy-socket/",
         "Measure and switch every device.",
     ),
@@ -55,25 +55,25 @@ PRODUCTS = {
     ),
     Product(
         "HWE-KWH1",
-        "Wi-Fi kWh meter 1-phase",
+        "Wi-Fi kWh Meter 1-phase",
         "https://www.homewizard.com/kwh-meter/",
         "Measure solar panels, car chargers and more.",
     ),
     Product(
         "HWE-KWH3",
-        "Wi-Fi kWh meter 3-phase",
+        "Wi-Fi kWh Meter 3-phase",
         "https://www.homewizard.com/kwh-meter/",
         "Measure solar panels, car chargers and more.",
     ),
     Product(
         "SDM230-wifi",
-        "Wi-Fi kWh meter 1-phase",
+        "Wi-Fi kWh Meter 1-phase",
         "https://www.homewizard.com/kwh-meter/",
         "Measure solar panels, car chargers and more.",
     ),
     Product(
         "SDM630-wifi",
-        "Wi-Fi kWh meter 3-phase",
+        "Wi-Fi kWh Meter 3-phase",
         "https://www.homewizard.com/kwh-meter/",
         "Measure solar panels, car chargers and more.",
     ),
