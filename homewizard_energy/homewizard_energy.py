@@ -169,11 +169,11 @@ class HomeWizardEnergy:
                 _LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
             raise RequestError(
-                "Timeout occurred while connecting to the HomeWizard Energy device"
+                f"Timeout occurred while connecting to the HomeWizard Energy device at {self.host}"
             ) from exception
         except (ClientError, ClientResponseError) as exception:
             raise RequestError(
-                "Error occurred while communicating with the HomeWizard Energy device"
+                f"Error occurred while communicating with the HomeWizard Energy device at {self.host}"
             ) from exception
 
         if resp.status == HTTPStatus.FORBIDDEN:
