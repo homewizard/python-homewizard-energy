@@ -9,6 +9,7 @@ from http import HTTPStatus
 from typing import Any, TypeVar
 
 import async_timeout
+import backoff
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_PUT
 
@@ -145,6 +146,7 @@ class HomeWizardEnergy:
         await self.request("api/v1/identify", method=METH_PUT)
         return True
 
+    @backoff.on_exception(backoff.expo, RequestError, max_tries=5)
     async def request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> Any:
