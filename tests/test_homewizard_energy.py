@@ -565,7 +565,7 @@ async def test_request_timeout():
     with pytest.raises(RequestError):
         await api.request("api/v1/data")
 
-    assert api._session.request.call_count == 4
+    assert api._session.request.call_count == 5
 
 
 async def test_close_when_out_of_scope():
