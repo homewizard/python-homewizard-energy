@@ -19,6 +19,7 @@ packages = [
 python = "^3.9"
 aiohttp = ">=3.0.0"
 async-timeout = "^4.0.3"
+multidict = "^6.0.5" ## To fix aiohttp dependency at python 3.12
 
 [tool.poetry.dev-dependencies]
 aresponses = "^3.0.0"
