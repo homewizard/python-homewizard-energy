@@ -146,7 +146,7 @@ class HomeWizardEnergy:
         await self.request("api/v1/identify", method=METH_PUT)
         return True
 
-    @backoff.on_exception(backoff.expo, RequestError, max_tries=5)
+    @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
     async def request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> Any:
