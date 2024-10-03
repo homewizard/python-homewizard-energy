@@ -11,6 +11,9 @@ __pycache__/
 # due to using tox and pytest
 .tox
 .cache
+coverage.xml
+.coverage
+.coverage.*
 
 # PyCharm
 .idea/workspace.xml
@@ -18,5 +21,10 @@ __pycache__/
 # VS Code
 .vscode/
 
-example.py
+# virtualenv
+.venv
 venv/
+ENV/
+
+# local test files
+example.py
