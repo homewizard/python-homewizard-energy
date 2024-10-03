@@ -23,39 +23,20 @@ jobs:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
 
+      - name: 🏗 Set up Poetry
+        run: pipx install poetry
+
       - name: Set up Python ${{ matrix.python }}
         id: python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
-
-      - name: Restore cached Python PIP packages
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
-          restore-keys: |
-            pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+          cache: "poetry"
 
       - name: Install workflow dependencies
         run: |
-          pip install -r .github/workflows/requirements.txt
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
-
-      - name: Restore cached Python virtual environment
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('poetry.lock') }}
-          restore-keys: |
-            venv-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -67,6 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.python }}-${{ matrix.os }}
+          include-hidden-files: true
           path: .coverage
 
   coverage:
@@ -75,28 +57,21 @@ jobs:
     steps:
       - name: Check out code from GitHub
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download coverage data
         uses: actions/download-artifact@v4
 
-      - name: Set up Python 3.9
+      - name: 🏗 Set up Poetry
+        run: pipx install poetry
+
+      - name: Set up Python 3.12
         id: python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9
-
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
-
-      - name: Restore cached Python PIP packages
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
-          restore-keys: |
-            pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-
+          python-version: 3.12
+          cache: "poetry"
 
       - name: Install workflow dependencies
         run: |
