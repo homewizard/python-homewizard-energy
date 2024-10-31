@@ -4,40 +4,48 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import ssl
 from collections.abc import Callable, Coroutine
 from http import HTTPStatus
 from typing import Any, TypeVar
 
 import async_timeout
 import backoff
-from aiohttp.client import ClientError, ClientResponseError, ClientSession
-from aiohttp.hdrs import METH_GET, METH_PUT
+from aiohttp.client import (
+    ClientError,
+    ClientResponseError,
+    ClientSession,
+    ClientTimeout,
+    TCPConnector,
+)
+from aiohttp.hdrs import METH_GET, METH_POST, METH_PUT
 
 from homewizard_energy.errors import (
     DisabledError,
     NotFoundError,
     RequestError,
-    UnsupportedError,
+    UnauthorizedError,
 )
 
-from .const import SUPPORTED_API_VERSION
-from .models import Data, Device, State, System
+from .cacert import CACERT
+from .models import Device
 
 _LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
 
-def optional_method(
+def authorized_method(
     func: Callable[..., Coroutine[Any, Any, T]],
 ) -> Callable[..., Coroutine[Any, Any, T]]:
-    """Check if method is supported."""
+    """Decorator method to check if token is set."""
 
     async def wrapper(self, *args, **kwargs) -> T:
-        try:
-            return await func(self, *args, **kwargs)
-        except NotFoundError as ex:
-            raise UnsupportedError(f"{func.__name__} is not supported") from ex
+        # pylint: disable=protected-access
+        if self._token is None:
+            raise UnauthorizedError("Token missing")
+
+        return await func(self, *args, **kwargs)
 
     return wrapper
 
@@ -45,23 +53,29 @@ def optional_method(
 class HomeWizardEnergyV2:
     """Communicate with a HomeWizard Energy device."""
 
-    _session: ClientSession | None
-    _close_session: bool = False
+    _clientsession: ClientSession | None = None
+    _close_clientsession: bool = False
     _request_timeout: int = 10
 
     def __init__(
-        self, host: str, clientsession: ClientSession = None, timeout: int = 10
+        self,
+        host: str,
+        identifier: str | None = None,
+        token: str | None = None,
+        timeout: int = 10,
     ):
         """Create a HomeWizard Energy object.
 
         Args:
             host: IP or URL for device.
-            clientsession: The clientsession.
+            id: ID for device.
+            token: Token for device.
             timeout: Request timeout in seconds.
         """
 
         self._host = host
-        self._session = clientsession
+        self._identifier = identifier
+        self._token = token
         self._request_timeout = timeout
 
     @property
@@ -74,105 +88,108 @@ class HomeWizardEnergyV2:
         """
         return self._host
 
+    @authorized_method
     async def device(self) -> Device:
         """Return the device object."""
         response = await self.request("api")
         device = Device.from_dict(response)
 
-        if device.api_version != SUPPORTED_API_VERSION:
-            raise UnsupportedError(
-                f"Unsupported API version, expected version '{SUPPORTED_API_VERSION}'"
-            )
-
         return device
 
-    async def data(self) -> Data:
-        """Return the data object."""
-        response = await self.request("api/v1/data")
-        return Data.from_dict(response)
-
-    @optional_method
-    async def state(self) -> State | None:
-        """Return the state object."""
-        response = await self.request("api/v1/state")
-        return State.from_dict(response)
-
-    @optional_method
-    async def state_set(
-        self,
-        power_on: bool | None = None,
-        switch_lock: bool | None = None,
-        brightness: int | None = None,
-    ) -> bool:
-        """Set state of device."""
-        state: dict[str, bool | str] = {}
-
-        if power_on is not None:
-            state["power_on"] = power_on
-        if switch_lock is not None:
-            state["switch_lock"] = switch_lock
-        if brightness is not None:
-            state["brightness"] = brightness
-
-        if not state:
-            _LOGGER.error("At least one state update is required")
-            return False
-
-        await self.request("api/v1/state", method=METH_PUT, data=state)
-        return True
-
-    @optional_method
-    async def system(self) -> System:
-        """Return the system object."""
-        response = await self.request("api/v1/system")
-        return System.from_dict(response)
-
-    @optional_method
-    async def system_set(
-        self,
-        cloud_enabled: bool | None = None,
-    ) -> bool:
-        """Set state of device."""
-        state = {}
-        if cloud_enabled is not None:
-            state["cloud_enabled"] = cloud_enabled
-
-        if not state:
-            _LOGGER.error("At least one state update is required")
-            return False
-
-        await self.request("api/v1/system", method=METH_PUT, data=state)
-        return True
-
-    @optional_method
+    @authorized_method
     async def identify(
         self,
     ) -> bool:
         """Send identify request."""
-        await self.request("api/v1/identify", method=METH_PUT)
+        await self.request("api/v2/system/identify", method=METH_PUT)
         return True
+
+    async def get_user_token(
+        self,
+        name: str | None = None,
+    ) -> str:
+        """Get authorization token from device."""
+        response = await self.request(
+            "api/v2/user", method=METH_POST, data={"name": name}
+        )
+
+        if error := response.get("error"):
+            # Specific case, expecting button press
+            if error == "user:creation-not-enabled":
+                raise DisabledError("User creation is not enabled on the device")
+
+            raise RequestError(f"Error occurred while getting token: {error}")
+
+        token = response.get("user").get("token")
+        if token is None:
+            raise RequestError("Failed to get token")
+
+        self._token = token
+        return token
+
+    async def _get_clientsession(self) -> ClientSession:
+        """
+        Get a clientsession that is tuned for communication with the HomeWizard Energy Device
+        """
+
+        def _build_ssl_context() -> ssl.SSLContext:
+            context = ssl.create_default_context(cadata=CACERT)
+            if self._identifier is not None:
+                context.hostname_checks_common_name = True
+            else:
+                _LOGGER.warning("No hostname provided, skipping hostname validation")
+                context.check_hostname = False  # Skip hostname validation
+                context.verify_mode = ssl.CERT_REQUIRED  # Keep SSL verification active
+            return context
+
+        # Creating an SSL context has some blocking IO so need to run it in the executor
+        loop = asyncio.get_running_loop()
+        context = await loop.run_in_executor(None, _build_ssl_context)
+
+        connector = TCPConnector(
+            enable_cleanup_closed=True,
+            ssl=context,
+            limit_per_host=1,
+        )
+
+        return ClientSession(
+            connector=connector, timeout=ClientTimeout(total=self._request_timeout)
+        )
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
     async def request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> Any:
         """Make a request to the API."""
-        if self._session is None:
-            self._session = ClientSession()
-            self._close_session = True
 
-        url = f"http://{self.host}/{path}"
-        headers = {"Content-Type": "application/json"}
+        if self._clientsession is None:
+            self._clientsession = await self._get_clientsession()
+
+        if self._clientsession.closed:
+            # Avoid runtime errors when connection is closed.
+            # This solves an issue when updates were scheduled and clientsession was closed.
+            return None
+
+        # Construct request
+        url = f"https://{self.host}/{path}"
+        headers = {
+            "Content-Type": "application/json",
+        }
+        if self._token is not None:
+            headers["Authorization"] = f"Bearer {self._token}"
 
         _LOGGER.debug("%s, %s, %s", method, url, data)
 
         try:
             async with async_timeout.timeout(self._request_timeout):
-                resp = await self._session.request(
+                resp = await self._clientsession.request(
                     method,
                     url,
                     json=data,
                     headers=headers,
+                    server_hostname=self._identifier
+                    if self._identifier is not None
+                    else None,
                 )
                 _LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
@@ -184,19 +201,14 @@ class HomeWizardEnergyV2:
                 f"Error occurred while communicating with the HomeWizard Energy device at {self.host}"
             ) from exception
 
-        if resp.status == HTTPStatus.FORBIDDEN:
-            # Known case: API disabled
-            raise DisabledError(
-                "API disabled. API must be enabled in HomeWizard Energy app"
-            )
-
-        if resp.status == HTTPStatus.NOT_FOUND:
-            # Known case: API endpoint not supported
-            raise NotFoundError("Resource not found")
-
-        if resp.status != HTTPStatus.OK:
-            # Something else went wrong
-            raise RequestError(f"API request error ({resp.status})")
+        match resp.status:
+            case HTTPStatus.UNAUTHORIZED:
+                raise UnauthorizedError("Token rejected")
+            case HTTPStatus.NOT_FOUND:
+                raise NotFoundError("Resource not found")
+            case HTTPStatus.NO_CONTENT:
+                # No content, just return
+                return None
 
         content_type = resp.headers.get("Content-Type", "")
         if "application/json" in content_type:
@@ -207,8 +219,8 @@ class HomeWizardEnergyV2:
     async def close(self) -> None:
         """Close client session."""
         _LOGGER.debug("Closing clientsession")
-        if self._session and self._close_session:
-            await self._session.close()
+        if self._clientsession is not None:
+            await self._clientsession.close()
 
     async def __aenter__(self) -> HomeWizardEnergyV2:
         """Async enter.

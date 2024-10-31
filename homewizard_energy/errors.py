@@ -29,3 +29,6 @@ class UnsupportedError(HomeWizardEnergyException):
 
 class DisabledError(HomeWizardEnergyException):
     """Raised when device API is disabled. User has to enable API in app."""
+
+class UnauthorizedError(HomeWizardEnergyException):
+    """Raised when request is not authorized."""
