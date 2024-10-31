@@ -16,8 +16,8 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu, macos]
-        python: ['3.9', '3.10', '3.11', '3.12']
+        os: [ubuntu]
+        python: ['3.10', '3.11', '3.12']
 
     steps:
       - name: Check out code from GitHub
@@ -66,11 +66,11 @@ jobs:
       - name: 🏗 Set up Poetry
         run: pipx install poetry
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.13
         id: python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.13
           cache: "poetry"
 
       - name: Install workflow dependencies
