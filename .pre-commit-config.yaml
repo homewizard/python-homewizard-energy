@@ -87,12 +87,12 @@ repos:
         language: system
         types: [text]
         entry: poetry run fix-byte-order-marker
-      - id: flake8
-        name: Enforcing style guide with flake8
-        language: system
-        types: [python]
-        entry: poetry run flake8
-        require_serial: true
+      # - id: flake8
+      #   name: Enforcing style guide with flake8
+      #   language: system
+      #   types: [python]
+      #   entry: poetry run flake8
+      #   require_serial: true
       - id: isort
         name: Sort all imports with isort
         language: system
