@@ -259,3 +259,34 @@ class ExternalDevice:
             unit=data.get("unit", ""),
             timestamp=Measurement.convert_timestamp_to_datetime(data.get("timestamp")),
         )
+
+
+@dataclass
+class System:
+    """Represent System config."""
+
+    wifi_ssid: str
+    wifi_rssi_db: int
+    cloud_enabled: bool
+    uptime_s: str
+    status_led_brightness_pct: int
+    v1_api_enabled: bool | None
+
+    @staticmethod
+    def from_dict(data: dict[str, str]) -> System:
+        """Return System object from API response.
+
+        Args:
+            data: The data from the HomeWizard Energy `api/v2/system` API.
+
+        Returns:
+            A System object.
+        """
+        return System(
+            wifi_ssid=data.get("wifi_ssid"),
+            wifi_rssi_db=data.get("wifi_rssi_db"),
+            cloud_enabled=data.get("cloud_enabled"),
+            uptime_s=data.get("uptime_s"),
+            status_led_brightness_pct=data.get("status_led_brightness_pct"),
+            v1_api_enabled=data.get("v1_api_enabled"),
+        )

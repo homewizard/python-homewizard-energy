@@ -28,7 +28,7 @@ from homewizard_energy.errors import (
 )
 
 from .cacert import CACERT
-from .models import Device, Measurement
+from .models import Device, Measurement, System
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,6 +103,14 @@ class HomeWizardEnergyV2:
         measurement = Measurement.from_dict(response)
 
         return measurement
+
+    @authorized_method
+    async def system(self) -> System:
+        """Return the system object."""
+        response = await self.request("api/v2/system")
+        system = System.from_dict(response)
+
+        return system
 
     @authorized_method
     async def identify(
