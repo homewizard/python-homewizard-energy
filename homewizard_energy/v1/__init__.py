@@ -13,8 +13,14 @@ import backoff
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_PUT
 
+from homewizard_energy.errors import (
+    DisabledError,
+    NotFoundError,
+    RequestError,
+    UnsupportedError,
+)
+
 from .const import SUPPORTED_API_VERSION
-from .errors import DisabledError, NotFoundError, RequestError, UnsupportedError
 from .models import Data, Device, State, System
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,7 +42,7 @@ def optional_method(
     return wrapper
 
 
-class HomeWizardEnergy:
+class HomeWizardEnergyV1:
     """Communicate with a HomeWizard Energy device."""
 
     _session: ClientSession | None
@@ -204,11 +210,11 @@ class HomeWizardEnergy:
         if self._session and self._close_session:
             await self._session.close()
 
-    async def __aenter__(self) -> HomeWizardEnergy:
+    async def __aenter__(self) -> HomeWizardEnergyV1:
         """Async enter.
 
         Returns:
-            The HomeWizardEnergy object.
+            The HomeWizardEnergyV1 object.
         """
         return self
 
