@@ -13,8 +13,10 @@ jobs:
         include:
           - id: bandit
             name: Check with bandit
-          - id: black
+          - id: ruff-check
             name: Check code style
+          - id: ruff-format
+            name: Format code style
           - id: check-ast
             name: Check Python AST
           - id: check-case-conflict

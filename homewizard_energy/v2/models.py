@@ -154,7 +154,7 @@ class Data:
 
     @staticmethod
     def get_external_devices(
-        external_devices: list[dict[str, Any]] | None
+        external_devices: list[dict[str, Any]] | None,
     ) -> dict[str, ExternalDevice] | None:
         """Convert external device object to ExternalDevice Object List."""
         devices: dict[str, ExternalDevice] = {}

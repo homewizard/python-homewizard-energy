@@ -29,7 +29,7 @@ T = TypeVar("T")
 
 
 def optional_method(
-    func: Callable[..., Coroutine[Any, Any, T]]
+    func: Callable[..., Coroutine[Any, Any, T]],
 ) -> Callable[..., Coroutine[Any, Any, T]]:
     """Check if method is supported."""
 

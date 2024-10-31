@@ -24,8 +24,6 @@ backoff = "^2.2.1"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^3.0.0"
-black = "^24.4"
-blacken-docs = "^1.18.0"
 flake8 = "^4.0.1"
 flake8-docstrings = "^1.7.0"
 isort = "^5.13.2"
@@ -45,6 +43,7 @@ flake8-builtins = "^2.5.0"
 flake8-comprehensions = "^3.15.0"
 flake8-eradicate = "^1.2.1"
 flake8-markdown = "^0.3.0"
+ruff = "0.7.1"
 darglint = "^1.8.1"
 safety = "^3.2.10"
 codespell = "^2.3.0"
@@ -54,9 +53,6 @@ syrupy = "^4.7.1"
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/homewizard/python-homewizard-energy/issues"
 Changelog = "https://github.com/homewizard/python-homewizard-energy/releases"
-
-[tool.black]
-target-version = ['py39']
 
 [tool.coverage.paths]
 source = ["homewizard_energy"]
