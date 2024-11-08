@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -262,6 +262,27 @@ class ExternalDevice:
 
 
 @dataclass
+class SystemUpdate:
+    """Represent System update config."""
+
+    cloud_enabled: bool = field(default=None)
+    status_led_brightness_pct: int = field(default=None)
+    api_v1_enabled: bool | None = field(default=None)
+
+    def as_dict(self) -> dict[str, bool | int]:
+        """Return SystemUpdate object as dict.
+
+        Only include values that are not None.
+        """
+        _dict = {k: v for k, v in asdict(self).items() if v is not None}
+
+        if _dict is None:
+            raise ValueError("No values to update")
+
+        return _dict
+
+
+@dataclass
 class System:
     """Represent System config."""
 
@@ -270,7 +291,7 @@ class System:
     cloud_enabled: bool
     uptime_s: str
     status_led_brightness_pct: int
-    v1_api_enabled: bool | None
+    api_v1_enabled: bool | None
 
     @staticmethod
     def from_dict(data: dict[str, str]) -> System:
@@ -288,5 +309,5 @@ class System:
             cloud_enabled=data.get("cloud_enabled"),
             uptime_s=data.get("uptime_s"),
             status_led_brightness_pct=data.get("status_led_brightness_pct"),
-            v1_api_enabled=data.get("v1_api_enabled"),
+            api_v1_enabled=data.get("api_v1_enabled"),
         )

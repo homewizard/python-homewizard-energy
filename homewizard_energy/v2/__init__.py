@@ -18,17 +18,18 @@ from aiohttp.client import (
     ClientTimeout,
     TCPConnector,
 )
-from aiohttp.hdrs import METH_GET, METH_POST, METH_PUT
+from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 
 from homewizard_energy.errors import (
     DisabledError,
     NotFoundError,
     RequestError,
+    ResponseError,
     UnauthorizedError,
 )
 
 from .cacert import CACERT
-from .models import Device, Measurement, System
+from .models import Device, Measurement, System, SystemUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ class HomeWizardEnergyV2:
     @authorized_method
     async def device(self) -> Device:
         """Return the device object."""
-        response = await self.request("api")
+        _, response = await self._request("/api")
         device = Device.from_dict(response)
 
         return device
@@ -99,17 +100,32 @@ class HomeWizardEnergyV2:
     @authorized_method
     async def measurement(self) -> Measurement:
         """Return the measurement object."""
-        response = await self.request("api/v2/measurement")
+        _, response = await self._request("/api/measurement")
         measurement = Measurement.from_dict(response)
 
         return measurement
 
     @authorized_method
-    async def system(self) -> System:
+    async def system(
+        self,
+        update: SystemUpdate | None = None,
+    ) -> System:
         """Return the system object."""
-        response = await self.request("api/v2/system")
-        system = System.from_dict(response)
 
+        if update is not None:
+            data = update.as_dict()
+            status, response = await self._request(
+                "/api/system", method=METH_PUT, data=data
+            )
+
+        else:
+            status, response = await self._request("/api/system")
+
+        if status != HTTPStatus.OK:
+            error = response.get("errodr", response)
+            raise RequestError(f"Failed to get system: {error}")
+
+        system = System.from_dict(response)
         return system
 
     @authorized_method
@@ -117,31 +133,52 @@ class HomeWizardEnergyV2:
         self,
     ) -> bool:
         """Send identify request."""
-        await self.request("api/v2/system/identify", method=METH_PUT)
+        await self._request("/api/system/identify", method=METH_PUT)
         return True
 
-    async def get_user_token(
+    async def get_token(
         self,
-        name: str | None = None,
+        name: str,
     ) -> str:
         """Get authorization token from device."""
-        response = await self.request(
-            "api/v2/user", method=METH_POST, data={"name": name}
+        status, response = await self._request(
+            "/api/user", method=METH_POST, data={"name": f"local/{name}"}
         )
 
-        if error := response.get("error"):
-            # Specific case, expecting button press
-            if error == "user:creation-not-enabled":
-                raise DisabledError("User creation is not enabled on the device")
+        if status == HTTPStatus.FORBIDDEN:
+            raise DisabledError("User creation is not enabled on the device")
 
+        if status != HTTPStatus.OK:
+            error = response.get("error", response)
             raise RequestError(f"Error occurred while getting token: {error}")
 
-        token = response.get("user").get("token")
-        if token is None:
-            raise RequestError("Failed to get token")
+        try:
+            token = response["token"]
+        except KeyError as ex:
+            raise ResponseError("Failed to get token") from ex
 
         self._token = token
         return token
+
+    @authorized_method
+    async def delete_token(
+        self,
+        name: str | None = None,
+    ) -> None:
+        """Delete authorization token from device."""
+        status, response = await self._request(
+            "/api/user",
+            method=METH_DELETE,
+            data={"name": name} if name is not None else None,
+        )
+
+        if status != HTTPStatus.NO_CONTENT:
+            error = response.get("error", response)
+            raise RequestError(f"Error occurred while getting token: {error}")
+
+        # Our token was invalided, resetting it
+        if name is None:
+            self._token = None
 
     async def _get_clientsession(self) -> ClientSession:
         """
@@ -173,7 +210,7 @@ class HomeWizardEnergyV2:
         )
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
-    async def request(
+    async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> Any:
         """Make a request to the API."""
@@ -187,7 +224,7 @@ class HomeWizardEnergyV2:
             return None
 
         # Construct request
-        url = f"https://{self.host}/{path}"
+        url = f"https://{self.host}{path}"
         headers = {
             "Content-Type": "application/json",
         }
@@ -220,17 +257,19 @@ class HomeWizardEnergyV2:
         match resp.status:
             case HTTPStatus.UNAUTHORIZED:
                 raise UnauthorizedError("Token rejected")
-            case HTTPStatus.NOT_FOUND:
-                raise NotFoundError("Resource not found")
+            case HTTPStatus.METHOD_NOT_ALLOWED:
+                raise NotFoundError("Method not allowed")
             case HTTPStatus.NO_CONTENT:
                 # No content, just return
-                return None
+                return (HTTPStatus.NO_CONTENT, None)
+            case HTTPStatus.OK:
+                pass
 
         content_type = resp.headers.get("Content-Type", "")
         if "application/json" in content_type:
-            return await resp.json()
+            return (resp.status, await resp.json())
 
-        return await resp.text()
+        return (resp.status, await resp.text())
 
     async def close(self) -> None:
         """Close client session."""
