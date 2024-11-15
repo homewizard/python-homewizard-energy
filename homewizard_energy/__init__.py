@@ -1,20 +1,14 @@
 """HomeWizard Energy API library."""
 
-from .brand import Product
 from .errors import DisabledError, InvalidStateError, RequestError, UnsupportedError
-from .homewizard_energy import HomeWizardEnergy
-from .models import Data, Device, ExternalDevice, State, System
+from .v1 import HomeWizardEnergyV1
+from .v2 import HomeWizardEnergyV2
 
 __all__ = [
-    "HomeWizardEnergy",
-    "RequestError",
-    "InvalidStateError",
-    "UnsupportedError",
     "DisabledError",
-    "Data",
-    "Device",
-    "ExternalDevice",
-    "State",
-    "System",
-    "Product",
+    "HomeWizardEnergyV1",
+    "HomeWizardEnergyV2",
+    "InvalidStateError",
+    "RequestError",
+    "UnsupportedError",
 ]

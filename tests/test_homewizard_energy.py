@@ -8,7 +8,7 @@ import aiohttp
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy import HomeWizardEnergy
+from homewizard_energy import HomeWizardEnergyV1
 from homewizard_energy.errors import DisabledError, RequestError, UnsupportedError
 
 from . import load_fixtures
@@ -29,7 +29,7 @@ async def test_request_returns_json(aresponses):
         ),
     )
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
         return_value = await api.request("api")
         assert isinstance(return_value, dict)
         assert return_value["status"] == "ok"
@@ -49,7 +49,7 @@ async def test_request_internal_session(aresponses):
         ),
     )
 
-    api = HomeWizardEnergy("example.com")
+    api = HomeWizardEnergyV1("example.com")
     assert await api.request("api")
     await api.close()
 
@@ -67,7 +67,7 @@ async def test_request_returns_txt(aresponses):
         ),
     )
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
         return_value = await api.request("api")
         assert isinstance(return_value, str)
         assert return_value == '{"status": "ok"}'
@@ -87,7 +87,7 @@ async def test_request_detects_403(aresponses):
         ),
     )
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(DisabledError):
             await api.request("api")
@@ -108,7 +108,7 @@ async def test_request_detects_non_200(aresponses):
         ),
     )
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(RequestError):
             await api.request("api")
@@ -119,7 +119,7 @@ async def test_request_detects_non_200(aresponses):
 async def test_request_detects_clienterror():
     """Test other clienterror."""
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with (
             patch.object(session, "request", side_effect=aiohttp.ClientError),
@@ -160,7 +160,7 @@ async def test_get_device_object(
         )
 
         async with aiohttp.ClientSession() as session:
-            api = HomeWizardEnergy("example.com", clientsession=session)
+            api = HomeWizardEnergyV1("example.com", clientsession=session)
             device = await api.device()
 
             assert device
@@ -186,7 +186,7 @@ async def test_get_device_object_detects_invalid_api(aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(UnsupportedError):
             await api.device()
@@ -238,7 +238,7 @@ async def test_get_data_object(
         )
 
         async with aiohttp.ClientSession() as session:
-            api = HomeWizardEnergy("example.com", clientsession=session)
+            api = HomeWizardEnergyV1("example.com", clientsession=session)
 
             data = await api.data()
             assert data is not None
@@ -280,7 +280,7 @@ async def test_get_data_object_with_known_device(
         )
 
         async with aiohttp.ClientSession() as session:
-            api = HomeWizardEnergy("example.com", clientsession=session)
+            api = HomeWizardEnergyV1("example.com", clientsession=session)
 
             # pylint: disable=protected-access
             api._detected_api_version = "v1"
@@ -330,7 +330,7 @@ async def test_get_state_object(
         )
 
         async with aiohttp.ClientSession() as session:
-            api = HomeWizardEnergy("example.com", clientsession=session)
+            api = HomeWizardEnergyV1("example.com", clientsession=session)
 
             state = await api.state()
             assert state is not None
@@ -363,7 +363,7 @@ async def test_state_set(
         )
 
         async with aiohttp.ClientSession() as session:
-            api = HomeWizardEnergy("example.com", clientsession=session)
+            api = HomeWizardEnergyV1("example.com", clientsession=session)
 
             state = await api.state_set(
                 power_on=False, switch_lock=False, brightness=255
@@ -379,7 +379,7 @@ async def test_state_set_detects_no_statechange():
     """Test state set does not send request when nothing is changed."""
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         state = await api.state_set()
         assert not state
@@ -408,7 +408,7 @@ async def test_identify(model: str, snapshot: SnapshotAssertion, aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         state = await api.identify()
         assert state
@@ -452,7 +452,7 @@ async def test_identify_not_supported(model: str, aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(UnsupportedError):
             await api.identify()
@@ -497,7 +497,7 @@ async def test_get_system_object(aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         system = await api.system()
         assert system
@@ -537,7 +537,7 @@ async def test_system_set(model: str, snapshot: SnapshotAssertion, aresponses):
     )
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         system = await api.system_set(cloud_enabled=False)
         assert system
@@ -550,7 +550,7 @@ async def test_system_set_missing_arguments():
     """Test system set when no arguments are given."""
 
     async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergy("example.com", clientsession=session)
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
         assert await api.system_set() is False
 
 
@@ -558,7 +558,7 @@ async def test_system_set_missing_arguments():
 async def test_request_timeout():
     """Test request raises timeout when request takes too long."""
 
-    api = HomeWizardEnergy("example.com")
+    api = HomeWizardEnergyV1("example.com")
     api._session = AsyncMock()
     api._session.request = AsyncMock(side_effect=asyncio.TimeoutError())
 
@@ -570,7 +570,7 @@ async def test_request_timeout():
 
 async def test_close_when_out_of_scope():
     """Test close called when object goes out of scope."""
-    api = HomeWizardEnergy("example.com")
+    api = HomeWizardEnergyV1("example.com")
     api.close = AsyncMock()
 
     async with api as hwe:

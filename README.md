@@ -21,14 +21,14 @@ python3 -m pip install python-homewizard-energy
 ## Example
 ```python
 import asyncio
-from homewizard_energy import HomeWizardEnergy
+from homewizard_energy import HomeWizardEnergyV1V1
 
 IP_ADDRESS = "192.168.1.123"
 
 
 async def main():
 
-    async with HomeWizardEnergy(host=IP_ADDRESS) as api:
+    async with HomeWizardEnergyV1(host=IP_ADDRESS) as api:
 
          # Get device information, like firmware version
         print(await api.device())
@@ -48,7 +48,7 @@ asyncio.run(main())
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Requirements
-- Python 3.9 or higher
+- Python 3.10 or higher
 - [Poetry](https://python-poetry.org/docs/#installing-with-pipx)
 
 ## Installation and setup
