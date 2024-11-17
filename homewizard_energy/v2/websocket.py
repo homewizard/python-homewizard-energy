@@ -14,6 +14,8 @@ from .models import Device, Measurement, System
 if TYPE_CHECKING:
     from . import HomeWizardEnergyV2
 
+OnMessageCallbackType = Callable[[str, Device | Measurement | System], None]
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -22,7 +24,8 @@ class Websocket:
 
     _connect_lock: asyncio.Lock = asyncio.Lock()
     _ws_connection: aiohttp.ClientWebSocketResponse | None = None
-    _ws_subscriptions: list[tuple[str, Callable[[aiohttp.WSMessage], None]]] = []
+    _ws_subscriptions: list[tuple[str, OnMessageCallbackType]] = []
+
     _ws_authenticated: bool = False
 
     def __init__(self, parent: "HomeWizardEnergyV2"):
@@ -65,7 +68,7 @@ class Websocket:
         self._ws_connection = None
 
     def subscribe(
-        self, topic: WebsocketTopic, ws_callback: Callable[[aiohttp.WSMessage], None]
+        self, topic: WebsocketTopic, ws_callback: OnMessageCallbackType
     ) -> Callable[[], None]:
         """
         Subscribe to raw websocket messages.
