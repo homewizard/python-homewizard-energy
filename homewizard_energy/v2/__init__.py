@@ -5,20 +5,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import ssl
-from collections.abc import Callable, Coroutine
+from collections.abc import Coroutine
 from http import HTTPStatus
-from typing import Any, TypeVar
+from typing import Any, Callable, TypeVar
 
+import aiohttp
 import async_timeout
 import backoff
-from aiohttp.client import (
-    ClientError,
-    ClientResponseError,
-    ClientSession,
-    ClientTimeout,
-    TCPConnector,
-)
-from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 
 from homewizard_energy.errors import (
     DisabledError,
@@ -30,6 +23,7 @@ from homewizard_energy.errors import (
 
 from .cacert import CACERT
 from .models import Device, Measurement, System, SystemUpdate
+from .websocket import Websocket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,9 +48,10 @@ def authorized_method(
 class HomeWizardEnergyV2:
     """Communicate with a HomeWizard Energy device."""
 
-    _clientsession: ClientSession | None = None
+    _clientsession: aiohttp.ClientSession | None = None
     _close_clientsession: bool = False
     _request_timeout: int = 10
+    _websocket: Websocket | None = None
 
     def __init__(
         self,
@@ -89,6 +84,16 @@ class HomeWizardEnergyV2:
         """
         return self._host
 
+    @property
+    def websocket(self) -> Websocket:
+        """Return the websocket object.
+
+        Create a new websocket object if it does not exist.
+        """
+        if self._websocket is None:
+            self._websocket = Websocket(self)
+        return self._websocket
+
     @authorized_method
     async def device(self) -> Device:
         """Return the device object."""
@@ -115,7 +120,7 @@ class HomeWizardEnergyV2:
         if update is not None:
             data = update.as_dict()
             status, response = await self._request(
-                "/api/system", method=METH_PUT, data=data
+                "/api/system", method=aiohttp.hdrs.METH_PUT, data=data
             )
 
         else:
@@ -133,7 +138,7 @@ class HomeWizardEnergyV2:
         self,
     ) -> bool:
         """Send identify request."""
-        await self._request("/api/system/identify", method=METH_PUT)
+        await self._request("/api/system/identify", method=aiohttp.hdrs.METH_PUT)
         return True
 
     async def get_token(
@@ -142,7 +147,7 @@ class HomeWizardEnergyV2:
     ) -> str:
         """Get authorization token from device."""
         status, response = await self._request(
-            "/api/user", method=METH_POST, data={"name": f"local/{name}"}
+            "/api/user", method=aiohttp.hdrs.METH_POST, data={"name": f"local/{name}"}
         )
 
         if status == HTTPStatus.FORBIDDEN:
@@ -168,7 +173,7 @@ class HomeWizardEnergyV2:
         """Delete authorization token from device."""
         status, response = await self._request(
             "/api/user",
-            method=METH_DELETE,
+            method=aiohttp.hdrs.METH_DELETE,
             data={"name": name} if name is not None else None,
         )
 
@@ -180,10 +185,33 @@ class HomeWizardEnergyV2:
         if name is None:
             self._token = None
 
-    async def _get_clientsession(self) -> ClientSession:
+    @property
+    def token(self) -> str | None:
+        """Return the token of the device.
+
+        Returns:
+            token: The used token
+
+        """
+        return self._token
+
+    @property
+    def request_timeout(self) -> int:
+        """Return the request timeout of the device.
+
+        Returns:
+            request_timeout: The used request timeout
+
+        """
+        return self._request_timeout
+
+    async def get_clientsession(self) -> aiohttp.ClientSession:
         """
         Get a clientsession that is tuned for communication with the HomeWizard Energy Device
         """
+
+        if self._clientsession is not None:
+            return self._clientsession
 
         def _build_ssl_context() -> ssl.SSLContext:
             context = ssl.create_default_context(cadata=CACERT)
@@ -199,26 +227,28 @@ class HomeWizardEnergyV2:
         loop = asyncio.get_running_loop()
         context = await loop.run_in_executor(None, _build_ssl_context)
 
-        connector = TCPConnector(
+        connector = aiohttp.TCPConnector(
             enable_cleanup_closed=True,
             ssl=context,
             limit_per_host=1,
         )
 
-        return ClientSession(
-            connector=connector, timeout=ClientTimeout(total=self._request_timeout)
+        self._clientsession = aiohttp.ClientSession(
+            connector=connector,
+            timeout=aiohttp.ClientTimeout(total=self._request_timeout),
         )
+
+        return self._clientsession
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
     async def _request(
-        self, path: str, method: str = METH_GET, data: object = None
+        self, path: str, method: str = aiohttp.hdrs.METH_GET, data: object = None
     ) -> Any:
         """Make a request to the API."""
 
-        if self._clientsession is None:
-            self._clientsession = await self._get_clientsession()
+        _clientsession = await self.get_clientsession()
 
-        if self._clientsession.closed:
+        if _clientsession.closed:
             # Avoid runtime errors when connection is closed.
             # This solves an issue when updates were scheduled and clientsession was closed.
             return None
@@ -235,7 +265,7 @@ class HomeWizardEnergyV2:
 
         try:
             async with async_timeout.timeout(self._request_timeout):
-                resp = await self._clientsession.request(
+                resp = await _clientsession.request(
                     method,
                     url,
                     json=data,
@@ -249,7 +279,7 @@ class HomeWizardEnergyV2:
             raise RequestError(
                 f"Timeout occurred while connecting to the HomeWizard Energy device at {self.host}"
             ) from exception
-        except (ClientError, ClientResponseError) as exception:
+        except (aiohttp.ClientError, aiohttp.ClientResponseError) as exception:
             raise RequestError(
                 f"Error occurred while communicating with the HomeWizard Energy device at {self.host}"
             ) from exception
@@ -276,6 +306,7 @@ class HomeWizardEnergyV2:
         _LOGGER.debug("Closing clientsession")
         if self._clientsession is not None:
             await self._clientsession.close()
+            self._clientsession = None
 
     async def __aenter__(self) -> HomeWizardEnergyV2:
         """Async enter.
