@@ -1,0 +1,23 @@
+{
+    "external": [
+        {
+            "type": "gas_meter",
+            "timestamp": "2024-06-28T14:00:00",
+            "value": 555.555,
+            "unit": "should_not_be_included_because_of_missing_id"
+        },
+        {
+            "unique_id": "4E6576657220676F6E6E612072756E2061726F756E64",
+            "type": "catfish",
+            "timestamp": "2024-06-28T14:00:00",
+            "value": 555.555,
+            "unit": ",3"
+        },
+        {
+            "unique_id": "4E6576657220676F6E6E612072756E2061726F756E64",
+            "timestamp": "2024-06-28T14:00:00",
+            "value": 555.555,
+            "unit": ",3"
+        }
+    ]
+}

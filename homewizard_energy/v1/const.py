@@ -1,4 +1,4 @@
-"""Constants for HomeWizard Energy."""
+"""Constants for HomeWizard Energy v1."""
 
 SUPPORTED_API_VERSION = "v1"
 
