@@ -131,10 +131,16 @@ class HomeWizardEnergyV2:
     @authorized_method
     async def identify(
         self,
-    ) -> bool:
+    ) -> None:
         """Send identify request."""
         await self._request("/api/system/identify", method=METH_PUT)
-        return True
+
+    @authorized_method
+    async def reboot(
+        self,
+    ) -> None:
+        """Send reboot request."""
+        await self._request("/api/system/reboot", method=METH_PUT)
 
     async def get_token(
         self,

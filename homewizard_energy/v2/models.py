@@ -156,7 +156,6 @@ class Measurement:
         Returns:
             A Measurement object.
         """
-
         return Measurement(
             protocol_version=data.get("smr_version"),
             meter_model=data.get("meter_model"),
