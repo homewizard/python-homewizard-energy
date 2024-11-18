@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from .brand import Product, from_type
+from homewizard_energy.brand import Product, from_type
 
 
 @dataclass

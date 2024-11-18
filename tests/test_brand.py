@@ -3,7 +3,7 @@
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.v1.brand import from_type
+from homewizard_energy.brand import from_type
 
 pytestmark = [pytest.mark.asyncio]
 
