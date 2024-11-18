@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from contextlib import suppress
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -113,7 +112,7 @@ class Measurement:
 
     @staticmethod
     def convert_hex_string_to_readable(value: str | None) -> str | None:
-        """Convert hex 'SMS' string to readable string, if possible.
+        """Convert hex string to readable string, if possible.
 
         Args:
             value: String to convert, e.g. '4E47475955'
@@ -137,10 +136,12 @@ class Measurement:
             return None
 
         for external in external_devices:
-            with suppress(ValueError, KeyError):
+            try:
                 device = ExternalDevice.from_dict(external)
-                type_unique_id = f"{external.get('type')}_{device.unique_id}"
+            except KeyError:
+                continue
 
+            type_unique_id = f"{external.get('type')}_{device.unique_id}"
             devices[type_unique_id] = device
 
         return devices
@@ -276,7 +277,7 @@ class SystemUpdate:
         """
         _dict = {k: v for k, v in asdict(self).items() if v is not None}
 
-        if _dict is None:
+        if not _dict:
             raise ValueError("No values to update")
 
         return _dict
