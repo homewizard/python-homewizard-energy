@@ -22,7 +22,6 @@ from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 
 from homewizard_energy.errors import (
     DisabledError,
-    NotFoundError,
     RequestError,
     ResponseError,
     UnauthorizedError,
@@ -55,7 +54,6 @@ class HomeWizardEnergyV2:
     """Communicate with a HomeWizard Energy device."""
 
     _clientsession: ClientSession | None = None
-    _close_clientsession: bool = False
     _request_timeout: int = 10
 
     def __init__(
@@ -122,7 +120,7 @@ class HomeWizardEnergyV2:
             status, response = await self._request("/api/system")
 
         if status != HTTPStatus.OK:
-            error = response.get("errodr", response)
+            error = response.get("error", response)
             raise RequestError(f"Failed to get system: {error}")
 
         system = System.from_dict(response)
@@ -131,10 +129,24 @@ class HomeWizardEnergyV2:
     @authorized_method
     async def identify(
         self,
-    ) -> bool:
+    ) -> None:
         """Send identify request."""
         await self._request("/api/system/identify", method=METH_PUT)
-        return True
+
+    @authorized_method
+    async def reboot(
+        self,
+    ) -> None:
+        """Reboot the HomeWizard Energy device.
+
+        This will cause the device to restart, resulting in temporary unavailability.
+        The reboot process typically takes a few seconds to complete.
+
+        Note: A reboot is usually not necessary.
+        Make sure to inform the user that if the issue persists and frequent reboots are required,
+        they need to contact our support team to help identify and resolve the root cause.
+        """
+        await self._request("/api/system/reboot", method=METH_PUT)
 
     async def get_token(
         self,
@@ -150,7 +162,7 @@ class HomeWizardEnergyV2:
 
         if status != HTTPStatus.OK:
             error = response.get("error", response)
-            raise RequestError(f"Error occurred while getting token: {error}")
+            raise RequestError(f"Error occurred while getting token: {error}", error)
 
         try:
             token = response["token"]
@@ -174,7 +186,7 @@ class HomeWizardEnergyV2:
 
         if status != HTTPStatus.NO_CONTENT:
             error = response.get("error", response)
-            raise RequestError(f"Error occurred while getting token: {error}")
+            raise RequestError(f"Error occurred while getting token: {error}", error)
 
         # Our token was invalided, resetting it
         if name is None:
@@ -212,16 +224,11 @@ class HomeWizardEnergyV2:
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
-    ) -> Any:
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
         """Make a request to the API."""
 
         if self._clientsession is None:
             self._clientsession = await self._get_clientsession()
-
-        if self._clientsession.closed:
-            # Avoid runtime errors when connection is closed.
-            # This solves an issue when updates were scheduled and clientsession was closed.
-            return None
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -257,19 +264,13 @@ class HomeWizardEnergyV2:
         match resp.status:
             case HTTPStatus.UNAUTHORIZED:
                 raise UnauthorizedError("Token rejected")
-            case HTTPStatus.METHOD_NOT_ALLOWED:
-                raise NotFoundError("Method not allowed")
             case HTTPStatus.NO_CONTENT:
                 # No content, just return
                 return (HTTPStatus.NO_CONTENT, None)
             case HTTPStatus.OK:
                 pass
 
-        content_type = resp.headers.get("Content-Type", "")
-        if "application/json" in content_type:
-            return (resp.status, await resp.json())
-
-        return (resp.status, await resp.text())
+        return (resp.status, await resp.json())
 
     async def close(self) -> None:
         """Close client session."""
