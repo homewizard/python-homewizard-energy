@@ -4,7 +4,8 @@ import pytest
 from syrupy.assertion import SnapshotAssertion
 
 from homewizard_energy import HomeWizardEnergyV2
-from homewizard_energy.errors import DisabledError, UnauthorizedError
+from homewizard_energy.errors import DisabledError, RequestError, UnauthorizedError
+from homewizard_energy.v2.models import SystemUpdate
 
 from . import load_fixtures
 
@@ -42,7 +43,7 @@ async def test_device_with_invalid_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.device()
 
@@ -104,7 +105,7 @@ async def test_measurement_with_invalid_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.measurement()
 
@@ -169,7 +170,7 @@ async def test_system_with_invalid_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.system()
 
@@ -203,6 +204,45 @@ async def test_system_with_valid_authentication(
             assert system == snapshot
 
 
+async def test_system_set_with_valid_authentication(aresponses):
+    """Test system set request is successful when valid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/system",
+        "PUT",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "application/json"},
+            text='{"cloud_enabled": true}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        data = await api.system(update=SystemUpdate(cloud_enabled=True))
+        assert data is not None
+        assert data.cloud_enabled is True
+
+
+async def test_system_returns_unexpected_response(aresponses):
+    """Test system set request is successful when valid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/system",
+        "GET",
+        aresponses.Response(
+            status=500,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "server:error"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        with pytest.raises(RequestError):
+            await api.system()
+
+
 ### Identify tests ###
 
 
@@ -220,7 +260,7 @@ async def test_identify_with_invalid_authentication(aresponses):
     aresponses.add(
         "example.com",
         "/api/system/identify",
-        "GET",
+        "PUT",
         aresponses.Response(
             status=401,
             headers={"Content-Type": "application/json"},
@@ -228,7 +268,7 @@ async def test_identify_with_invalid_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.identify()
 
@@ -239,20 +279,19 @@ async def test_identify_with_authentication(aresponses):
     aresponses.add(
         "example.com",
         "/api/system/identify",
-        "GET",
+        "PUT",
         aresponses.Response(
             status=204,
             headers={"Content-Type": "application/json"},
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
-        with pytest.raises(UnauthorizedError):
-            data = await api.identify()
-            assert data is None
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        data = await api.identify()
+        assert data is None
 
 
-### Identify tests ###
+### Reboot tests ###
 
 
 async def test_reboot_without_authentication():
@@ -269,7 +308,7 @@ async def test_reboot_with_invalid_authentication(aresponses):
     aresponses.add(
         "example.com",
         "/api/system/reboot",
-        "GET",
+        "PUT",
         aresponses.Response(
             status=401,
             headers={"Content-Type": "application/json"},
@@ -277,7 +316,7 @@ async def test_reboot_with_invalid_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.reboot()
 
@@ -288,17 +327,16 @@ async def test_reboot_with_authentication(aresponses):
     aresponses.add(
         "example.com",
         "/api/system/reboot",
-        "GET",
+        "PUT",
         aresponses.Response(
             status=204,
             headers={"Content-Type": "application/json"},
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
-        with pytest.raises(UnauthorizedError):
-            data = await api.reboot()
-            assert data is None
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        data = await api.reboot()
+        assert data is None
 
 
 ### Get token tests ###
@@ -364,7 +402,7 @@ async def test_delete_token_with_invalid_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.delete_token()
 
@@ -382,10 +420,9 @@ async def test_delete_token_with_authentication(aresponses):
         ),
     )
 
-    async with HomeWizardEnergyV2("example.com", "token") as api:
-        with pytest.raises(UnauthorizedError):
-            await api.delete_token()
-            assert api._token is None  # pylint: disable=protected-access
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        await api.delete_token()
+        assert api._token is None  # pylint: disable=protected-access
 
 
 # async def test_request_detects_non_200(aresponses):

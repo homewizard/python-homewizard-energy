@@ -122,7 +122,7 @@ class HomeWizardEnergyV2:
             status, response = await self._request("/api/system")
 
         if status != HTTPStatus.OK:
-            error = response.get("errodr", response)
+            error = response.get("error", response)
             raise RequestError(f"Failed to get system: {error}")
 
         system = System.from_dict(response)
