@@ -22,7 +22,6 @@ from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 
 from homewizard_energy.errors import (
     DisabledError,
-    NotFoundError,
     RequestError,
     ResponseError,
     UnauthorizedError,
@@ -55,7 +54,6 @@ class HomeWizardEnergyV2:
     """Communicate with a HomeWizard Energy device."""
 
     _clientsession: ClientSession | None = None
-    _close_clientsession: bool = False
     _request_timeout: int = 10
 
     def __init__(
@@ -156,7 +154,7 @@ class HomeWizardEnergyV2:
 
         if status != HTTPStatus.OK:
             error = response.get("error", response)
-            raise RequestError(f"Error occurred while getting token: {error}")
+            raise RequestError(f"Error occurred while getting token: {error}", error)
 
         try:
             token = response["token"]
@@ -180,7 +178,7 @@ class HomeWizardEnergyV2:
 
         if status != HTTPStatus.NO_CONTENT:
             error = response.get("error", response)
-            raise RequestError(f"Error occurred while getting token: {error}")
+            raise RequestError(f"Error occurred while getting token: {error}", error)
 
         # Our token was invalided, resetting it
         if name is None:
@@ -224,11 +222,6 @@ class HomeWizardEnergyV2:
         if self._clientsession is None:
             self._clientsession = await self._get_clientsession()
 
-        if self._clientsession.closed:
-            # Avoid runtime errors when connection is closed.
-            # This solves an issue when updates were scheduled and clientsession was closed.
-            return None
-
         # Construct request
         url = f"https://{self.host}{path}"
         headers = {
@@ -263,19 +256,13 @@ class HomeWizardEnergyV2:
         match resp.status:
             case HTTPStatus.UNAUTHORIZED:
                 raise UnauthorizedError("Token rejected")
-            case HTTPStatus.METHOD_NOT_ALLOWED:
-                raise NotFoundError("Method not allowed")
             case HTTPStatus.NO_CONTENT:
                 # No content, just return
                 return (HTTPStatus.NO_CONTENT, None)
             case HTTPStatus.OK:
                 pass
 
-        content_type = resp.headers.get("Content-Type", "")
-        if "application/json" in content_type:
-            return (resp.status, await resp.json())
-
-        return (resp.status, await resp.text())
+        return (resp.status, await resp.json())
 
     async def close(self) -> None:
         """Close client session."""
