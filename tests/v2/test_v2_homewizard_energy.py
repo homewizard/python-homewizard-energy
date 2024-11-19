@@ -63,7 +63,7 @@ async def test_device_with_invalid_authentication(aresponses):
     ],
 )
 async def test_device_with_valid_authentication(
-    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+    model: str, fixtures: list[str], snapshot: SnapshotAssertion, aresponses
 ):
     """Test device request is successful when valid authentication is provided."""
 
@@ -131,7 +131,7 @@ async def test_measurement_with_invalid_authentication(aresponses):
     ],
 )
 async def test_measurement_with_valid_authentication(
-    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+    model: str, fixtures: list[str], snapshot: SnapshotAssertion, aresponses
 ):
     """Test measurement request is successful when valid authentication is provided."""
 
@@ -190,7 +190,7 @@ async def test_system_with_invalid_authentication(aresponses):
     ],
 )
 async def test_system_with_valid_authentication(
-    model: str, fixtures: str, snapshot: SnapshotAssertion, aresponses
+    model: str, fixtures: list[str], snapshot: SnapshotAssertion, aresponses
 ):
     """Test system request is successful when valid authentication is provided."""
 
@@ -249,7 +249,7 @@ async def test_system_returns_unexpected_response(aresponses):
     async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(RequestError) as e:
             await api.system()
-            assert e.value == "server:error"
+            assert str(e.value) == "server:error"
 
 
 ### Identify tests ###
@@ -406,7 +406,7 @@ async def test_get_token_returns_unexpected_response_code(aresponses):
     async with HomeWizardEnergyV2("example.com") as api:
         with pytest.raises(RequestError) as e:
             await api.get_token("name")
-            assert e.value == "server:error"
+            assert str(e.value) == "server:error"
 
 
 async def test_get_token_returns_unexpected_response_data(aresponses):
@@ -426,7 +426,7 @@ async def test_get_token_returns_unexpected_response_data(aresponses):
     async with HomeWizardEnergyV2("example.com") as api:
         with pytest.raises(ResponseError) as e:
             await api.get_token("name")
-            assert e.value == "user:error"
+            assert str(e.value) == "user:error"
 
 
 async def test_delete_token_without_authentication():
@@ -509,7 +509,7 @@ async def test_delete_token_returns_unexpected_response_code(aresponses):
     async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(RequestError) as e:
             await api.delete_token()
-            assert e.value == "server:error"
+            assert str(e.value) == "server:error"
 
 
 ### Generic request tests ###
