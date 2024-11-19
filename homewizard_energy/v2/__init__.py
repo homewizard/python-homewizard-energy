@@ -143,7 +143,7 @@ class HomeWizardEnergyV2:
         The reboot process typically takes a few seconds to complete.
 
         Note: A reboot is usually not necessary.
-        Make sure to inform the user that ff the issue persists and frequent reboots are required,
+        Make sure to inform the user that if the issue persists and frequent reboots are required,
         they need to contact our support team to help identify and resolve the root cause.
         """
         await self._request("/api/system/reboot", method=METH_PUT)
