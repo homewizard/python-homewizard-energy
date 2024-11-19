@@ -304,8 +304,8 @@ async def test_reboot_with_authentication(aresponses):
 ### Get token tests ###
 
 
-async def test_get_token_without_authentication(aresponses):
-    """Test get token request is rejected when no authentication is provided."""
+async def test_get_token_without_permission(aresponses):
+    """Test get token request is rejected when no permission, user must authorize."""
 
     aresponses.add(
         "example.com",
@@ -321,6 +321,71 @@ async def test_get_token_without_authentication(aresponses):
     async with HomeWizardEnergyV2("example.com") as api:
         with pytest.raises(DisabledError):
             await api.get_token("name")
+
+
+async def test_get_token_with_permission(aresponses):
+    """Test get token request accepted."""
+
+    aresponses.add(
+        "example.com",
+        "/api/user",
+        "POST",
+        aresponses.Response(
+            status=200,
+            headers={"Content-Type": "application/json"},
+            text='{"token": "new_token", "name": "local/name"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com") as api:
+        token = await api.get_token("name")
+        assert token == "new_token"
+
+
+async def test_delete_token_without_authentication():
+    """Test delete token request is rejected when no authentication is provided."""
+
+    async with HomeWizardEnergyV2("example.com") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.delete_token()
+
+
+async def test_delete_token_with_invalid_authentication(aresponses):
+    """Test delete token request is unsuccessful when invalid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/user",
+        "DELETE",
+        aresponses.Response(
+            status=401,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "user:unauthorized"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", "token") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.delete_token()
+
+
+async def test_delete_token_with_authentication(aresponses):
+    """Test delete_token request is successful when authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/user",
+        "DELETE",
+        aresponses.Response(
+            status=204,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", "token") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.delete_token()
+            assert api._token is None  # pylint: disable=protected-access
 
 
 # async def test_request_detects_non_200(aresponses):
