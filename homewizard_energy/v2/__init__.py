@@ -137,7 +137,15 @@ class HomeWizardEnergyV2:
     async def reboot(
         self,
     ) -> None:
-        """Send reboot request."""
+        """Reboot the HomeWizard Energy device.
+
+        This will cause the device to restart, resulting in temporary unavailability.
+        The reboot process typically takes a few seconds to complete.
+
+        Note: A reboot is usually not necessary.
+        Make sure to inform the user that ff the issue persists and frequent reboots are required,
+        they need to contact our support team to help identify and resolve the root cause.
+        """
         await self._request("/api/system/reboot", method=METH_PUT)
 
     async def get_token(
@@ -216,7 +224,7 @@ class HomeWizardEnergyV2:
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
-    ) -> Any:
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
         """Make a request to the API."""
 
         if self._clientsession is None:
