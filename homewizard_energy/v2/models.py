@@ -1,4 +1,4 @@
-"""Models for HomeWizard Energy."""
+"""Models for HomeWizard Energy v2."""
 
 from __future__ import annotations
 
@@ -6,39 +6,6 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-
-from homewizard_energy.brand import Product, from_type
-
-
-@dataclass
-class Device:
-    """Represent Device config."""
-
-    product: Product | None
-    product_name: str | None
-    product_type: str | None
-    serial: str | None
-    api_version: str | None
-    firmware_version: str | None
-
-    @staticmethod
-    def from_dict(data: dict[str, str]) -> Device:
-        """Return Device object from API response.
-
-        Args:
-            data: The data from the HomeWizard Energy `api` API.
-
-        Returns:
-            A Device object.
-        """
-        return Device(
-            product=from_type(data.get("product_type")),
-            product_name=data.get("product_name"),
-            product_type=data.get("product_type"),
-            serial=data.get("serial"),
-            api_version=data.get("api_version"),
-            firmware_version=data.get("firmware_version"),
-        )
 
 
 @dataclass

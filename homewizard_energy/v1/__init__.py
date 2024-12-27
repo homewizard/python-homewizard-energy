@@ -20,8 +20,9 @@ from homewizard_energy.errors import (
     UnsupportedError,
 )
 
+from ..models import Device
 from .const import SUPPORTED_API_VERSION
-from .models import Data, Device, State, System
+from .models import Data, State, System
 
 _LOGGER = logging.getLogger(__name__)
 
