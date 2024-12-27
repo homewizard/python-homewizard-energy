@@ -35,23 +35,3 @@ async def has_v2_api(host: str, websession: ClientSession | None = None) -> bool
     finally:
         if not websession_provided:
             await websession.close()
-
-
-def get_verification_hostname(model: str, serial_number: str) -> str:
-    """Get the verification name for the device."""
-    model_map = {
-        "HWE-P1": "p1dongle",
-        "HWE-SKT": "energysocket",
-        "HWE-WTR": "watermeter",
-        "HWE-DSP": "display",
-        "HWE-KWH1": "energymeter",
-        "SDM230-wifi": "energymeter",
-        "HWE-KWH3": "energymeter",
-        "SDM630-wifi": "energymeter",
-        "HWE-BAT": "battery",
-    }
-
-    if model not in model_map:
-        raise ValueError(f"Unsupported model: {model}")
-
-    return f"appliance/{model_map[model]}/{serial_number}"

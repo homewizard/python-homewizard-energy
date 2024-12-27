@@ -1,4 +1,7 @@
 # serializer version: 1
+# name: test_known_product_strings[HWE-BAT]
+  'HomeWizard Plug-In Battery - HWE-BAT'
+# ---
 # name: test_known_product_strings[HWE-KWH1]
   'HomeWizard Wi-Fi kWh Meter 1-phase - HWE-KWH1'
 # ---
@@ -19,6 +22,9 @@
 # ---
 # name: test_known_product_strings[SDM630-wifi]
   'HomeWizard Wi-Fi kWh Meter 3-phase - SDM630-wifi'
+# ---
+# name: test_known_products[HWE-BAT]
+  Product(model='HWE-BAT', name='Plug-In Battery', url='https://www.homewizard.com/plug-in-battery/', description='Solar energy, day and night.')
 # ---
 # name: test_known_products[HWE-KWH1]
   Product(model='HWE-KWH1', name='Wi-Fi kWh Meter 1-phase', url='https://www.homewizard.com/kwh-meter/', description='Measure solar panels, car chargers and more.')

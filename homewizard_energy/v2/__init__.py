@@ -27,8 +27,9 @@ from homewizard_energy.errors import (
     UnauthorizedError,
 )
 
+from ..models import Device
 from .cacert import CACERT
-from .models import Device, Measurement, System, SystemUpdate
+from .models import Measurement, System, SystemUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
