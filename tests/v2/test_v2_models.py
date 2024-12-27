@@ -16,6 +16,7 @@ pytestmark = [pytest.mark.asyncio]
     ("model", "fixtures"),
     [
         ("HWE-P1", ["device"]),
+        ("HWE-BAT", ["device"]),
     ],
 )
 async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
@@ -39,6 +40,12 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
                 "measurement_invalid_external",
             ],
         ),
+        (
+            "HWE-BAT",
+            [
+                "measurement",
+            ],
+        ),
     ],
 )
 async def test_measurement(model: str, fixtures: str, snapshot: SnapshotAssertion):
@@ -56,6 +63,7 @@ async def test_measurement(model: str, fixtures: str, snapshot: SnapshotAssertio
     ("model", "fixtures"),
     [
         ("HWE-P1", ["system"]),
+        ("HWE-BAT", ["system"]),
     ],
 )
 async def test_system(model: str, fixtures: str, snapshot: SnapshotAssertion):

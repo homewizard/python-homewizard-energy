@@ -78,6 +78,9 @@ class Measurement:
 
     frequency_hz: float | None
 
+    cycles: int | None
+    state_of_charge_pct: float | None
+
     voltage_sag_l1_count: int | None
     voltage_sag_l2_count: int | None
     voltage_sag_l3_count: int | None
@@ -183,6 +186,8 @@ class Measurement:
             current_l2_a=data.get("current_l2_a"),
             current_l3_a=data.get("current_l3_a"),
             frequency_hz=data.get("frequency_hz"),
+            cycles=data.get("cycles"),
+            state_of_charge_pct=data.get("state_of_charge_pct"),
             voltage_sag_l1_count=data.get("voltage_sag_l1_count"),
             voltage_sag_l2_count=data.get("voltage_sag_l2_count"),
             voltage_sag_l3_count=data.get("voltage_sag_l3_count"),
