@@ -21,7 +21,6 @@ aiohttp = ">=3.0.0"
 async-timeout = "^4.0.3"
 multidict = "^6.0.5" ## To fix aiohttp dependency at python 3.12
 backoff = "^2.2.1"
-pylint = "^3.3.3"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^3.0.0"
@@ -30,7 +29,7 @@ flake8-docstrings = "^1.7.0"
 isort = "^5.13.2"
 pre-commit = "^4.0.1"
 pre-commit-hooks = "^5.0.0"
-pylint = "^3.3.1"
+pylint = "^3.3.3"
 pytest = "^8.3.3"
 pytest-asyncio = "^0.24.0"
 pytest-cov = "^5.0.0"
