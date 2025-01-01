@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -10,6 +11,8 @@ from typing import Any
 from mashumaro.config import BaseConfig
 from mashumaro.exceptions import MissingField
 from mashumaro.mixins.orjson import DataClassORJSONMixin
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class BaseModel(DataClassORJSONMixin):
@@ -288,7 +291,7 @@ class Measurement(BaseModel):
             try:
                 device = ExternalDevice.from_dict(item)
             except MissingField as e:
-                print(f"Error converting external device: {e}")
+                _LOGGER.error("Error converting external device: %s", e)
                 continue
             rv[f"{device.type}_{device.unique_id}"] = device
 

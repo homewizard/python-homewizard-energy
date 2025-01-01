@@ -51,7 +51,6 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
 async def test_measurement(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test Measurement model."""
     for fixture in fixtures:
-        print(fixture)
         data = Measurement.from_dict(
             json.loads(load_fixtures(f"{model}/{fixture}.json"))
         )
