@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import ssl
 from collections.abc import Callable, Coroutine
 from http import HTTPStatus
@@ -29,10 +28,9 @@ from homewizard_energy.errors import (
     UnauthorizedError,
 )
 
+from ..const import LOGGER
 from ..models import Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT
-
-_LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -204,7 +202,7 @@ class HomeWizardEnergyV2:
             if self._identifier is not None:
                 context.hostname_checks_common_name = True
             else:
-                _LOGGER.warning("No hostname provided, skipping hostname validation")
+                LOGGER.warning("No hostname provided, skipping hostname validation")
                 context.check_hostname = False  # Skip hostname validation
                 context.verify_mode = ssl.CERT_REQUIRED  # Keep SSL verification active
             return context
@@ -240,7 +238,7 @@ class HomeWizardEnergyV2:
         if self._token is not None:
             headers["Authorization"] = f"Bearer {self._token}"
 
-        _LOGGER.debug("%s, %s, %s", method, url, data)
+        LOGGER.debug("%s, %s, %s", method, url, data)
 
         try:
             async with async_timeout.timeout(self._request_timeout):
@@ -253,7 +251,7 @@ class HomeWizardEnergyV2:
                     if self._identifier is not None
                     else None,
                 )
-                _LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
+                LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
             raise RequestError(
                 f"Timeout occurred while connecting to the HomeWizard Energy device at {self.host}"
@@ -276,7 +274,7 @@ class HomeWizardEnergyV2:
 
     async def close(self) -> None:
         """Close client session."""
-        _LOGGER.debug("Closing clientsession")
+        LOGGER.debug("Closing clientsession")
         if self._clientsession is not None:
             await self._clientsession.close()
 

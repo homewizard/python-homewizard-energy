@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from collections.abc import Callable, Coroutine
 from http import HTTPStatus
 from typing import Any, TypeVar
@@ -20,10 +19,9 @@ from homewizard_energy.errors import (
     UnsupportedError,
 )
 
+from ..const import LOGGER
 from ..models import Device, Measurement, State, System
 from .const import SUPPORTED_API_VERSION
-
-_LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -115,7 +113,7 @@ class HomeWizardEnergyV1:
             state["brightness"] = brightness
 
         if not state:
-            _LOGGER.error("At least one state update is required")
+            LOGGER.error("At least one state update is required")
             return False
 
         await self.request("api/v1/state", method=METH_PUT, data=state)
@@ -138,7 +136,7 @@ class HomeWizardEnergyV1:
             state["cloud_enabled"] = cloud_enabled
 
         if not state:
-            _LOGGER.error("At least one state update is required")
+            LOGGER.error("At least one state update is required")
             return False
 
         await self.request("api/v1/system", method=METH_PUT, data=state)
@@ -164,7 +162,7 @@ class HomeWizardEnergyV1:
         url = f"http://{self.host}/{path}"
         headers = {"Content-Type": "application/json"}
 
-        _LOGGER.debug("%s, %s, %s", method, url, data)
+        LOGGER.debug("%s, %s, %s", method, url, data)
 
         try:
             async with async_timeout.timeout(self._request_timeout):
@@ -174,7 +172,7 @@ class HomeWizardEnergyV1:
                     json=data,
                     headers=headers,
                 )
-                _LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
+                LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
             raise RequestError(
                 f"Timeout occurred while connecting to the HomeWizard Energy device at {self.host}"
@@ -202,7 +200,7 @@ class HomeWizardEnergyV1:
 
     async def close(self) -> None:
         """Close client session."""
-        _LOGGER.debug("Closing clientsession")
+        LOGGER.debug("Closing clientsession")
         if self._session and self._close_session:
             await self._session.close()
 
