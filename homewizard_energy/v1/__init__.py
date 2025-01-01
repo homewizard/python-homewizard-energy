@@ -20,7 +20,7 @@ from homewizard_energy.errors import (
 )
 
 from ..const import LOGGER
-from ..models import Device, Measurement, State, System
+from ..models import Device, Measurement, State, StateUpdate, System, SystemUpdate
 from .const import SUPPORTED_API_VERSION
 
 T = TypeVar("T")
@@ -74,7 +74,7 @@ class HomeWizardEnergyV1:
 
     async def device(self) -> Device:
         """Return the device object."""
-        response = await self.request("api")
+        _, response = await self._request("api")
         device = Device.from_json(response)
 
         if device.api_version != SUPPORTED_API_VERSION:
@@ -86,79 +86,72 @@ class HomeWizardEnergyV1:
 
     async def data(self) -> Measurement:
         """Return the data object."""
-        response = await self.request("api/v1/data")
+        _, response = await self._request("api/v1/data")
         return Measurement.from_json(response)
 
     @optional_method
-    async def state(self) -> State | None:
+    async def state(self, update: StateUpdate | None = None) -> State:
         """Return the state object."""
-        response = await self.request("api/v1/state")
-        return State.from_json(response)
+        if update is not None:
+            data = update.to_dict()
+            status, response = await self._request(
+                "api/v1/state", method=METH_PUT, data=data
+            )
+
+        else:
+            status, response = await self._request("api/v1/state")
+
+        if status != HTTPStatus.OK:
+            raise RequestError("Failed to get/set state")
+
+        state = State.from_json(response)
+        return state
 
     @optional_method
-    async def state_set(
-        self,
-        power_on: bool | None = None,
-        switch_lock: bool | None = None,
-        brightness: int | None = None,
-    ) -> bool:
-        """Set state of device."""
-        state: dict[str, bool | str] = {}
-
-        if power_on is not None:
-            state["power_on"] = power_on
-        if switch_lock is not None:
-            state["switch_lock"] = switch_lock
-        if brightness is not None:
-            state["brightness"] = brightness
-
-        if not state:
-            LOGGER.error("At least one state update is required")
-            return False
-
-        await self.request("api/v1/state", method=METH_PUT, data=state)
-        return True
-
-    @optional_method
-    async def system(self) -> System:
+    async def system(self, update: SystemUpdate | None = None) -> System:
         """Return the system object."""
-        response = await self.request("api/v1/system")
-        return System.from_json(response)
+        if update is not None:
+            if (
+                update.status_led_brightness_pct is not None
+                or update.api_v1_enabled is not None
+            ):
+                raise UnsupportedError(
+                    "Setting status_led_brightness_pct and api_v1_enabled is not supported in v1"
+                )
 
-    @optional_method
-    async def system_set(
-        self,
-        cloud_enabled: bool | None = None,
-    ) -> bool:
-        """Set state of device."""
-        state = {}
-        if cloud_enabled is not None:
-            state["cloud_enabled"] = cloud_enabled
+            data = update.to_dict()
+            status, response = await self._request(
+                "api/v1/system", method=METH_PUT, data=data
+            )
 
-        if not state:
-            LOGGER.error("At least one state update is required")
-            return False
+        else:
+            status, response = await self._request("api/v1/system")
 
-        await self.request("api/v1/system", method=METH_PUT, data=state)
-        return True
+        if status != HTTPStatus.OK:
+            raise RequestError("Failed to get/set system")
+
+        system = System.from_json(response)
+        return system
 
     @optional_method
     async def identify(
         self,
     ) -> bool:
         """Send identify request."""
-        await self.request("api/v1/identify", method=METH_PUT)
+        await self._request("api/v1/identify", method=METH_PUT)
         return True
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
-    async def request(
+    async def _request(
         self, path: str, method: str = METH_GET, data: object = None
-    ) -> Any:
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
         """Make a request to the API."""
+
         if self._session is None:
             self._session = ClientSession()
             self._close_session = True
 
+        # Construct request
         url = f"http://{self.host}/{path}"
         headers = {"Content-Type": "application/json"}
 
@@ -182,21 +175,24 @@ class HomeWizardEnergyV1:
                 f"Error occurred while communicating with the HomeWizard Energy device at {self.host}"
             ) from exception
 
-        if resp.status == HTTPStatus.FORBIDDEN:
-            # Known case: API disabled
-            raise DisabledError(
-                "API disabled. API must be enabled in HomeWizard Energy app"
-            )
-
-        if resp.status == HTTPStatus.NOT_FOUND:
-            # Known case: API endpoint not supported
-            raise NotFoundError("Resource not found")
+        match resp.status:
+            case HTTPStatus.FORBIDDEN:
+                raise DisabledError(
+                    "API disabled. API must be enabled in HomeWizard Energy app"
+                )
+            case HTTPStatus.NO_CONTENT:
+                # No content, just return
+                return (HTTPStatus.NO_CONTENT, None)
+            case HTTPStatus.NOT_FOUND:
+                raise NotFoundError("Resource not found")
+            case HTTPStatus.OK:
+                pass
 
         if resp.status != HTTPStatus.OK:
             # Something else went wrong
             raise RequestError(f"API request error ({resp.status})")
 
-        return await resp.text()
+        return (resp.status, await resp.text())
 
     async def close(self) -> None:
         """Close client session."""

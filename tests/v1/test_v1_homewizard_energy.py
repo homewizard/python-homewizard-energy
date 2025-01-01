@@ -10,6 +10,7 @@ from syrupy.assertion import SnapshotAssertion
 
 from homewizard_energy import HomeWizardEnergyV1
 from homewizard_energy.errors import DisabledError, RequestError, UnsupportedError
+from homewizard_energy.models import StateUpdate, SystemUpdate
 
 from . import load_fixtures
 
@@ -30,7 +31,9 @@ async def test_request_returns_str(aresponses):
     )
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
-        return_value = await api.request("api")
+
+        # pylint: disable=protected-access
+        _, return_value = await api._request("api")
         assert isinstance(return_value, str)
 
         return_value = json.loads(return_value)
@@ -52,7 +55,9 @@ async def test_request_internal_session(aresponses):
     )
 
     api = HomeWizardEnergyV1("example.com")
-    assert await api.request("api")
+
+    # pylint: disable=protected-access
+    assert await api._request("api")
     await api.close()
 
 
@@ -72,7 +77,8 @@ async def test_request_detects_403(aresponses):
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(DisabledError):
-            await api.request("api")
+            # pylint: disable=protected-access
+            await api._request("api")
 
         await api.close()
 
@@ -93,7 +99,8 @@ async def test_request_detects_non_200(aresponses):
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(RequestError):
-            await api.request("api")
+            # pylint: disable=protected-access
+            await api._request("api")
 
         await api.close()
 
@@ -107,7 +114,8 @@ async def test_request_detects_clienterror():
             patch.object(session, "request", side_effect=aiohttp.ClientError),
             pytest.raises(RequestError),
         ):
-            await api.request("api")
+            # pylint: disable=protected-access
+            await api._request("api")
 
         await api.close()
 
@@ -347,8 +355,8 @@ async def test_state_set(
         async with aiohttp.ClientSession() as session:
             api = HomeWizardEnergyV1("example.com", clientsession=session)
 
-            state = await api.state_set(
-                power_on=False, switch_lock=False, brightness=255
+            state = await api.state(
+                StateUpdate(power_on=False, switch_lock=False, brightness=255)
             )
             assert state
 
@@ -363,8 +371,8 @@ async def test_state_set_detects_no_statechange():
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
-        state = await api.state_set()
-        assert not state
+        with pytest.raises(ValueError):
+            await api.state(StateUpdate())
 
 
 @pytest.mark.parametrize(
@@ -521,7 +529,7 @@ async def test_system_set(model: str, snapshot: SnapshotAssertion, aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
-        system = await api.system_set(cloud_enabled=False)
+        system = await api.system(update=SystemUpdate(cloud_enabled=True))
         assert system
         assert system == snapshot
 
@@ -533,7 +541,22 @@ async def test_system_set_missing_arguments():
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
-        assert await api.system_set() is False
+
+        with pytest.raises(ValueError):
+            await api.system(update=SystemUpdate())
+
+
+async def test_system_set_unsupported_arguments():
+    """Test system set when no arguments are given."""
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        with pytest.raises(UnsupportedError):
+            await api.system(update=SystemUpdate(status_led_brightness_pct=50))
+
+        with pytest.raises(UnsupportedError):
+            await api.system(update=SystemUpdate(api_v1_enabled=True))
 
 
 # pylint: disable=protected-access
@@ -545,7 +568,8 @@ async def test_request_timeout():
     api._session.request = AsyncMock(side_effect=asyncio.TimeoutError())
 
     with pytest.raises(RequestError):
-        await api.request("api/v1/data")
+        # pylint: disable=protected-access
+        await api._request("api/v1/data")
 
     assert api._session.request.call_count == 5
 

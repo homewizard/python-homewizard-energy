@@ -99,7 +99,7 @@ async def test_system_update(
         status_led_brightness_pct=status_led_brightness_pct,
         api_v1_enabled=api_v1_enabled,
     )
-    assert snapshot == data.as_dict()
+    assert snapshot == data.to_dict()
 
 
 async def test_system_update_raises_when_none_set():
@@ -109,4 +109,4 @@ async def test_system_update_raises_when_none_set():
     )
 
     with pytest.raises(ValueError):
-        update.as_dict()
+        update.to_dict()
