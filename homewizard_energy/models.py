@@ -38,6 +38,16 @@ class UpdateBaseModel(BaseModel):
         return d
 
 
+@dataclass(kw_only=True)
+class CombinedModels:
+    """All values."""
+
+    device: Device
+    measurement: Measurement | None
+    state: State | None
+    system: System | None
+
+
 def get_verification_hostname(model: str, serial_number: str) -> str:
     """Helper method to convert device model and serial to identifier
 

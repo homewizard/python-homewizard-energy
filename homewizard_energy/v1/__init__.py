@@ -12,16 +12,18 @@ import backoff
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_PUT
 
-from homewizard_energy.errors import (
-    DisabledError,
-    NotFoundError,
-    RequestError,
-    UnsupportedError,
-)
-
 from ..const import LOGGER
+from ..errors import DisabledError, NotFoundError, RequestError, UnsupportedError
 from ..homewizard_energy import HomeWizardEnergy
-from ..models import Device, Measurement, State, StateUpdate, System, SystemUpdate
+from ..models import (
+    CombinedModels,
+    Device,
+    Measurement,
+    State,
+    StateUpdate,
+    System,
+    SystemUpdate,
+)
 from .const import SUPPORTED_API_VERSION
 
 T = TypeVar("T")
@@ -44,6 +46,37 @@ def optional_method(
 # pylint: disable=abstract-method
 class HomeWizardEnergyV1(HomeWizardEnergy):
     """Communicate with a HomeWizard Energy device."""
+
+    async def combined(self) -> CombinedModels:
+        """Get all information."""
+
+        async def fetch_data(coroutine):
+            try:
+                return await coroutine
+            except (UnsupportedError, NotImplementedError):
+                return None
+
+        device = await fetch_data(self.device())
+        measurement = await fetch_data(self.measurement())
+        system = await fetch_data(self.system())
+        state = await fetch_data(self.state())
+
+        # Move things around for backwards compatibility
+        ## measurement.wifi_ssid -> system.wifi_ssid
+        if measurement is not None and measurement.wifi_ssid is not None:
+            if system is None:
+                system = System()
+            system.wifi_ssid = measurement.wifi_ssid
+
+        ## state.brightness -> system.status_led_brightness_pct
+        if state is not None and state.brightness is not None:
+            if system is None:
+                system = System()
+            system.status_led_brightness_pct = (state.brightness / 255) * 100
+
+        return CombinedModels(
+            device=device, measurement=measurement, system=system, state=state
+        )
 
     async def device(self) -> Device:
         """Return the device object."""

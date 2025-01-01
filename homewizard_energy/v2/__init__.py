@@ -21,16 +21,16 @@ from aiohttp.client import (
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 from mashumaro.exceptions import InvalidFieldValue, MissingField
 
-from homewizard_energy.errors import (
+from ..const import LOGGER
+from ..errors import (
     DisabledError,
     RequestError,
     ResponseError,
     UnauthorizedError,
+    UnsupportedError,
 )
-
-from ..const import LOGGER
 from ..homewizard_energy import HomeWizardEnergy
-from ..models import Device, Measurement, System, SystemUpdate, Token
+from ..models import CombinedModels, Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT
 
 T = TypeVar("T")
@@ -76,6 +76,24 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         super().__init__(host, clientsession, timeout)
         self._identifier = identifier
         self._token = token
+
+    async def combined(self) -> CombinedModels:
+        """Get all information."""
+
+        async def fetch_data(coroutine):
+            try:
+                return await coroutine
+            except (UnsupportedError, NotImplementedError):
+                return None
+
+        device = await fetch_data(self.device())
+        measurement = await fetch_data(self.measurement())
+        system = await fetch_data(self.system())
+        state = await fetch_data(self.state())
+
+        return CombinedModels(
+            device=device, measurement=measurement, system=system, state=state
+        )
 
     @authorized_method
     async def device(self) -> Device:
