@@ -111,7 +111,7 @@ class HomeWizardEnergyV2:
         """Return the system object."""
 
         if update is not None:
-            data = update.as_dict()
+            data = update.to_dict()
             status, response = await self._request(
                 "/api/system", method=METH_PUT, data=data
             )

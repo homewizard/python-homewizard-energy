@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -23,6 +23,19 @@ class BaseModel(DataClassORJSONMixin):
 
         serialize_by_alias = True
         omit_none = True
+
+
+class UpdateBaseModel(BaseModel):
+    """Base model for all 'update' models."""
+
+    def __post_serialize__(self, d: dict, context: dict | None = None):
+        """Post serialize hook for UpdateBaseModel object."""
+        _ = context  # Unused
+
+        if not d:
+            raise ValueError("No values to update")
+
+        return d
 
 
 def get_verification_hostname(model: str, serial_number: str) -> str:
@@ -421,24 +434,12 @@ class ExternalDevice(BaseModel):
 
 
 @dataclass(kw_only=True)
-class StateUpdate(BaseModel):
+class StateUpdate(UpdateBaseModel):
     """Represent State update config."""
 
     power_on: bool | None = field(default=None)
     switch_lock: bool | None = field(default=None)
     brightness: int | None = field(default=None)
-
-    def as_dict(self) -> dict[str, bool | int]:
-        """Return StateUpdate object as dict.
-
-        Only include values that are not None.
-        """
-        _dict = {k: v for k, v in asdict(self).items() if v is not None}
-
-        if not _dict:
-            raise ValueError("No values to update")
-
-        return _dict
 
 
 @dataclass(kw_only=True)
@@ -457,24 +458,12 @@ class State(BaseModel):
 
 
 @dataclass
-class SystemUpdate(BaseModel):
+class SystemUpdate(UpdateBaseModel):
     """Represent System update config."""
 
     cloud_enabled: bool | None = field(default=None)
     status_led_brightness_pct: int | None = field(default=None)
     api_v1_enabled: bool | None = field(default=None)
-
-    def as_dict(self) -> dict[str, bool | int]:
-        """Return SystemUpdate object as dict.
-
-        Only include values that are not None.
-        """
-        _dict = {k: v for k, v in asdict(self).items() if v is not None}
-
-        if not _dict:
-            raise ValueError("No values to update")
-
-        return _dict
 
 
 @dataclass(kw_only=True)

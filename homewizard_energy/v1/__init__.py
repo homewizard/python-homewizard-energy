@@ -93,7 +93,7 @@ class HomeWizardEnergyV1:
     async def state(self, update: StateUpdate | None = None) -> State:
         """Return the state object."""
         if update is not None:
-            data = update.as_dict()
+            data = update.to_dict()
             status, response = await self._request(
                 "api/v1/state", method=METH_PUT, data=data
             )
@@ -119,7 +119,7 @@ class HomeWizardEnergyV1:
                     "Setting status_led_brightness_pct and api_v1_enabled is not supported in v1"
                 )
 
-            data = update.as_dict()
+            data = update.to_dict()
             status, response = await self._request(
                 "api/v1/system", method=METH_PUT, data=data
             )
