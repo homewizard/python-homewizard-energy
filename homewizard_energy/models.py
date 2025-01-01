@@ -345,12 +345,16 @@ class Measurement(BaseModel):
         d["meter_model"] = d.get("meter_model")
         d["unique_id"] = d.get("unique_meter_id")
         d["tariff"] = d.get("active_tariff")
-        d["energy_import_kwh"] = d.get("total_power_import_kwh")
+        d["energy_import_kwh"] = d.get(
+            "total_power_import_kwh", d.get("total_power_import_t1_kwh")
+        )
         d["energy_import_t1_kwh"] = d.get("total_power_import_t1_kwh")
         d["energy_import_t2_kwh"] = d.get("total_power_import_t2_kwh")
         d["energy_import_t3_kwh"] = d.get("total_power_import_t3_kwh")
         d["energy_import_t4_kwh"] = d.get("total_power_import_t4_kwh")
-        d["energy_export_kwh"] = d.get("total_power_export_kwh")
+        d["energy_export_kwh"] = d.get(
+            "total_power_export_kwh", d.get("total_power_import_t1_kwh")
+        )
         d["energy_export_t1_kwh"] = d.get("total_power_export_t1_kwh")
         d["energy_export_t2_kwh"] = d.get("total_power_export_t2_kwh")
         d["energy_export_t3_kwh"] = d.get("total_power_export_t3_kwh")
