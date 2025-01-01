@@ -13,7 +13,7 @@ from mashumaro.mixins.orjson import DataClassORJSONMixin
 
 
 class BaseModel(DataClassORJSONMixin):
-    """Base model for all Peblar models."""
+    """Base model for all HomeWizard models."""
 
     # pylint: disable-next=too-few-public-methods
     class Config(BaseConfig):
@@ -408,7 +408,10 @@ class ExternalDevice(BaseModel):
         WATER_METER = "water_meter"
         INLET_HEAT_METER = "inlet_heat_meter"
 
-    unique_id: str
+    unique_id: datetime = field(
+        default=None, metadata={"deserialize": lambda x: Measurement.hex_to_readable(x)}
+    )
+
     type: DeviceType | None = field(
         default=None,
         metadata={
