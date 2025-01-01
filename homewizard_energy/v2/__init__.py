@@ -29,6 +29,7 @@ from homewizard_energy.errors import (
 )
 
 from ..const import LOGGER
+from ..homewizard_energy import HomeWizardEnergy
 from ..models import Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT
 
@@ -50,17 +51,18 @@ def authorized_method(
     return wrapper
 
 
-class HomeWizardEnergyV2:
+# pylint: disable=abstract-method
+class HomeWizardEnergyV2(HomeWizardEnergy):
     """Communicate with a HomeWizard Energy device."""
 
-    _clientsession: ClientSession | None = None
-    _request_timeout: int = 10
-
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         host: str,
         identifier: str | None = None,
         token: str | None = None,
+        clientsession: ClientSession = None,
         timeout: int = 10,
     ):
         """Create a HomeWizard Energy object.
@@ -71,21 +73,9 @@ class HomeWizardEnergyV2:
             token: Token for device.
             timeout: Request timeout in seconds.
         """
-
-        self._host = host
+        super().__init__(host, clientsession, timeout)
         self._identifier = identifier
         self._token = token
-        self._request_timeout = timeout
-
-    @property
-    def host(self) -> str:
-        """Return the hostname of the device.
-
-        Returns:
-            host: The used host
-
-        """
-        return self._host
 
     @authorized_method
     async def device(self) -> Device:
@@ -192,7 +182,7 @@ class HomeWizardEnergyV2:
         if name is None:
             self._token = None
 
-    async def _get_clientsession(self) -> ClientSession:
+    async def _get_session(self) -> ClientSession:
         """
         Get a clientsession that is tuned for communication with the HomeWizard Energy Device
         """
@@ -227,8 +217,8 @@ class HomeWizardEnergyV2:
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
         """Make a request to the API."""
 
-        if self._clientsession is None:
-            self._clientsession = await self._get_clientsession()
+        if self._session is None:
+            self._session = await self._get_session()
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -242,7 +232,7 @@ class HomeWizardEnergyV2:
 
         try:
             async with async_timeout.timeout(self._request_timeout):
-                resp = await self._clientsession.request(
+                resp = await self._session.request(
                     method,
                     url,
                     json=data,
@@ -271,25 +261,3 @@ class HomeWizardEnergyV2:
                 pass
 
         return (resp.status, await resp.text())
-
-    async def close(self) -> None:
-        """Close client session."""
-        LOGGER.debug("Closing clientsession")
-        if self._clientsession is not None:
-            await self._clientsession.close()
-
-    async def __aenter__(self) -> HomeWizardEnergyV2:
-        """Async enter.
-
-        Returns:
-            The HomeWizardEnergyV2 object.
-        """
-        return self
-
-    async def __aexit__(self, *_exc_info: Any) -> None:
-        """Async exit.
-
-        Args:
-            _exc_info: Exec type.
-        """
-        await self.close()

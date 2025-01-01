@@ -20,6 +20,7 @@ from homewizard_energy.errors import (
 )
 
 from ..const import LOGGER
+from ..homewizard_energy import HomeWizardEnergy
 from ..models import Device, Measurement, State, StateUpdate, System, SystemUpdate
 from .const import SUPPORTED_API_VERSION
 
@@ -40,37 +41,9 @@ def optional_method(
     return wrapper
 
 
-class HomeWizardEnergyV1:
+# pylint: disable=abstract-method
+class HomeWizardEnergyV1(HomeWizardEnergy):
     """Communicate with a HomeWizard Energy device."""
-
-    _session: ClientSession | None
-    _close_session: bool = False
-    _request_timeout: int = 10
-
-    def __init__(
-        self, host: str, clientsession: ClientSession = None, timeout: int = 10
-    ):
-        """Create a HomeWizard Energy object.
-
-        Args:
-            host: IP or URL for device.
-            clientsession: The clientsession.
-            timeout: Request timeout in seconds.
-        """
-
-        self._host = host
-        self._session = clientsession
-        self._request_timeout = timeout
-
-    @property
-    def host(self) -> str:
-        """Return the hostname of the device.
-
-        Returns:
-            host: The used host
-
-        """
-        return self._host
 
     async def device(self) -> Device:
         """Return the device object."""
@@ -84,7 +57,7 @@ class HomeWizardEnergyV1:
 
         return device
 
-    async def data(self) -> Measurement:
+    async def measurement(self) -> Measurement:
         """Return the data object."""
         _, response = await self._request("api/v1/data")
         return Measurement.from_json(response)
@@ -193,25 +166,3 @@ class HomeWizardEnergyV1:
             raise RequestError(f"API request error ({resp.status})")
 
         return (resp.status, await resp.text())
-
-    async def close(self) -> None:
-        """Close client session."""
-        LOGGER.debug("Closing clientsession")
-        if self._session and self._close_session:
-            await self._session.close()
-
-    async def __aenter__(self) -> HomeWizardEnergyV1:
-        """Async enter.
-
-        Returns:
-            The HomeWizardEnergyV1 object.
-        """
-        return self
-
-    async def __aexit__(self, *_exc_info: Any) -> None:
-        """Async exit.
-
-        Args:
-            _exc_info: Exec type.
-        """
-        await self.close()
