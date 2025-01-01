@@ -20,7 +20,7 @@ from homewizard_energy.errors import (
 )
 
 from ..const import LOGGER
-from ..models import Device, Measurement, State, System
+from ..models import Device, Measurement, State, StateUpdate, System, SystemUpdate
 from .const import SUPPORTED_API_VERSION
 
 T = TypeVar("T")
@@ -90,57 +90,48 @@ class HomeWizardEnergyV1:
         return Measurement.from_json(response)
 
     @optional_method
-    async def state(self) -> State | None:
+    async def state(self, update: StateUpdate | None = None) -> State:
         """Return the state object."""
-        _, response = await self._request("api/v1/state")
-        return State.from_json(response)
+        if update is not None:
+            data = update.to_dict()
+            status, response = await self._request(
+                "api/v1/state", method=METH_PUT, data=data
+            )
+
+        else:
+            status, response = await self._request("api/v1/state")
+
+        if status != HTTPStatus.OK:
+            raise RequestError("Failed to get/set state")
+
+        state = State.from_json(response)
+        return state
 
     @optional_method
-    async def state_set(
-        self,
-        power_on: bool | None = None,
-        switch_lock: bool | None = None,
-        brightness: int | None = None,
-    ) -> bool:
-        """Set state of device."""
-        state: dict[str, bool | str] = {}
-
-        if power_on is not None:
-            state["power_on"] = power_on
-        if switch_lock is not None:
-            state["switch_lock"] = switch_lock
-        if brightness is not None:
-            state["brightness"] = brightness
-
-        if not state:
-            LOGGER.error("At least one state update is required")
-            return False
-
-        await self._request("api/v1/state", method=METH_PUT, data=state)
-        return True
-
-    @optional_method
-    async def system(self) -> System:
+    async def system(self, update: SystemUpdate | None = None) -> System:
         """Return the system object."""
-        _, response = await self._request("api/v1/system")
-        return System.from_json(response)
+        if update is not None:
+            if (
+                update.status_led_brightness_pct is not None
+                or update.api_v1_enabled is not None
+            ):
+                raise UnsupportedError(
+                    "Setting status_led_brightness_pct and api_v1_enabled is not supported in v1"
+                )
 
-    @optional_method
-    async def system_set(
-        self,
-        cloud_enabled: bool | None = None,
-    ) -> bool:
-        """Set state of device."""
-        state = {}
-        if cloud_enabled is not None:
-            state["cloud_enabled"] = cloud_enabled
+            data = update.to_dict()
+            status, response = await self._request(
+                "api/v1/system", method=METH_PUT, data=data
+            )
 
-        if not state:
-            LOGGER.error("At least one state update is required")
-            return False
+        else:
+            status, response = await self._request("api/v1/system")
 
-        await self._request("api/v1/system", method=METH_PUT, data=state)
-        return True
+        if status != HTTPStatus.OK:
+            raise RequestError("Failed to get/set system")
+
+        system = System.from_json(response)
+        return system
 
     @optional_method
     async def identify(
