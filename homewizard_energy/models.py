@@ -421,6 +421,27 @@ class ExternalDevice(BaseModel):
 
 
 @dataclass(kw_only=True)
+class StateUpdate(BaseModel):
+    """Represent State update config."""
+
+    power_on: bool | None = field(default=None)
+    switch_lock: bool | None = field(default=None)
+    brightness: int | None = field(default=None)
+
+    def as_dict(self) -> dict[str, bool | int]:
+        """Return StateUpdate object as dict.
+
+        Only include values that are not None.
+        """
+        _dict = {k: v for k, v in asdict(self).items() if v is not None}
+
+        if not _dict:
+            raise ValueError("No values to update")
+
+        return _dict
+
+
+@dataclass(kw_only=True)
 class State(BaseModel):
     """Represent current state."""
 
@@ -439,8 +460,8 @@ class State(BaseModel):
 class SystemUpdate(BaseModel):
     """Represent System update config."""
 
-    cloud_enabled: bool = field(default=None)
-    status_led_brightness_pct: int = field(default=None)
+    cloud_enabled: bool | None = field(default=None)
+    status_led_brightness_pct: int | None = field(default=None)
     api_v1_enabled: bool | None = field(default=None)
 
     def as_dict(self) -> dict[str, bool | int]:

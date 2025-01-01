@@ -102,26 +102,26 @@
   True
 # ---
 # name: test_state_set[HWE-SKT-fixtures0]
-  True
+  State(power_on=False, switch_lock=False, brightness=255)
 # ---
 # name: test_system_set[HWE-KWH1]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
 # name: test_system_set[HWE-KWH3]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
 # name: test_system_set[HWE-P1]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
 # name: test_system_set[HWE-SKT]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
 # name: test_system_set[HWE-WTR]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
 # name: test_system_set[SDM230-wifi]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
 # name: test_system_set[SDM630-wifi]
-  True
+  System(wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
 # ---
