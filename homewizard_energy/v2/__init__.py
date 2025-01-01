@@ -86,10 +86,12 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             except (UnsupportedError, NotImplementedError):
                 return None
 
-        device = await fetch_data(self.device())
-        measurement = await fetch_data(self.measurement())
-        system = await fetch_data(self.system())
-        state = await fetch_data(self.state())
+        device, measurement, system, state = await asyncio.gather(
+            fetch_data(self.device()),
+            fetch_data(self.measurement()),
+            fetch_data(self.system()),
+            fetch_data(self.state()),
+        )
 
         return CombinedModels(
             device=device, measurement=measurement, system=system, state=state

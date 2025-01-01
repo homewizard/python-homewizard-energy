@@ -56,10 +56,12 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
             except (UnsupportedError, NotImplementedError):
                 return None
 
-        device = await fetch_data(self.device())
-        measurement = await fetch_data(self.measurement())
-        system = await fetch_data(self.system())
-        state = await fetch_data(self.state())
+        device, measurement, system, state = await asyncio.gather(
+            fetch_data(self.device()),
+            fetch_data(self.measurement()),
+            fetch_data(self.system()),
+            fetch_data(self.state()),
+        )
 
         # Move things around for backwards compatibility
         ## measurement.wifi_ssid -> system.wifi_ssid
