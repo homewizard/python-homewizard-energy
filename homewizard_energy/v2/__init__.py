@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import ssl
 from collections.abc import Callable, Coroutine
@@ -19,6 +20,7 @@ from aiohttp.client import (
     TCPConnector,
 )
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
+from mashumaro.exceptions import InvalidFieldValue, MissingField
 
 from homewizard_energy.errors import (
     DisabledError,
@@ -27,9 +29,8 @@ from homewizard_energy.errors import (
     UnauthorizedError,
 )
 
-from ..models import Device
+from ..models import Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT
-from .models import Measurement, System, SystemUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class HomeWizardEnergyV2:
     async def device(self) -> Device:
         """Return the device object."""
         _, response = await self._request("/api")
-        device = Device.from_dict(response)
+        device = Device.from_json(response)
 
         return device
 
@@ -100,7 +101,7 @@ class HomeWizardEnergyV2:
     async def measurement(self) -> Measurement:
         """Return the measurement object."""
         _, response = await self._request("/api/measurement")
-        measurement = Measurement.from_dict(response)
+        measurement = Measurement.from_json(response)
 
         return measurement
 
@@ -121,10 +122,10 @@ class HomeWizardEnergyV2:
             status, response = await self._request("/api/system")
 
         if status != HTTPStatus.OK:
-            error = response.get("error", response)
+            error = json.loads(response).get("error", response)
             raise RequestError(f"Failed to get system: {error}")
 
-        system = System.from_dict(response)
+        system = System.from_json(response)
         return system
 
     @authorized_method
@@ -162,12 +163,12 @@ class HomeWizardEnergyV2:
             raise DisabledError("User creation is not enabled on the device")
 
         if status != HTTPStatus.OK:
-            error = response.get("error", response)
+            error = json.loads(response).get("error", response)
             raise RequestError(f"Error occurred while getting token: {error}", error)
 
         try:
-            token = response["token"]
-        except KeyError as ex:
+            token = Token.from_json(response).token
+        except (InvalidFieldValue, MissingField) as ex:
             raise ResponseError("Failed to get token") from ex
 
         self._token = token
@@ -186,7 +187,7 @@ class HomeWizardEnergyV2:
         )
 
         if status != HTTPStatus.NO_CONTENT:
-            error = response.get("error", response)
+            error = json.loads(response).get("error", response)
             raise RequestError(f"Error occurred while getting token: {error}", error)
 
         # Our token was invalided, resetting it
@@ -271,7 +272,7 @@ class HomeWizardEnergyV2:
             case HTTPStatus.OK:
                 pass
 
-        return (resp.status, await resp.json())
+        return (resp.status, await resp.text())
 
     async def close(self) -> None:
         """Close client session."""

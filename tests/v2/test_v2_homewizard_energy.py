@@ -13,7 +13,7 @@ from homewizard_energy.errors import (
     ResponseError,
     UnauthorizedError,
 )
-from homewizard_energy.v2.models import SystemUpdate
+from homewizard_energy.models import SystemUpdate
 
 from . import load_fixtures
 
@@ -531,12 +531,15 @@ async def test_request_handles_timeout():
 async def test_request_with_identifier_sets_common_name(aresponses):
     """Test request with identifier sets common name."""
 
+    device = load_fixtures("HWE-P1/device.json")
+    device.replace("HWE-P1", "NEW-DEVICE")
+
     aresponses.add(
         "example.com",
         "/api",
         "GET",
         aresponses.Response(
-            text='{"name": "common_name"}',
+            text=device,
             status=200,
             headers={"Content-Type": "application/json"},
         ),

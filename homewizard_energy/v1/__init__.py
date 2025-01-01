@@ -20,9 +20,8 @@ from homewizard_energy.errors import (
     UnsupportedError,
 )
 
-from ..models import Device
+from ..models import Device, Measurement, State, System
 from .const import SUPPORTED_API_VERSION
-from .models import Data, State, System
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,7 +77,7 @@ class HomeWizardEnergyV1:
     async def device(self) -> Device:
         """Return the device object."""
         response = await self.request("api")
-        device = Device.from_dict(response)
+        device = Device.from_json(response)
 
         if device.api_version != SUPPORTED_API_VERSION:
             raise UnsupportedError(
@@ -87,16 +86,16 @@ class HomeWizardEnergyV1:
 
         return device
 
-    async def data(self) -> Data:
+    async def data(self) -> Measurement:
         """Return the data object."""
         response = await self.request("api/v1/data")
-        return Data.from_dict(response)
+        return Measurement.from_json(response)
 
     @optional_method
     async def state(self) -> State | None:
         """Return the state object."""
         response = await self.request("api/v1/state")
-        return State.from_dict(response)
+        return State.from_json(response)
 
     @optional_method
     async def state_set(
@@ -126,7 +125,7 @@ class HomeWizardEnergyV1:
     async def system(self) -> System:
         """Return the system object."""
         response = await self.request("api/v1/system")
-        return System.from_dict(response)
+        return System.from_json(response)
 
     @optional_method
     async def system_set(
@@ -198,10 +197,6 @@ class HomeWizardEnergyV1:
         if resp.status != HTTPStatus.OK:
             # Something else went wrong
             raise RequestError(f"API request error ({resp.status})")
-
-        content_type = resp.headers.get("Content-Type", "")
-        if "application/json" in content_type:
-            return await resp.json()
 
         return await resp.text()
 

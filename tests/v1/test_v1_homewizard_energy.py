@@ -16,7 +16,7 @@ from . import load_fixtures
 pytestmark = [pytest.mark.asyncio]
 
 
-async def test_request_returns_json(aresponses):
+async def test_request_returns_str(aresponses):
     """Test JSON response is handled correctly."""
     aresponses.add(
         "example.com",
@@ -31,7 +31,9 @@ async def test_request_returns_json(aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
         return_value = await api.request("api")
-        assert isinstance(return_value, dict)
+        assert isinstance(return_value, str)
+
+        return_value = json.loads(return_value)
         assert return_value["status"] == "ok"
         await api.close()
 
@@ -52,26 +54,6 @@ async def test_request_internal_session(aresponses):
     api = HomeWizardEnergyV1("example.com")
     assert await api.request("api")
     await api.close()
-
-
-async def test_request_returns_txt(aresponses):
-    """Test request returns raw text when non-json."""
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            status=200,
-            headers={"Content-Type": "application/not-json"},
-            text='{"status": "ok"}',
-        ),
-    )
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergyV1("example.com", clientsession=session)
-        return_value = await api.request("api")
-        assert isinstance(return_value, str)
-        assert return_value == '{"status": "ok"}'
-        await api.close()
 
 
 async def test_request_detects_403(aresponses):

@@ -5,8 +5,7 @@ import json
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.models import Device
-from homewizard_energy.v1.models import Data, State, System
+from homewizard_energy.models import Device, Measurement, State, System
 
 from . import load_fixtures
 
@@ -56,9 +55,11 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
     ],
 )
 async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
-    """Test Data model."""
+    """Test Measurement model."""
     for fixture in fixtures:
-        data = Data.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        data = Measurement.from_dict(
+            json.loads(load_fixtures(f"{model}/{fixture}.json"))
+        )
         assert data
 
         assert snapshot == data

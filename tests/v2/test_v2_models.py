@@ -5,8 +5,7 @@ import json
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.models import Device
-from homewizard_energy.v2.models import Measurement, System, SystemUpdate
+from homewizard_energy.models import Device, Measurement, System, SystemUpdate
 
 from . import load_fixtures
 
