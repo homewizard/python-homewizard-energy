@@ -230,9 +230,9 @@ async def test_get_data_object(
         async with aiohttp.ClientSession() as session:
             api = HomeWizardEnergyV1("example.com", clientsession=session)
 
-            data = await api.data()
-            assert data is not None
-            assert data == snapshot
+            measurement = await api.measurement()
+            assert measurement is not None
+            assert measurement == snapshot
 
             await api.close()
 
@@ -275,9 +275,9 @@ async def test_get_data_object_with_known_device(
             # pylint: disable=protected-access
             api._detected_api_version = "v1"
 
-            data = await api.data()
-            assert data is not None
-            assert data == snapshot
+            measurement = await api.measurement()
+            assert measurement is not None
+            assert measurement == snapshot
 
             await api.close()
 

@@ -519,13 +519,13 @@ async def test_delete_token_returns_unexpected_response_code(aresponses):
 async def test_request_handles_timeout():
     """Test request times out when request takes too long."""
     async with HomeWizardEnergyV2("example.com", token="token") as api:
-        api._clientsession = AsyncMock()
-        api._clientsession.request = AsyncMock(side_effect=asyncio.TimeoutError())
+        api._session = AsyncMock()
+        api._session.request = AsyncMock(side_effect=asyncio.TimeoutError())
 
         with pytest.raises(RequestError):
             await api.device()
 
-        assert api._clientsession.request.call_count == 5
+        assert api._session.request.call_count == 5
 
 
 async def test_request_with_identifier_sets_common_name(aresponses):
