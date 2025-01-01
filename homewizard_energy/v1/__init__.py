@@ -74,7 +74,7 @@ class HomeWizardEnergyV1:
 
     async def device(self) -> Device:
         """Return the device object."""
-        response = await self.request("api")
+        _, response = await self._request("api")
         device = Device.from_json(response)
 
         if device.api_version != SUPPORTED_API_VERSION:
@@ -86,13 +86,13 @@ class HomeWizardEnergyV1:
 
     async def data(self) -> Measurement:
         """Return the data object."""
-        response = await self.request("api/v1/data")
+        _, response = await self._request("api/v1/data")
         return Measurement.from_json(response)
 
     @optional_method
     async def state(self) -> State | None:
         """Return the state object."""
-        response = await self.request("api/v1/state")
+        _, response = await self._request("api/v1/state")
         return State.from_json(response)
 
     @optional_method
@@ -116,13 +116,13 @@ class HomeWizardEnergyV1:
             LOGGER.error("At least one state update is required")
             return False
 
-        await self.request("api/v1/state", method=METH_PUT, data=state)
+        await self._request("api/v1/state", method=METH_PUT, data=state)
         return True
 
     @optional_method
     async def system(self) -> System:
         """Return the system object."""
-        response = await self.request("api/v1/system")
+        _, response = await self._request("api/v1/system")
         return System.from_json(response)
 
     @optional_method
@@ -139,7 +139,7 @@ class HomeWizardEnergyV1:
             LOGGER.error("At least one state update is required")
             return False
 
-        await self.request("api/v1/system", method=METH_PUT, data=state)
+        await self._request("api/v1/system", method=METH_PUT, data=state)
         return True
 
     @optional_method
@@ -147,18 +147,20 @@ class HomeWizardEnergyV1:
         self,
     ) -> bool:
         """Send identify request."""
-        await self.request("api/v1/identify", method=METH_PUT)
+        await self._request("api/v1/identify", method=METH_PUT)
         return True
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
-    async def request(
+    async def _request(
         self, path: str, method: str = METH_GET, data: object = None
-    ) -> Any:
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
         """Make a request to the API."""
+
         if self._session is None:
             self._session = ClientSession()
             self._close_session = True
 
+        # Construct request
         url = f"http://{self.host}/{path}"
         headers = {"Content-Type": "application/json"}
 
@@ -182,21 +184,24 @@ class HomeWizardEnergyV1:
                 f"Error occurred while communicating with the HomeWizard Energy device at {self.host}"
             ) from exception
 
-        if resp.status == HTTPStatus.FORBIDDEN:
-            # Known case: API disabled
-            raise DisabledError(
-                "API disabled. API must be enabled in HomeWizard Energy app"
-            )
-
-        if resp.status == HTTPStatus.NOT_FOUND:
-            # Known case: API endpoint not supported
-            raise NotFoundError("Resource not found")
+        match resp.status:
+            case HTTPStatus.FORBIDDEN:
+                raise DisabledError(
+                    "API disabled. API must be enabled in HomeWizard Energy app"
+                )
+            case HTTPStatus.NO_CONTENT:
+                # No content, just return
+                return (HTTPStatus.NO_CONTENT, None)
+            case HTTPStatus.NOT_FOUND:
+                raise NotFoundError("Resource not found")
+            case HTTPStatus.OK:
+                pass
 
         if resp.status != HTTPStatus.OK:
             # Something else went wrong
             raise RequestError(f"API request error ({resp.status})")
 
-        return await resp.text()
+        return (resp.status, await resp.text())
 
     async def close(self) -> None:
         """Close client session."""

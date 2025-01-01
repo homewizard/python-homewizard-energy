@@ -30,7 +30,9 @@ async def test_request_returns_str(aresponses):
     )
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
-        return_value = await api.request("api")
+
+        # pylint: disable=protected-access
+        _, return_value = await api._request("api")
         assert isinstance(return_value, str)
 
         return_value = json.loads(return_value)
@@ -52,7 +54,9 @@ async def test_request_internal_session(aresponses):
     )
 
     api = HomeWizardEnergyV1("example.com")
-    assert await api.request("api")
+
+    # pylint: disable=protected-access
+    assert await api._request("api")
     await api.close()
 
 
@@ -72,7 +76,8 @@ async def test_request_detects_403(aresponses):
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(DisabledError):
-            await api.request("api")
+            # pylint: disable=protected-access
+            await api._request("api")
 
         await api.close()
 
@@ -93,7 +98,8 @@ async def test_request_detects_non_200(aresponses):
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(RequestError):
-            await api.request("api")
+            # pylint: disable=protected-access
+            await api._request("api")
 
         await api.close()
 
@@ -107,7 +113,8 @@ async def test_request_detects_clienterror():
             patch.object(session, "request", side_effect=aiohttp.ClientError),
             pytest.raises(RequestError),
         ):
-            await api.request("api")
+            # pylint: disable=protected-access
+            await api._request("api")
 
         await api.close()
 
@@ -545,7 +552,8 @@ async def test_request_timeout():
     api._session.request = AsyncMock(side_effect=asyncio.TimeoutError())
 
     with pytest.raises(RequestError):
-        await api.request("api/v1/data")
+        # pylint: disable=protected-access
+        await api._request("api/v1/data")
 
     assert api._session.request.call_count == 5
 
