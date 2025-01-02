@@ -7,7 +7,15 @@ from typing import Any
 from aiohttp.client import ClientSession
 
 from .const import LOGGER
-from .models import Device, Measurement, State, StateUpdate, System, SystemUpdate
+from .models import (
+    CombinedModels,
+    Device,
+    Measurement,
+    State,
+    StateUpdate,
+    System,
+    SystemUpdate,
+)
 
 
 class HomeWizardEnergy:
@@ -45,6 +53,10 @@ class HomeWizardEnergy:
 
         """
         return self._host
+
+    async def combined(self) -> CombinedModels:
+        """Get all information."""
+        raise NotImplementedError
 
     async def device(self) -> Device:
         """Get the device information."""
