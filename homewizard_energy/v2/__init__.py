@@ -77,9 +77,9 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         self._identifier = identifier
         self._token = token
 
+    @authorized_method
     async def combined(self) -> CombinedModels:
         """Get all information."""
-
         async def fetch_data(coroutine):
             try:
                 return await coroutine
