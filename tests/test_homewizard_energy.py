@@ -10,7 +10,6 @@ pytestmark = [pytest.mark.asyncio]
 @pytest.mark.parametrize(
     ("function"),
     [
-        ("combined"),
         ("device"),
         ("measurement"),
         ("system"),

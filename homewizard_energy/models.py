@@ -11,7 +11,7 @@ from mashumaro.config import BaseConfig
 from mashumaro.exceptions import MissingField
 from mashumaro.mixins.orjson import DataClassORJSONMixin
 
-from .const import LOGGER, MODEL_TO_ID, MODEL_TO_NAME
+from .const import LOGGER, MODEL_TO_ID, MODEL_TO_NAME, Model
 
 
 class BaseModel(DataClassORJSONMixin):
@@ -81,6 +81,19 @@ class Device(BaseModel):
         obj.model_name = MODEL_TO_NAME.get(obj.product_type)
         obj.id = get_verification_hostname(obj.product_type, obj.serial)
         return obj
+
+    def supports_state(self) -> bool:
+        """Return if the device supports state."""
+        return self.product_type == Model.ENERGY_SOCKET
+
+    def support_identify(self) -> bool:
+        """Return if the device supports identify."""
+        return self.product_type not in (
+            Model.ENERGY_METER_1_PHASE,
+            Model.ENERGY_METER_3_PHASE,
+            Model.ENERGY_METER_EASTRON_SDM230,
+            Model.ENERGY_METER_EASTRON_SDM630,
+        )
 
 
 @dataclass(kw_only=True)

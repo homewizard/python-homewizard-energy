@@ -50,35 +50,24 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
     async def combined(self) -> CombinedModels:
         """Get all information."""
 
-        async def fetch_data(coroutine):
-            try:
-                return await coroutine
-            except (UnsupportedError, NotImplementedError):
-                return None
-
-        device, measurement, system, state = await asyncio.gather(
-            fetch_data(self.device()),
-            fetch_data(self.measurement()),
-            fetch_data(self.system()),
-            fetch_data(self.state()),
-        )
+        models: CombinedModels = await super().combined()
 
         # Move things around for backwards compatibility
         ## measurement.wifi_ssid -> system.wifi_ssid
-        if measurement is not None and measurement.wifi_ssid is not None:
-            if system is None:
-                system = System()
-            system.wifi_ssid = measurement.wifi_ssid
+        if models.measurement is not None and models.measurement.wifi_ssid is not None:
+            if models.system is None:
+                models.system = System()
+            models.system.wifi_ssid = models.measurement.wifi_ssid
 
         ## state.brightness -> system.status_led_brightness_pct
-        if state is not None and state.brightness is not None:
-            if system is None:
-                system = System()
-            system.status_led_brightness_pct = (state.brightness / 255) * 100
+        if models.state is not None and models.state.brightness is not None:
+            if models.system is None:
+                models.system = System()
+            models.system.status_led_brightness_pct = (
+                models.state.brightness / 255
+            ) * 100
 
-        return CombinedModels(
-            device=device, measurement=measurement, system=system, state=state
-        )
+        return models
 
     async def device(self) -> Device:
         """Return the device object."""
@@ -149,7 +138,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         await self._request("api/v1/identify", method=METH_PUT)
         return True
 
-    @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
+    @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:

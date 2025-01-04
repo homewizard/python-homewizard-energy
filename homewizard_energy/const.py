@@ -1,28 +1,45 @@
 """Constants for HomeWizard Energy."""
 
 import logging
+from enum import StrEnum
 
 LOGGER = logging.getLogger(__name__)
 
+
+class Model(StrEnum):
+    """Model of the HomeWizard Energy device."""
+
+    P1_METER = "HWE-P1"
+    ENERGY_SOCKET = "HWE-SKT"
+    WATER_METER = "HWE-WTR"
+    DISPLAY = "HWE-DSP"
+    ENERGY_METER_1_PHASE = "HWE-KWH1"
+    ENERGY_METER_3_PHASE = "HWE-KWH3"
+    ENERGY_METER_EASTRON_SDM230 = "SDM230-wifi"
+    ENERGY_METER_EASTRON_SDM630 = "SDM630-wifi"
+    BATTERY = "HWE-BAT"
+
+
 MODEL_TO_ID = {
-    "HWE-P1": "p1dongle",
-    "HWE-SKT": "energysocket",
-    "HWE-WTR": "watermeter",
-    "HWE-DSP": "display",
-    "HWE-KWH1": "energymeter",
-    "SDM230-wifi": "energymeter",
-    "HWE-KWH3": "energymeter",
-    "SDM630-wifi": "energymeter",
-    "HWE-BAT": "battery",
+    Model.P1_METER: "p1dongle",
+    Model.ENERGY_SOCKET: "energysocket",
+    Model.WATER_METER: "watermeter",
+    Model.DISPLAY: "display",
+    Model.ENERGY_METER_1_PHASE: "energymeter",
+    Model.ENERGY_METER_3_PHASE: "energymeter",
+    Model.ENERGY_METER_EASTRON_SDM230: "energymeter",
+    Model.ENERGY_METER_EASTRON_SDM630: "energymeter",
+    Model.BATTERY: "battery",
 }
 
 MODEL_TO_NAME = {
-    "HWE-P1": "Wi-Fi P1 Meter",
-    "HWE-SKT": "Wi-Fi Energy Socket",
-    "HWE-WTR": "Wi-Fi Watermeter",
-    "HWE-KWH1": "Wi-Fi kWh Meter 1-phase",
-    "HWE-KWH3": "Wi-Fi kWh Meter 3-phase",
-    "SDM230-wifi": "Wi-Fi kWh Meter 1-phase",
-    "SDM630-wifi": "Wi-Fi kWh Meter 3-phase",
-    "HWE-BAT": "Plug-In Battery",
+    Model.P1_METER: "Wi-Fi P1 Meter",
+    Model.ENERGY_SOCKET: "Wi-Fi Energy Socket",
+    Model.WATER_METER: "Wi-Fi Watermeter",
+    Model.DISPLAY: "Energy Display",
+    Model.ENERGY_METER_1_PHASE: "Wi-Fi kWh Meter 1-phase",
+    Model.ENERGY_METER_3_PHASE: "Wi-Fi kWh Meter 3-phase",
+    Model.ENERGY_METER_EASTRON_SDM230: "Wi-Fi kWh Meter 1-phase",
+    Model.ENERGY_METER_EASTRON_SDM630: "Wi-Fi kWh Meter 3-phase",
+    Model.BATTERY: "Plug-In Battery",
 }

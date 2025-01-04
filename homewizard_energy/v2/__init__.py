@@ -22,15 +22,9 @@ from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 from mashumaro.exceptions import InvalidFieldValue, MissingField
 
 from ..const import LOGGER
-from ..errors import (
-    DisabledError,
-    RequestError,
-    ResponseError,
-    UnauthorizedError,
-    UnsupportedError,
-)
+from ..errors import DisabledError, RequestError, ResponseError, UnauthorizedError
 from ..homewizard_energy import HomeWizardEnergy
-from ..models import CombinedModels, Device, Measurement, System, SystemUpdate, Token
+from ..models import Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT
 
 T = TypeVar("T")
@@ -76,26 +70,6 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         super().__init__(host, clientsession, timeout)
         self._identifier = identifier
         self._token = token
-
-    async def combined(self) -> CombinedModels:
-        """Get all information."""
-
-        async def fetch_data(coroutine):
-            try:
-                return await coroutine
-            except (UnsupportedError, NotImplementedError):
-                return None
-
-        device, measurement, system, state = await asyncio.gather(
-            fetch_data(self.device()),
-            fetch_data(self.measurement()),
-            fetch_data(self.system()),
-            fetch_data(self.state()),
-        )
-
-        return CombinedModels(
-            device=device, measurement=measurement, system=system, state=state
-        )
 
     @authorized_method
     async def device(self) -> Device:
@@ -231,7 +205,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             connector=connector, timeout=ClientTimeout(total=self._request_timeout)
         )
 
-    @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
+    @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
