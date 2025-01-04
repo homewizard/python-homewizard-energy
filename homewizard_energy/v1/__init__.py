@@ -82,7 +82,11 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
 
     @optional_method
     async def state(self, update: StateUpdate | None = None) -> State:
-        """Return the state object."""
+        """Return or update the state object."""
+
+        if self._device is not None and self._device.supports_state is False:
+            raise UnsupportedError("State is not supported")
+
         if update is not None:
             data = update.to_dict()
             status, response = await self._request(
@@ -129,6 +133,10 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         self,
     ) -> bool:
         """Send identify request."""
+
+        if self._device is not None and self._device.supports_state is False:
+            raise UnsupportedError("State is not supported")
+
         await self._request("api/v1/identify", method=METH_PUT)
         return True
 

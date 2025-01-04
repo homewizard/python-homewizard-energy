@@ -100,7 +100,7 @@ class HomeWizardEnergy:
         update: StateUpdate | None = None,
     ) -> State:
         """Get/set the state."""
-        raise NotImplementedError
+        raise UnsupportedError("State is not supported")
 
     async def identify(
         self,
@@ -112,7 +112,7 @@ class HomeWizardEnergy:
         self,
     ) -> None:
         """Reboot the device."""
-        raise NotImplementedError
+        raise UnsupportedError("Reboot is not supported")
 
     async def close(self) -> None:
         """Close client session."""
