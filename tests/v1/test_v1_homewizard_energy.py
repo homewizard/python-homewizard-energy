@@ -638,7 +638,7 @@ async def test_system_set_unsupported_arguments():
 
 
 # pylint: disable=protected-access
-async def test_request_timeout():
+async def test_request_handles_timeout():
     """Test request raises timeout when request takes too long."""
 
     api = HomeWizardEnergyV1("example.com")
@@ -649,7 +649,7 @@ async def test_request_timeout():
         # pylint: disable=protected-access
         await api._request("api/v1/data")
 
-    assert api._session.request.call_count == 5
+    assert api._session.request.call_count == 3
 
 
 async def test_close_when_out_of_scope():

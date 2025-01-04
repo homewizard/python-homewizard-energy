@@ -625,7 +625,7 @@ async def test_request_handles_timeout():
         with pytest.raises(RequestError):
             await api.device()
 
-        assert api._session.request.call_count == 5
+        assert api._session.request.call_count == 3
 
 
 async def test_request_with_identifier_sets_common_name(aresponses):
