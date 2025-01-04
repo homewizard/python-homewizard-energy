@@ -95,7 +95,8 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
 
         # Legacy: route 'status_led_brightness_pct' to state
         if status_led_brightness_pct is not None:
-            await self.state(brightness=status_led_brightness_pct * 2.55)
+            state = await self.state(brightness=status_led_brightness_pct * 2.55)
+            return System(status_led_brightness_pct=state.brightness / 2.55)
 
         if cloud_enabled is not None:
             # Executing the update

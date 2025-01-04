@@ -699,6 +699,28 @@ async def test_system_set_unsupported_arguments():
             await api.system(api_v1_enabled=True)
 
 
+async def test_system_routes_brightness_to_state(aresponses):
+    """Test system sets brightness to state."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/state",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures("HWE-SKT/state_brightness.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        system = await api.system(status_led_brightness_pct=100)
+        assert system.status_led_brightness_pct == 100
+        await api.close()
+
+
 # pylint: disable=protected-access
 async def test_request_handles_timeout():
     """Test request raises timeout when request takes too long."""
