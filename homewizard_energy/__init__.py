@@ -3,11 +3,13 @@
 from aiohttp import ClientSession
 
 from .errors import DisabledError, InvalidStateError, RequestError, UnsupportedError
+from .homewizard_energy import HomeWizardEnergy
 from .v1 import HomeWizardEnergyV1
 from .v2 import HomeWizardEnergyV2
 
 __all__ = [
     "DisabledError",
+    "HomeWizardEnergy",
     "HomeWizardEnergyV1",
     "HomeWizardEnergyV2",
     "InvalidStateError",
