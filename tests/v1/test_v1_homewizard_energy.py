@@ -120,6 +120,197 @@ async def test_request_detects_clienterror():
         await api.close()
 
 
+### CombinedModels tests ###
+
+
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+@pytest.mark.parametrize(
+    ("model", "device", "data", "state", "system"),
+    [
+        ("HWE-KWH1", "device", "data", None, "system"),
+        ("HWE-KWH3", "device", "data", None, "system"),
+        ("HWE-P1", "device", "data_all_data", None, "system"),
+        ("HWE-SKT", "device", "data", "state_all", "system"),
+        ("HWE-WTR", "device", "data", None, "system"),
+        ("SDM230-wifi", "device", "data", None, "system"),
+        ("SDM630-wifi", "device", "data", None, "system"),
+    ],
+)
+async def test_combined_models_with_valid_authentication(
+    model: str,
+    device: str,
+    data: str,
+    state: str | None,
+    system: str,
+    snapshot: SnapshotAssertion,
+    aresponses,
+):
+    """Test combined models request is successful when valid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{device}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/data",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{data}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/state",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{state}.json") if state else "404 Not Found",
+            status=200 if state else 404,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{system}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with HomeWizardEnergyV1("example.com") as api:
+        data = await api.combined()
+        assert data is not None
+        assert data == snapshot
+
+
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+@pytest.mark.parametrize(
+    ("model", "device", "data", "state", "system"),
+    [
+        ("HWE-KWH1", "device", "data", None, "system"),
+        ("HWE-KWH3", "device", "data", None, "system"),
+        ("HWE-P1", "device", "data_all_data", None, "system"),
+        ("HWE-SKT", "device", "data", "state_all", "system"),
+        ("HWE-WTR", "device", "data", None, "system"),
+        ("SDM230-wifi", "device", "data", None, "system"),
+        ("SDM630-wifi", "device", "data", None, "system"),
+    ],
+)
+async def test_combined_models_with_valid_authentication_caches_device(
+    model: str,
+    device: str,
+    data: str,
+    state: str | None,
+    system: str,
+    snapshot: SnapshotAssertion,
+    aresponses,
+):
+    """Test combined models request is successful when valid authentication is provided."""
+
+    # Request 1
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{device}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/data",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{data}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/state",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{state}.json") if state else "404 Not Found",
+            status=200 if state else 404,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{system}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    # Request 2, should use cache of `/api`
+    aresponses.add(
+        "example.com",
+        "/api/v1/data",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{data}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/state",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{state}.json") if state else "404 Not Found",
+            status=200 if state else 404,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/system",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{system}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with HomeWizardEnergyV1("example.com") as api:
+        data = await api.combined()
+        assert data is not None
+        assert data == snapshot
+
+        data_2 = await api.combined()
+        assert data_2 == data
+
+
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [

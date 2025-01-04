@@ -21,14 +21,8 @@ from aiohttp.client import (
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 from mashumaro.exceptions import InvalidFieldValue, MissingField
 
-from homewizard_energy.errors import (
-    DisabledError,
-    RequestError,
-    ResponseError,
-    UnauthorizedError,
-)
-
 from ..const import LOGGER
+from ..errors import DisabledError, RequestError, ResponseError, UnauthorizedError
 from ..homewizard_energy import HomeWizardEnergy
 from ..models import Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT

@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from aiohttp.client import ClientSession
 
 from .const import LOGGER
-from .models import Device, Measurement, State, StateUpdate, System, SystemUpdate
+from .errors import UnsupportedError
+from .models import (
+    CombinedModels,
+    Device,
+    Measurement,
+    State,
+    StateUpdate,
+    System,
+    SystemUpdate,
+)
 
 
 class HomeWizardEnergy:
@@ -17,6 +27,8 @@ class HomeWizardEnergy:
     _close_session: bool = False
     _request_timeout: int = 10
     _host: str
+
+    _device: Device | None = None
 
     def __init__(
         self,
@@ -45,6 +57,28 @@ class HomeWizardEnergy:
 
         """
         return self._host
+
+    async def combined(self) -> CombinedModels:
+        """Get all information."""
+
+        async def fetch_data(coroutine):
+            try:
+                return await coroutine
+            except (UnsupportedError, NotImplementedError):
+                return None
+
+        if self._device is None:
+            self._device = await fetch_data(self.device())
+
+        measurement, system, state = await asyncio.gather(
+            fetch_data(self.measurement()),
+            fetch_data(self.system()),
+            fetch_data(self.state()),
+        )
+
+        return CombinedModels(
+            device=self._device, measurement=measurement, system=system, state=state
+        )
 
     async def device(self) -> Device:
         """Get the device information."""
