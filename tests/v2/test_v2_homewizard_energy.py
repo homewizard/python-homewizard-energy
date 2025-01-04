@@ -13,7 +13,6 @@ from homewizard_energy.errors import (
     ResponseError,
     UnauthorizedError,
 )
-from homewizard_energy.models import SystemUpdate
 
 from . import load_fixtures
 
@@ -435,7 +434,7 @@ async def test_system_set_with_valid_authentication(aresponses):
     )
 
     async with HomeWizardEnergyV2("example.com", token="token") as api:
-        data = await api.system(update=SystemUpdate(cloud_enabled=True))
+        data = await api.system(cloud_enabled=True)
         assert data is not None
         assert data.cloud_enabled is True
 

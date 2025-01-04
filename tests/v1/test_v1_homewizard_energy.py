@@ -10,7 +10,6 @@ from syrupy.assertion import SnapshotAssertion
 
 from homewizard_energy import HomeWizardEnergyV1
 from homewizard_energy.errors import DisabledError, RequestError, UnsupportedError
-from homewizard_energy.models import StateUpdate, SystemUpdate
 
 from . import load_fixtures
 
@@ -523,24 +522,10 @@ async def test_state_set(
         async with aiohttp.ClientSession() as session:
             api = HomeWizardEnergyV1("example.com", clientsession=session)
 
-            state = await api.state(
-                StateUpdate(power_on=False, switch_lock=False, brightness=255)
-            )
+            state = await api.state(power_on=False, switch_lock=False, brightness=255)
             assert state
-
             assert state == snapshot
-
             await api.close()
-
-
-async def test_state_set_detects_no_statechange():
-    """Test state set does not send request when nothing is changed."""
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergyV1("example.com", clientsession=session)
-
-        with pytest.raises(ValueError):
-            await api.state(StateUpdate())
 
 
 @pytest.mark.parametrize(
@@ -697,21 +682,11 @@ async def test_system_set(model: str, snapshot: SnapshotAssertion, aresponses):
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
-        system = await api.system(update=SystemUpdate(cloud_enabled=True))
+        system = await api.system(cloud_enabled=True)
         assert system
         assert system == snapshot
 
         await api.close()
-
-
-async def test_system_set_missing_arguments():
-    """Test system set when no arguments are given."""
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergyV1("example.com", clientsession=session)
-
-        with pytest.raises(ValueError):
-            await api.system(update=SystemUpdate())
 
 
 async def test_system_set_unsupported_arguments():
@@ -721,10 +696,7 @@ async def test_system_set_unsupported_arguments():
         api = HomeWizardEnergyV1("example.com", clientsession=session)
 
         with pytest.raises(UnsupportedError):
-            await api.system(update=SystemUpdate(status_led_brightness_pct=50))
-
-        with pytest.raises(UnsupportedError):
-            await api.system(update=SystemUpdate(api_v1_enabled=True))
+            await api.system(api_v1_enabled=True)
 
 
 # pylint: disable=protected-access
