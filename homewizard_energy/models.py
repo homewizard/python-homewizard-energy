@@ -43,7 +43,7 @@ class CombinedModels:
     """All values."""
 
     device: Device
-    measurement: Measurement | None
+    measurement: Measurement
     state: State | None
     system: System | None
 
