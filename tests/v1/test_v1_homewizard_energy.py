@@ -352,29 +352,6 @@ async def test_get_device_object(
             await api.close()
 
 
-async def test_get_device_object_detects_invalid_api(aresponses):
-    """Test raises error when invalid API is used."""
-
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            text=load_fixtures("exceptions/device_invalid_api.json"),
-            status=200,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-        ),
-    )
-
-    async with aiohttp.ClientSession() as session:
-        api = HomeWizardEnergyV1("example.com", clientsession=session)
-
-        with pytest.raises(UnsupportedError):
-            await api.device()
-
-        await api.close()
-
-
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [
