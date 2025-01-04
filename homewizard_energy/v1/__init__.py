@@ -24,7 +24,6 @@ from ..models import (
     System,
     SystemUpdate,
 )
-from .const import SUPPORTED_API_VERSION
 
 T = TypeVar("T")
 
@@ -73,11 +72,6 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         """Return the device object."""
         _, response = await self._request("api")
         device = Device.from_json(response)
-
-        if device.api_version != SUPPORTED_API_VERSION:
-            raise UnsupportedError(
-                f"Unsupported API version, expected version '{SUPPORTED_API_VERSION}'"
-            )
 
         return device
 
