@@ -47,6 +47,31 @@ class CombinedModels:
     state: State | None
     system: System | None
 
+    def __init__(
+        self,
+        device: Device,
+        measurement: Measurement,
+        state: State | None,
+        system: System | None,
+    ):
+        self.device = device
+        self.measurement = measurement
+        self.state = state
+        self.system = system
+
+        # Move things around for backwards compatibility
+        ## measurement.wifi_ssid -> system.wifi_ssid
+        if self.measurement is not None and self.measurement.wifi_ssid is not None:
+            if self.system is None:
+                self.system = System()
+            self.system.wifi_ssid = self.measurement.wifi_ssid
+
+        ## state.brightness -> system.status_led_brightness_pct
+        if self.state is not None and self.state.brightness is not None:
+            if self.system is None:
+                self.system = System()
+            self.system.status_led_brightness_pct = (self.state.brightness / 255) * 100
+
 
 def get_verification_hostname(model: str, serial_number: str) -> str:
     """Helper method to convert device model and serial to identifier

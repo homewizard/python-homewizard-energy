@@ -15,15 +15,7 @@ from aiohttp.hdrs import METH_GET, METH_PUT
 from ..const import LOGGER
 from ..errors import DisabledError, NotFoundError, RequestError, UnsupportedError
 from ..homewizard_energy import HomeWizardEnergy
-from ..models import (
-    CombinedModels,
-    Device,
-    Measurement,
-    State,
-    StateUpdate,
-    System,
-    SystemUpdate,
-)
+from ..models import Device, Measurement, State, StateUpdate, System, SystemUpdate
 
 T = TypeVar("T")
 
@@ -45,28 +37,6 @@ def optional_method(
 # pylint: disable=abstract-method
 class HomeWizardEnergyV1(HomeWizardEnergy):
     """Communicate with a HomeWizard Energy device."""
-
-    async def combined(self) -> CombinedModels:
-        """Get all information."""
-
-        models: CombinedModels = await super().combined()
-
-        # Move things around for backwards compatibility
-        ## measurement.wifi_ssid -> system.wifi_ssid
-        if models.measurement is not None and models.measurement.wifi_ssid is not None:
-            if models.system is None:
-                models.system = System()
-            models.system.wifi_ssid = models.measurement.wifi_ssid
-
-        ## state.brightness -> system.status_led_brightness_pct
-        if models.state is not None and models.state.brightness is not None:
-            if models.system is None:
-                models.system = System()
-            models.system.status_led_brightness_pct = (
-                models.state.brightness / 255
-            ) * 100
-
-        return models
 
     async def device(self) -> Device:
         """Return the device object."""
