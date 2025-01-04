@@ -9,15 +9,7 @@ from aiohttp.client import ClientSession
 
 from .const import LOGGER
 from .errors import UnsupportedError
-from .models import (
-    CombinedModels,
-    Device,
-    Measurement,
-    State,
-    StateUpdate,
-    System,
-    SystemUpdate,
-)
+from .models import CombinedModels, Device, Measurement, State, System
 
 
 class HomeWizardEnergy:
@@ -90,14 +82,18 @@ class HomeWizardEnergy:
 
     async def system(
         self,
-        update: SystemUpdate | None = None,
+        cloud_enabled: bool | None = None,
+        status_led_brightness_pct: int | None = None,
+        api_v1_enabled: bool | None = None,
     ) -> System:
         """Get/set the system."""
         raise NotImplementedError
 
     async def state(
         self,
-        update: StateUpdate | None = None,
+        power_on: bool | None = None,
+        switch_lock: bool | None = None,
+        brightness: int | None = None,
     ) -> State:
         """Get/set the state."""
         raise UnsupportedError("State is not supported")

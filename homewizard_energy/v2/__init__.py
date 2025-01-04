@@ -90,12 +90,22 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
     @authorized_method
     async def system(
         self,
-        update: SystemUpdate | None = None,
+        cloud_enabled: bool | None = None,
+        status_led_brightness_pct: int | None = None,
+        api_v1_enabled: bool | None = None,
     ) -> System:
         """Return the system object."""
 
-        if update is not None:
-            data = update.to_dict()
+        if (
+            cloud_enabled is not None
+            or status_led_brightness_pct is not None
+            or api_v1_enabled is not None
+        ):
+            data = SystemUpdate(
+                cloud_enabled=cloud_enabled,
+                status_led_brightness_pct=status_led_brightness_pct,
+                api_v1_enabled=api_v1_enabled,
+            ).to_dict()
             status, response = await self._request(
                 "/api/system", method=METH_PUT, data=data
             )

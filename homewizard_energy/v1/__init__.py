@@ -81,40 +81,26 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         return Measurement.from_json(response)
 
     @optional_method
-    async def state(self, update: StateUpdate | None = None) -> State:
-        """Return or update the state object."""
-
-        if self._device is not None and self._device.supports_state is False:
-            raise UnsupportedError("State is not supported")
-
-        if update is not None:
-            data = update.to_dict()
-            status, response = await self._request(
-                "api/v1/state", method=METH_PUT, data=data
-            )
-
-        else:
-            status, response = await self._request("api/v1/state")
-
-        if status != HTTPStatus.OK:
-            raise RequestError("Failed to get/set state")
-
-        state = State.from_json(response)
-        return state
-
-    @optional_method
-    async def system(self, update: SystemUpdate | None = None) -> System:
+    async def system(
+        self,
+        cloud_enabled: bool | None = None,
+        status_led_brightness_pct: int | None = None,
+        api_v1_enabled: bool | None = None,
+    ) -> System:
         """Return the system object."""
-        if update is not None:
-            if (
-                update.status_led_brightness_pct is not None
-                or update.api_v1_enabled is not None
-            ):
-                raise UnsupportedError(
-                    "Setting status_led_brightness_pct and api_v1_enabled is not supported in v1"
-                )
 
-            data = update.to_dict()
+        # Legacy: raise on unsupported field
+        if api_v1_enabled is not None:
+            raise UnsupportedError("Setting api_v1_enabled is not supported in v1")
+
+        # Legacy: route 'status_led_brightness_pct' to state
+        if status_led_brightness_pct is not None:
+            state = await self.state(brightness=status_led_brightness_pct * 2.55)
+            return System(status_led_brightness_pct=state.brightness / 2.55)
+
+        if cloud_enabled is not None:
+            # Executing the update
+            data = SystemUpdate(cloud_enabled=cloud_enabled).to_dict()
             status, response = await self._request(
                 "api/v1/system", method=METH_PUT, data=data
             )
@@ -127,6 +113,35 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
 
         system = System.from_json(response)
         return system
+
+    @optional_method
+    async def state(
+        self,
+        power_on: bool | None = None,
+        switch_lock: bool | None = None,
+        brightness: int | None = None,
+    ) -> State:
+        """Return or update the state object."""
+
+        if self._device is not None and self._device.supports_state is False:
+            raise UnsupportedError("State is not supported")
+
+        if power_on is not None or switch_lock is not None or brightness is not None:
+            data = StateUpdate(
+                power_on=power_on, switch_lock=switch_lock, brightness=brightness
+            ).to_dict()
+            status, response = await self._request(
+                "api/v1/state", method=METH_PUT, data=data
+            )
+
+        else:
+            status, response = await self._request("api/v1/state")
+
+        if status != HTTPStatus.OK:
+            raise RequestError("Failed to get/set state")
+
+        state = State.from_json(response)
+        return state
 
     @optional_method
     async def identify(
