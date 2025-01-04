@@ -211,7 +211,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             connector=connector, timeout=ClientTimeout(total=self._request_timeout)
         )
 
-    @backoff.on_exception(backoff.expo, RequestError, max_tries=5, logger=None)
+    @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
