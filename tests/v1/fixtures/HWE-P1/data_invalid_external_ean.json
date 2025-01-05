@@ -2,6 +2,7 @@
     "total_gas_m3": 2569.646,
     "gas_timestamp": 210606140010,
     "gas_unique_id": "00000000000000000000000000000000",
+    "unique_id": "SomeInvalidEANWhichIsNotAHexadecimalString",
     "external": [
         {
             "unique_id": "00000000000000000000000000000000",

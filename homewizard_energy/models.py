@@ -345,7 +345,7 @@ class Measurement(BaseModel):
         return rv
 
     @staticmethod
-    def to_datetime(timestamp: str | int | None) -> datetime | None:
+    def to_datetime(timestamp: str | int) -> datetime:
         """Convert DSRM gas-timestamp to datetime object.
 
         Args:
@@ -354,10 +354,6 @@ class Measurement(BaseModel):
         Returns:
             A datetime object.
         """
-
-        if timestamp is None:
-            return None
-
         if isinstance(timestamp, int):
             # V1 API uses int for timestamp
             return datetime.strptime(str(timestamp), "%y%m%d%H%M%S")
