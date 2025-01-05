@@ -71,15 +71,12 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         if cloud_enabled is not None:
             # Executing the update
             data = SystemUpdate(cloud_enabled=cloud_enabled).to_dict()
-            status, response = await self._request(
+            _, response = await self._request(
                 "api/v1/system", method=METH_PUT, data=data
             )
 
         else:
-            status, response = await self._request("api/v1/system")
-
-        if status != HTTPStatus.OK:
-            raise RequestError("Failed to get/set system")
+            _, response = await self._request("api/v1/system")
 
         system = System.from_json(response)
         return system
@@ -100,15 +97,12 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
             data = StateUpdate(
                 power_on=power_on, switch_lock=switch_lock, brightness=brightness
             ).to_dict()
-            status, response = await self._request(
+            _, response = await self._request(
                 "api/v1/state", method=METH_PUT, data=data
             )
 
         else:
-            status, response = await self._request("api/v1/state")
-
-        if status != HTTPStatus.OK:
-            raise RequestError("Failed to get/set state")
+            _, response = await self._request("api/v1/state")
 
         state = State.from_json(response)
         return state
