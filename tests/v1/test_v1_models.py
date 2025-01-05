@@ -91,6 +91,7 @@ async def test_device_support_functions(
                 "data_no_gas",
                 "data_single_phase",
                 "data_invalid_external_ean",
+                "data_invalid_external_data",
             ],
         ),
         ("HWE-SKT", ["data"]),

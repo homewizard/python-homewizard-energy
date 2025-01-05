@@ -449,7 +449,7 @@ class Measurement(BaseModel):
         return d
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ExternalDevice(BaseModel):
     """Represents externally connected device."""
 
@@ -463,7 +463,7 @@ class ExternalDevice(BaseModel):
         INLET_HEAT_METER = "inlet_heat_meter"
 
     unique_id: datetime = field(
-        default=None, metadata={"deserialize": lambda x: Measurement.hex_to_readable(x)}
+        metadata={"deserialize": lambda x: Measurement.hex_to_readable(x)}
     )
 
     type: DeviceType | None = field(
@@ -474,10 +474,10 @@ class ExternalDevice(BaseModel):
             else None
         },
     )
-    value: float = field(default=0.0)
-    unit: str = field(default="")
+    value: float = field()
+    unit: str = field()
     timestamp: datetime = field(
-        default=None, metadata={"deserialize": lambda x: Measurement.to_datetime(x)}
+        metadata={"deserialize": lambda x: Measurement.to_datetime(x)}
     )
 
 
