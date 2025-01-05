@@ -164,9 +164,6 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
                 raise DisabledError(
                     "API disabled. API must be enabled in HomeWizard Energy app"
                 )
-            case HTTPStatus.NO_CONTENT:
-                # No content, just return
-                return (HTTPStatus.NO_CONTENT, None)
             case HTTPStatus.NOT_FOUND:
                 raise NotFoundError("Resource not found")
             case HTTPStatus.OK:
