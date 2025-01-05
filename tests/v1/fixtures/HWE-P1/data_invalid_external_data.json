@@ -1,0 +1,37 @@
+{
+    "total_gas_m3": 2569.646,
+    "gas_timestamp": 210606140010,
+    "gas_unique_id": "4E474C5944",
+    "external": [
+        {
+            "type": "gas_meter",
+            "timestamp": 210606140010,
+            "value": 111.111,
+            "unit": "m3"
+        },
+        {
+            "unique_id": "4E474C5944",
+            "timestamp": 210606140010,
+            "value": 111.111,
+            "unit": "m3"
+        },
+        {
+            "unique_id": "4E474C5944",
+            "type": "gas_meter",
+            "value": 111.111,
+            "unit": "m3"
+        },
+        {
+            "unique_id": "4E474C5944",
+            "type": "gas_meter",
+            "timestamp": 210606140010,
+            "unit": "m3"
+        },
+        {
+            "unique_id": "4E474C5944",
+            "type": "gas_meter",
+            "timestamp": 210606140010,
+            "value": 111.111
+        }
+    ]
+}

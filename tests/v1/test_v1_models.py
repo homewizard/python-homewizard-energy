@@ -5,7 +5,7 @@ import json
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.models import Device, Measurement, State, System
+from homewizard_energy.models import CombinedModels, Device, Measurement, State, System
 
 from . import load_fixtures
 
@@ -33,6 +33,53 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
         assert snapshot == data
 
 
+async def test_combined_remaps_legacy_wifi_ssid_to_system(snapshot: SnapshotAssertion):
+    """Test CombinedModels model remaps wifi_ssid to system."""
+    device = Device.from_dict(json.loads(load_fixtures("HWE-SKT/device.json")))
+    measurement = Measurement.from_dict(json.loads(load_fixtures("HWE-SKT/data.json")))
+
+    combined = CombinedModels(
+        device=device, measurement=measurement, state=None, system=None
+    )
+
+    assert combined.system.wifi_ssid == measurement.wifi_ssid
+    assert snapshot == combined
+
+
+async def test_combined_remaps_legacy_brightness_to_system(snapshot: SnapshotAssertion):
+    """Test CombinedModels model remaps wifi_ssid to system."""
+    device = Device.from_dict(json.loads(load_fixtures("HWE-SKT/device.json")))
+    state = State.from_dict(json.loads(load_fixtures("HWE-SKT/state_all.json")))
+
+    combined = CombinedModels(device=device, measurement=None, state=state, system=None)
+
+    assert combined.system.status_led_brightness_pct == state.brightness / 2.55
+    assert snapshot == combined
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_state", "supports_identify"),
+    [
+        ("HWE-P1", False, True),
+        ("HWE-SKT", True, True),
+        ("HWE-WTR", False, True),
+        ("HWE-KWH1", False, False),
+        ("HWE-KWH3", False, False),
+        ("SDM230-wifi", False, False),
+        ("SDM630-wifi", False, False),
+    ],
+)
+async def test_device_support_functions(
+    model: str, supports_state: bool, supports_identify: bool
+):
+    """Test Device model support functions."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device
+
+    assert device.supports_state() == supports_state
+    assert device.supports_identify() == supports_identify
+
+
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [
@@ -44,6 +91,7 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
                 "data_no_gas",
                 "data_single_phase",
                 "data_invalid_external_ean",
+                "data_invalid_external_data",
             ],
         ),
         ("HWE-SKT", ["data"]),
