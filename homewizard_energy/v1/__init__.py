@@ -96,7 +96,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
     ) -> State:
         """Return or update the state object."""
 
-        if self._device is not None and self._device.supports_state is False:
+        if self._device is not None and self._device.supports_state() is False:
             raise UnsupportedError("State is not supported")
 
         if power_on is not None or switch_lock is not None or brightness is not None:
@@ -119,7 +119,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
     ) -> bool:
         """Send identify request."""
 
-        if self._device is not None and self._device.supports_state is False:
+        if self._device is not None and self._device.supports_identify() is False:
             raise UnsupportedError("State is not supported")
 
         await self._request("api/v1/identify", method=METH_PUT)

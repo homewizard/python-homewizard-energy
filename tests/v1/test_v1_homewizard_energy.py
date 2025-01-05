@@ -599,6 +599,42 @@ async def test_state_set(
     "model",
     [
         "HWE-P1",
+        "HWE-WTR",
+        "HWE-KWH1",
+        "HWE-KWH3",
+        "SDM230-wifi",
+        "SDM630-wifi",
+    ],
+)
+async def test_state_not_supported_with_cached_device(aresponses, model: str):
+    """Test state set uses cached device to check is unsupported."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        await api.device()
+
+        with pytest.raises(UnsupportedError):
+            await api.state()
+
+        await api.close()
+
+
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-P1",
         "HWE-SKT",
         "HWE-WTR",
     ],
@@ -663,6 +699,40 @@ async def test_identify_not_supported(model: str, aresponses):
 
     async with aiohttp.ClientSession() as session:
         api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        with pytest.raises(UnsupportedError):
+            await api.identify()
+
+        await api.close()
+
+
+@pytest.mark.parametrize(
+    "model",
+    [
+        "HWE-KWH1",
+        "HWE-KWH3",
+        "SDM230-wifi",
+        "SDM630-wifi",
+    ],
+)
+async def test_identify_not_supported_with_cached_device(aresponses, model: str):
+    """Test identify set uses cached device to check is unsupported."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        await api.device()
 
         with pytest.raises(UnsupportedError):
             await api.identify()
