@@ -58,6 +58,29 @@ async def test_combined_remaps_legacy_brightness_to_system(snapshot: SnapshotAss
 
 
 @pytest.mark.parametrize(
+    ("model", "supports_state", "supports_identify"),
+    [
+        ("HWE-P1", False, True),
+        ("HWE-SKT", True, True),
+        ("HWE-WTR", False, True),
+        ("HWE-KWH1", False, False),
+        ("HWE-KWH3", False, False),
+        ("SDM230-wifi", False, False),
+        ("SDM630-wifi", False, False),
+    ],
+)
+async def test_device_support_functions(
+    model: str, supports_state: bool, supports_identify: bool
+):
+    """Test Device model support functions."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device
+
+    assert device.supports_state() == supports_state
+    assert device.supports_identify() == supports_identify
+
+
+@pytest.mark.parametrize(
     ("model", "fixtures"),
     [
         (
