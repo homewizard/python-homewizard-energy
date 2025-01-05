@@ -90,8 +90,6 @@ async def test_device_support_functions(
                 "data_all_data",
                 "data_no_gas",
                 "data_single_phase",
-                "data_invalid_external_ean",
-                "data_invalid_external_data",
             ],
         ),
         ("HWE-SKT", ["data"]),
@@ -100,6 +98,13 @@ async def test_device_support_functions(
         ("HWE-KWH3", ["data"]),
         ("SDM230-wifi", ["data"]),
         ("SDM630-wifi", ["data"]),
+        (
+            "exceptions",
+            [
+                "data_invalid_external_ean",
+                "data_invalid_external_data",
+            ],
+        ),
     ],
 )
 async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
