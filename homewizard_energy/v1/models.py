@@ -182,6 +182,11 @@ class Data:
             A State object.
         """
 
+        # Hotfix: Tariff can be something else than 1, 2, 3 or 4
+        if tariff := data.get("active_tariff"):
+            if tariff not in (1, 2, 3, 4):
+                data["active_tariff"] = None
+
         return Data(
             wifi_ssid=data.get("wifi_ssid"),
             wifi_strength=data.get("wifi_strength"),
