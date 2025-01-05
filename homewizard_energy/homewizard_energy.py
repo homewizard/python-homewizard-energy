@@ -72,7 +72,7 @@ class HomeWizardEnergy:
             device=self._device, measurement=measurement, system=system, state=state
         )
 
-    async def device(self) -> Device:
+    async def device(self, reset_cache: bool = False) -> Device:
         """Get the device information."""
         raise NotImplementedError
 
