@@ -47,7 +47,7 @@ async def test_has_v2_api_false(aresponses):
 async def test_has_v2_api_exception():
     """Test if has_v2_api returns False when an exception occurs."""
     session = AsyncMock()
-    session.request = AsyncMock(side_effect=asyncio.TimeoutError())
+    session.get = AsyncMock(side_effect=asyncio.TimeoutError)
 
     result = await has_v2_api("example.com", session)
     assert result is False
