@@ -38,11 +38,17 @@ def optional_method(
 class HomeWizardEnergyV1(HomeWizardEnergy):
     """Communicate with a HomeWizard Energy device."""
 
-    async def device(self) -> Device:
+    async def device(self, reset_cache: bool = False) -> Device:
         """Return the device object."""
+
+        if self._device is not None and not reset_cache:
+            return self._device
+
         _, response = await self._request("api")
         device = Device.from_json(response)
 
+        # Cache device object
+        self._device = device
         return device
 
     async def measurement(self) -> Measurement:

@@ -351,6 +351,73 @@ async def test_get_device_object(
             await api.close()
 
 
+async def test_get_device_used_cached_device_object(aresponses):
+    """Test device object is fetched and sets detected values."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("HWE-P1/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+        device = await api.device()
+
+        assert device
+        assert device.product_type == "HWE-P1"
+
+        device_2 = await api.device()
+        assert device_2 == device
+
+        await api.close()
+
+
+async def test_get_device_with_clear_cache_flag(aresponses):
+    """Test device object is fetched and sets detected values."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("HWE-P1/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("HWE-SKT/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+        device = await api.device()
+
+        assert device
+        assert device.product_type == "HWE-P1"
+
+        device_2 = await api.device(reset_cache=True)
+        assert device_2 != device
+
+        assert device_2.product_type == "HWE-SKT"
+
+        await api.close()
+
+
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [

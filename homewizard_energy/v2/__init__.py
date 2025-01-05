@@ -72,11 +72,16 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         self._token = token
 
     @authorized_method
-    async def device(self) -> Device:
+    async def device(self, reset_cache: bool = False) -> Device:
         """Return the device object."""
+        if self._device is not None and not reset_cache:
+            return self._device
+
         _, response = await self._request("/api")
         device = Device.from_json(response)
 
+        # Cache device object
+        self._device = device
         return device
 
     @authorized_method
