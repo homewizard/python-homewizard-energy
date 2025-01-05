@@ -43,6 +43,28 @@ async def test_combined_models_with_invalid_authentication(aresponses):
         ),
     )
 
+    aresponses.add(
+        "example.com",
+        "/api/measurement",
+        "GET",
+        aresponses.Response(
+            status=401,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "user:unauthorized"}',
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/system",
+        "GET",
+        aresponses.Response(
+            status=401,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "user:unauthorized"}',
+        ),
+    )
+
     async with HomeWizardEnergyV2("example.com", token="token") as api:
         with pytest.raises(UnauthorizedError):
             await api.combined()

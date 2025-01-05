@@ -59,17 +59,15 @@ class HomeWizardEnergy:
             except (UnsupportedError, NotImplementedError):
                 return None
 
-        if self._device is None:
-            self._device = await fetch_data(self.device())
-
-        measurement, system, state = await asyncio.gather(
+        device, measurement, system, state = await asyncio.gather(
+            fetch_data(self.device()),
             fetch_data(self.measurement()),
             fetch_data(self.system()),
             fetch_data(self.state()),
         )
 
         return CombinedModels(
-            device=self._device, measurement=measurement, system=system, state=state
+            device=device, measurement=measurement, system=system, state=state
         )
 
     async def device(self, reset_cache: bool = False) -> Device:
