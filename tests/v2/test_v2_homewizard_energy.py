@@ -3,6 +3,7 @@
 import asyncio
 from unittest.mock import AsyncMock
 
+import aiohttp
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
@@ -749,7 +750,20 @@ async def test_request_handles_timeout():
     """Test request times out when request takes too long."""
     async with HomeWizardEnergyV2("example.com", token="token") as api:
         api._session = AsyncMock()
-        api._session.request = AsyncMock(side_effect=asyncio.TimeoutError())
+        api._session.request = AsyncMock(side_effect=asyncio.TimeoutError)
+
+        with pytest.raises(RequestError):
+            await api.device()
+
+        assert api._session.request.call_count == 3
+
+
+# pylint: disable=protected-access
+async def test_request_handles_clienterror():
+    """Test request times out when request takes too long."""
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        api._session = AsyncMock()
+        api._session.request = AsyncMock(side_effect=aiohttp.ClientError)
 
         with pytest.raises(RequestError):
             await api.device()
