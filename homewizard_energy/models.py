@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from mashumaro.config import BaseConfig
@@ -448,7 +448,7 @@ class Measurement(BaseModel):
 class ExternalDevice(BaseModel):
     """Represents externally connected device."""
 
-    class DeviceType(Enum):
+    class DeviceType(StrEnum):
         """Device type allocations."""
 
         GAS_METER = "gas_meter"
