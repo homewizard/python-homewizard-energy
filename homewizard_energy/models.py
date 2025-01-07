@@ -394,7 +394,7 @@ class Measurement(BaseModel):
         d["energy_import_t3_kwh"] = d.get("total_power_import_t3_kwh")
         d["energy_import_t4_kwh"] = d.get("total_power_import_t4_kwh")
         d["energy_export_kwh"] = d.get(
-            "total_power_export_kwh", d.get("total_power_import_t1_kwh")
+            "total_power_export_kwh", d.get("total_power_export_t1_kwh")
         )
         d["energy_export_t1_kwh"] = d.get("total_power_export_t1_kwh")
         d["energy_export_t2_kwh"] = d.get("total_power_export_t2_kwh")
