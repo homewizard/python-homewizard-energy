@@ -118,6 +118,14 @@ async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
         assert snapshot == data
 
 
+async def test_data_ignores_invalid_tariff():
+    """Test Data model ignores invalid tariff."""
+
+    measurement = Measurement.from_dict({"active_tariff": 5432})
+    assert measurement
+    assert measurement.tariff is None
+
+
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [
