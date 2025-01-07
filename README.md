@@ -19,6 +19,8 @@ python3 -m pip install python-homewizard-energy
 ```
 
 ## Example
+
+### API v1
 ```python
 import asyncio
 from homewizard_energy import HomeWizardEnergyV1V1
@@ -30,15 +32,18 @@ async def main():
 
     async with HomeWizardEnergyV1(host=IP_ADDRESS) as api:
 
-         # Get device information, like firmware version
+        # Get device information, like firmware version
         print(await api.device())
 
-         # Get measurements, like energy or water usage
-        data = await api.data()
-        print(data.total_energy_import_kwh)
+        # Get measurements, like energy or water usage
+        measurement = await api.measurement()
+        print(measurement.energy_import_kwh)
 
-         # Turn on the Energy Socket outlet
-        await api.state_set(power_on=True)
+        # Get all data and remap v1 data to new v2 structure
+        print(await api.combined())
+
+        # Turn on the Energy Socket outlet
+        await api.state(power_on=True)
 
 
 asyncio.run(main())
