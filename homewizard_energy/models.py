@@ -385,8 +385,6 @@ class Measurement(BaseModel):
             return d
 
         d["protocol_version"] = d.get("smr_version")
-        d["meter_model"] = d.get("meter_model")
-        d["unique_id"] = d.get("unique_meter_id")
         d["tariff"] = d.get("active_tariff")
         d["energy_import_kwh"] = d.get(
             "total_power_import_kwh", d.get("total_power_import_t1_kwh")
@@ -427,19 +425,9 @@ class Measurement(BaseModel):
         d["power_factor_l2"] = d.get("active_power_factor_l2")
         d["power_factor_l3"] = d.get("active_power_factor_l3")
         d["frequency_hz"] = d.get("active_frequency_hz")
-        d["voltage_sag_l1_count"] = d.get("voltage_sag_l1_count")
-        d["voltage_sag_l2_count"] = d.get("voltage_sag_l2_count")
-        d["voltage_sag_l3_count"] = d.get("voltage_sag_l3_count")
-        d["voltage_swell_l1_count"] = d.get("voltage_swell_l1_count")
-        d["voltage_swell_l2_count"] = d.get("voltage_swell_l2_count")
-        d["voltage_swell_l3_count"] = d.get("voltage_swell_l3_count")
-        d["any_power_fail_count"] = d.get("any_power_fail_count")
-        d["long_power_fail_count"] = d.get("long_power_fail_count")
         d["average_power_15m_w"] = d.get("active_power_average_w")
         d["monthly_power_peak_w"] = d.get("montly_power_peak_w")
         d["monthly_power_peak_timestamp"] = d.get("montly_power_peak_timestamp")
-        d["active_liter_lpm"] = d.get("active_liter_lpm")
-        d["total_liter_m3"] = d.get("total_liter_m3")
         d["external_devices"] = d.get("external_devices")
 
         return d
