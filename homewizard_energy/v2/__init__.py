@@ -11,13 +11,7 @@ from typing import Any, TypeVar
 
 import async_timeout
 import backoff
-from aiohttp.client import (
-    ClientError,
-    ClientResponseError,
-    ClientSession,
-    ClientTimeout,
-    TCPConnector,
-)
+from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 from mashumaro.exceptions import InvalidFieldValue, MissingField
 
@@ -48,6 +42,9 @@ def authorized_method(
 # pylint: disable=abstract-method
 class HomeWizardEnergyV2(HomeWizardEnergy):
     """Communicate with a HomeWizard Energy device."""
+
+    _ssl: ssl.SSLContext | bool = False
+    _identifier: str | None = None
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
@@ -191,7 +188,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         if name is None:
             self._token = None
 
-    async def _get_session(self) -> ClientSession:
+    async def _get_ssl_context(self) -> ssl.SSLContext:
         """
         Get a clientsession that is tuned for communication with the HomeWizard Energy Device
         """
@@ -208,17 +205,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         # Creating an SSL context has some blocking IO so need to run it in the executor
         loop = asyncio.get_running_loop()
-        context = await loop.run_in_executor(None, _build_ssl_context)
-
-        connector = TCPConnector(
-            enable_cleanup_closed=True,
-            ssl=context,
-            limit_per_host=1,
-        )
-
-        return ClientSession(
-            connector=connector, timeout=ClientTimeout(total=self._request_timeout)
-        )
+        return await loop.run_in_executor(None, _build_ssl_context)
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(
@@ -227,7 +214,10 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         """Make a request to the API."""
 
         if self._session is None:
-            self._session = await self._get_session()
+            await self._create_clientsession()
+
+        if self._ssl is False:
+            self._ssl = await self._get_ssl_context()
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -246,9 +236,8 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                     url,
                     json=data,
                     headers=headers,
-                    server_hostname=self._identifier
-                    if self._identifier is not None
-                    else None,
+                    ssl=self._ssl,
+                    server_hostname=self._identifier,
                 )
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
