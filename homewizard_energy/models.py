@@ -432,6 +432,17 @@ class Measurement(BaseModel):
 
         return d
 
+    @classmethod
+    def __post_deserialize__(cls, obj: Measurement) -> Measurement:
+        """Post deserialize hook for Measurement object."""
+        _ = cls  # Unused
+
+        # Some smart meters report a tariff other than 1, 2, 3 or 4, which is invalid
+        if obj.tariff not in (1, 2, 3, 4):
+            obj.tariff = None
+
+        return obj
+
 
 @dataclass(kw_only=True)
 class ExternalDevice(BaseModel):
