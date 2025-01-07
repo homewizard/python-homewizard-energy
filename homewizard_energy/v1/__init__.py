@@ -9,7 +9,7 @@ from typing import Any, TypeVar
 
 import async_timeout
 import backoff
-from aiohttp.client import ClientError, ClientResponseError, ClientSession
+from aiohttp.client import ClientError, ClientResponseError
 from aiohttp.hdrs import METH_GET, METH_PUT
 
 from ..const import LOGGER
@@ -132,8 +132,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         """Make a request to the API."""
 
         if self._session is None:
-            self._session = ClientSession()
-            self._close_session = True
+            await self._create_clientsession()
 
         # Construct request
         url = f"http://{self.host}/{path}"

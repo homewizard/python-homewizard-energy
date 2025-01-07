@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from aiohttp.client import ClientSession
+from aiohttp.client import ClientSession, ClientTimeout, TCPConnector
 
 from .const import LOGGER
 from .errors import UnsupportedError
@@ -113,6 +113,25 @@ class HomeWizardEnergy:
         LOGGER.debug("Closing clientsession")
         if self._session and self._close_session:
             await self._session.close()
+
+    async def _create_clientsession(self) -> None:
+        """Create a client session."""
+
+        if self._session is not None:
+            raise RuntimeError("Session already exists")
+
+        connector = TCPConnector(
+            enable_cleanup_closed=True,
+            limit_per_host=1,
+        )
+
+        self._close_session = True
+
+        self._session = ClientSession(
+            connector=connector, timeout=ClientTimeout(total=self._request_timeout)
+        )
+
+        # self._session = self._create_clientsession(connector, timeout=ClientTimeout(total=self._request_timeout))
 
     async def __aenter__(self) -> HomeWizardEnergy:
         """Async enter.
