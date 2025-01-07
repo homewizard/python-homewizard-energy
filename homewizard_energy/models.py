@@ -453,9 +453,9 @@ class ExternalDevice(BaseModel):
     type: DeviceType | None = field(
         default=None,
         metadata={
-            "deserialize": lambda x: ExternalDevice.DeviceType(x)
-            if x in ExternalDevice.DeviceType.__members__.values()
-            else None
+            "deserialize": lambda x: ExternalDevice.DeviceType.__members__.get(
+                x.upper(), None
+            )
         },
     )
     value: float = field()
