@@ -195,6 +195,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         def _build_ssl_context() -> ssl.SSLContext:
             context = ssl.create_default_context(cadata=CACERT)
+            context.verify_flags = ssl.VERIFY_X509_PARTIAL_CHAIN  # pylint: disable=no-member
             if self._identifier is not None:
                 context.hostname_checks_common_name = True
             else:
