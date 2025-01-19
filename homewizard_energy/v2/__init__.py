@@ -16,7 +16,13 @@ from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
 from mashumaro.exceptions import InvalidFieldValue, MissingField
 
 from ..const import LOGGER
-from ..errors import DisabledError, RequestError, ResponseError, UnauthorizedError
+from ..errors import (
+    DisabledError,
+    InvalidUserNameError,
+    RequestError,
+    ResponseError,
+    UnauthorizedError,
+)
 from ..homewizard_energy import HomeWizardEnergy
 from ..models import Device, Measurement, System, SystemUpdate, Token
 from .cacert import CACERT
@@ -158,7 +164,9 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         if status != HTTPStatus.OK:
             error = json.loads(response).get("error", response)
-            raise RequestError(f"Error occurred while getting token: {error}", error)
+            raise InvalidUserNameError(
+                f"Error occurred while getting token: {error}", error
+            )
 
         try:
             token = Token.from_json(response).token
