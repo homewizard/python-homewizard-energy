@@ -10,6 +10,7 @@ from syrupy.assertion import SnapshotAssertion
 from homewizard_energy import HomeWizardEnergyV2
 from homewizard_energy.errors import (
     DisabledError,
+    InvalidUserNameError,
     RequestError,
     ResponseError,
     UnauthorizedError,
@@ -634,7 +635,7 @@ async def test_get_token_returns_unexpected_response_code(aresponses):
     )
 
     async with HomeWizardEnergyV2("example.com") as api:
-        with pytest.raises(RequestError) as e:
+        with pytest.raises(InvalidUserNameError) as e:
             await api.get_token("name")
             assert str(e.value) == "server:error"
 

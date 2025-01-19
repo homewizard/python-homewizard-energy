@@ -12,6 +12,13 @@ class RequestError(HomeWizardEnergyException):
     """
 
 
+class InvalidUserNameError(HomeWizardEnergyException):
+    """Invalid username.
+
+    Raised when username is not valid, too short or too long.
+    """
+
+
 class ResponseError(HomeWizardEnergyException):
     """API responded unexpected."""
 
