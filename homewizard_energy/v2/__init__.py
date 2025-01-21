@@ -268,3 +268,11 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                 pass
 
         return (resp.status, await resp.text())
+
+    async def __aenter__(self) -> HomeWizardEnergyV2:
+        """Async enter.
+
+        Returns:
+            The HomeWizardEnergyV2 object.
+        """
+        return self
