@@ -173,3 +173,11 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
             raise RequestError(f"API request error ({resp.status})")
 
         return (resp.status, await resp.text())
+
+    async def __aenter__(self) -> HomeWizardEnergyV1:
+        """Async enter.
+
+        Returns:
+            The HomeWizardEnergyV1 object.
+        """
+        return self
