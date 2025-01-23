@@ -215,6 +215,17 @@ files = [
 cryptography = "*"
 
 [[package]]
+name = "awesomeversion"
+version = "24.6.0"
+description = "One version package to rule them all, One version package to find them, One version package to bring them all, and in the darkness bind them."
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "awesomeversion-24.6.0-py3-none-any.whl", hash = "sha256:6768415b8954b379a25cebf21ed4f682cab10aebf3f82a6640aaaa15ec6821f2"},
+    {file = "awesomeversion-24.6.0.tar.gz", hash = "sha256:aee7ccbaed6f8d84e0f0364080c7734a0166d77ea6ccfcc4900b38917f1efc71"},
+]
+
+[[package]]
 name = "backoff"
 version = "2.2.1"
 description = "Function decoration for backoff and retry"
@@ -2411,4 +2422,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "0482d8a03f6bedaba159f1e1d4785d4f06382d5272df91998da1ed798f5cf7e9"
+content-hash = "f85519fdc1c81c7c3cffc4aac8a69e682095ea7dd8a0af0a64eb3edfba4cac88"

@@ -7,11 +7,27 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
+from awesomeversion import AwesomeVersion
 from mashumaro.config import BaseConfig
 from mashumaro.exceptions import MissingField
 from mashumaro.mixins.orjson import DataClassORJSONMixin
+from mashumaro.types import SerializationStrategy
 
 from .const import LOGGER, MODEL_TO_ID, MODEL_TO_NAME, Model
+from .utils import get_awesome_version
+
+
+class AwesomeVersionSerializationStrategy(SerializationStrategy, use_annotations=True):
+    """Serialization strategy for AwesomeVersion objects."""
+
+    def serialize(self, value: AwesomeVersion) -> str:
+        """Serialize AwesomeVersion object to string."""
+        return str(value)
+
+    def deserialize(self, value: str) -> AwesomeVersion | None:
+        """Deserialize string to AwesomeVersion object."""
+        version = get_awesome_version(value)
+        return version
 
 
 class BaseModel(DataClassORJSONMixin):
@@ -22,6 +38,9 @@ class BaseModel(DataClassORJSONMixin):
         """Mashumaro configuration."""
 
         serialize_by_alias = True
+        serialization_strategy = {  # noqa: RUF012
+            AwesomeVersion: AwesomeVersionSerializationStrategy()
+        }
         omit_none = True
 
 
@@ -95,7 +114,7 @@ class Device(BaseModel):
     product_name: str = field()
     product_type: str = field()
     serial: str = field()
-    api_version: str = field()
+    api_version: AwesomeVersion = field()
     firmware_version: str = field()
 
     @classmethod
