@@ -131,8 +131,12 @@ class Device(BaseModel):
         return self.product_type == Model.ENERGY_SOCKET
 
     def supports_cloud_enable(self) -> bool:
-        """Return if the device supports state."""
+        """Return if the device supports cloud enable/disable."""
         return self.product_type != Model.BATTERY
+
+    def supports_reboot(self) -> bool:
+        """Return if the device supports reboot."""
+        return self.api_version.major >= 2
 
     def supports_identify(self) -> bool:
         """Return if the device supports identify."""
