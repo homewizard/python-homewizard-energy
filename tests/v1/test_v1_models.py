@@ -58,19 +58,22 @@ async def test_combined_remaps_legacy_brightness_to_system(snapshot: SnapshotAss
 
 
 @pytest.mark.parametrize(
-    ("model", "supports_state", "supports_identify"),
+    ("model", "supports_state", "supports_identify", "supports_cloud_enable"),
     [
-        ("HWE-P1", False, True),
-        ("HWE-SKT", True, True),
-        ("HWE-WTR", False, True),
-        ("HWE-KWH1", False, False),
-        ("HWE-KWH3", False, False),
-        ("SDM230-wifi", False, False),
-        ("SDM630-wifi", False, False),
+        ("HWE-P1", False, True, True),
+        ("HWE-SKT", True, True, True),
+        ("HWE-WTR", False, True, True),
+        ("HWE-KWH1", False, False, True),
+        ("HWE-KWH3", False, False, True),
+        ("SDM230-wifi", False, False, True),
+        ("SDM630-wifi", False, False, True),
     ],
 )
 async def test_device_support_functions(
-    model: str, supports_state: bool, supports_identify: bool
+    model: str,
+    supports_state: bool,
+    supports_identify: bool,
+    supports_cloud_enable: bool,
 ):
     """Test Device model support functions."""
     device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
@@ -78,6 +81,7 @@ async def test_device_support_functions(
 
     assert device.supports_state() == supports_state
     assert device.supports_identify() == supports_identify
+    assert device.supports_cloud_enable() == supports_cloud_enable
 
 
 @pytest.mark.parametrize(
