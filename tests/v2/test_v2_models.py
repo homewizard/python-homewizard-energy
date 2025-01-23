@@ -140,3 +140,4 @@ async def test_device_support_functions(
     assert device.supports_state() == supports_state
     assert device.supports_identify() == supports_identify
     assert device.supports_cloud_enable() == supports_cloud_enable
+    assert device.supports_reboot() is True  # Always True for v2
