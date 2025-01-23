@@ -111,6 +111,10 @@ class Device(BaseModel):
         """Return if the device supports state."""
         return self.product_type == Model.ENERGY_SOCKET
 
+    def supports_cloud_enable(self) -> bool:
+        """Return if the device supports state."""
+        return self.product_type != Model.BATTERY
+
     def supports_identify(self) -> bool:
         """Return if the device supports identify."""
         return self.product_type not in (

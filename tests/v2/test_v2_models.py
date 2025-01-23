@@ -118,3 +118,25 @@ async def test_system_update_raises_when_none_set():
 
     with pytest.raises(ValueError):
         update.to_dict()
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_state", "supports_identify", "supports_cloud_enable"),
+    [
+        ("HWE-P1", False, True, True),
+        ("HWE-BAT", False, True, False),
+    ],
+)
+async def test_device_support_functions(
+    model: str,
+    supports_state: bool,
+    supports_identify: bool,
+    supports_cloud_enable: bool,
+):
+    """Test Device model support functions."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device
+
+    assert device.supports_state() == supports_state
+    assert device.supports_identify() == supports_identify
+    assert device.supports_cloud_enable() == supports_cloud_enable
