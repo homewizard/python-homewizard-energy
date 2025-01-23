@@ -23,6 +23,7 @@ multidict = "^6.0.5" ## To fix aiohttp dependency at python 3.12
 backoff = "^2.2.1"
 orjson = "^3.10"
 mashumaro = "^3.15"
+awesomeversion = "^24.6.0"
 
 [tool.poetry.dev-dependencies]
 aresponses = "^3.0.0"
