@@ -207,7 +207,6 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             if self._identifier is not None:
                 context.hostname_checks_common_name = True
             else:
-                LOGGER.warning("No hostname provided, skipping hostname validation")
                 context.check_hostname = False  # Skip hostname validation
                 context.verify_mode = ssl.CERT_REQUIRED  # Keep SSL verification active
             return context
