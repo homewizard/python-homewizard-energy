@@ -85,6 +85,12 @@ class CombinedModels:
                 self.system = System()
             self.system.wifi_ssid = self.measurement.wifi_ssid
 
+        ## measurement.wifi_strength -> system.wifi_strength_pct
+        if self.measurement is not None and self.measurement.wifi_strength is not None:
+            if self.system is None:
+                self.system = System()
+            self.system.wifi_strength_pct = self.measurement.wifi_strength
+
         ## state.brightness -> system.status_led_brightness_pct
         if self.state is not None and self.state.brightness is not None:
             if self.system is None:
@@ -540,12 +546,29 @@ class SystemUpdate(UpdateBaseModel):
 class System(BaseModel):
     """Represent System config."""
 
+    wifi_strength_pct: int | None = None
+
     wifi_ssid: str | None = field(default=None)
     wifi_rssi_db: int | None = field(default=None)
     cloud_enabled: bool | None = field(default=None)
     uptime_s: int | None = field(default=None)
     status_led_brightness_pct: int | None = field(default=None)
     api_v1_enabled: bool | None = field(default=None)
+
+    @classmethod
+    def __post_deserialize__(cls, obj: System) -> System:
+        _ = cls  # Unused
+
+        if obj.wifi_rssi_db is not None:
+            obj.wifi_strength_pct = (
+                0
+                if obj.wifi_rssi_db <= -100 or obj.wifi_rssi_db == 0
+                else 100
+                if obj.wifi_rssi_db >= -50
+                else 2 * (obj.wifi_rssi_db + 100)
+            )
+
+        return obj
 
 
 @dataclass(kw_only=True)
