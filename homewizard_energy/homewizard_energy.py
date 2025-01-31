@@ -22,6 +22,8 @@ class HomeWizardEnergy:
 
     _device: Device | None = None
 
+    _lock: asyncio.Lock
+
     def __init__(
         self,
         host: str,
@@ -39,6 +41,8 @@ class HomeWizardEnergy:
         self._session = clientsession
         self._close_session = clientsession is None
         self._request_timeout = timeout
+
+        self._lock = asyncio.Lock()
 
     @property
     def host(self) -> str:
@@ -117,6 +121,8 @@ class HomeWizardEnergy:
     async def _create_clientsession(self) -> None:
         """Create a client session."""
 
+        LOGGER.debug("Creating clientsession")
+
         if self._session is not None:
             raise RuntimeError("Session already exists")
 
@@ -130,8 +136,6 @@ class HomeWizardEnergy:
         self._session = ClientSession(
             connector=connector, timeout=ClientTimeout(total=self._request_timeout)
         )
-
-        # self._session = self._create_clientsession(connector, timeout=ClientTimeout(total=self._request_timeout))
 
     async def __aenter__(self) -> HomeWizardEnergy:
         """Async enter.
