@@ -223,11 +223,10 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         async with self._lock:
             if self._session is None:
-                LOGGER.warning("Creating new session")
                 await self._create_clientsession()
 
+        async with self._lock:
             if self._ssl is False:
-                LOGGER.warning("Creating new SSL context")
                 self._ssl = await self._get_ssl_context()
 
         # Construct request
