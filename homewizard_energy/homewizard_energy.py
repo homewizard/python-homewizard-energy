@@ -22,7 +22,7 @@ class HomeWizardEnergy:
 
     _device: Device | None = None
 
-    _lock = asyncio.Lock()
+    _lock: asyncio.Lock
 
     def __init__(
         self,
@@ -41,6 +41,8 @@ class HomeWizardEnergy:
         self._session = clientsession
         self._close_session = clientsession is None
         self._request_timeout = timeout
+
+        self._lock = asyncio.Lock()
 
     @property
     def host(self) -> str:

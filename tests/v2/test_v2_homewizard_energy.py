@@ -81,7 +81,6 @@ async def test_combined_models_with_invalid_authentication(aresponses):
         ("HWE-BAT", "device", "measurement", None, "system"),
     ],
 )
-@pytest.fixture(scope="session")
 async def test_combined_models_with_valid_authentication(
     model: str,
     device: str,
@@ -152,7 +151,6 @@ async def test_combined_models_with_valid_authentication(
         ("HWE-BAT", "device", "measurement", None, "system"),
     ],
 )
-@pytest.fixture(scope="session")
 async def test_combined_models_with_valid_authentication_caches_device(
     model: str,
     device: str,
