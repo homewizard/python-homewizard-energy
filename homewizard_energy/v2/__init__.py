@@ -241,14 +241,15 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         try:
             async with async_timeout.timeout(self._request_timeout):
-                resp = await self._session.request(
-                    method,
-                    url,
-                    json=data,
-                    headers=headers,
-                    ssl=self._ssl,
-                    server_hostname=self._identifier,
-                )
+                async with self._lock:
+                    resp = await self._session.request(
+                        method,
+                        url,
+                        json=data,
+                        headers=headers,
+                        ssl=self._ssl,
+                        server_hostname=self._identifier,
+                    )
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
             raise RequestError(
