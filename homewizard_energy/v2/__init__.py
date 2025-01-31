@@ -241,7 +241,38 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         try:
             async with async_timeout.timeout(self._request_timeout):
-                async with self._lock:
+    def __init__(
+        self,
+        host: str,
+        identifier: str | None = None,
+        token: str | None = None,
+        clientsession: ClientSession = None,
+        timeout: int = 10,
+    ):
+        super().__init__(host, clientsession, timeout)
+        self._identifier = identifier
+        self._token = token
+        self._lock = asyncio.Lock()
+
+        try:
+            async with self._lock:
+                if self._session is None:
+                    await self._create_clientsession()
+
+                if self._ssl is False:
+                    self._ssl = await self._get_ssl_context()
+
+                # Construct request
+                url = f"https://{self.host}{path}"
+                headers = {
+                    "Content-Type": "application/json",
+                }
+                if self._token is not None:
+                    headers["Authorization"] = f"Bearer {self._token}"
+
+                LOGGER.debug("%s, %s, %s", method, url, data)
+
+                async with async_timeout.timeout(self._request_timeout):
                     resp = await self._session.request(
                         method,
                         url,
@@ -250,6 +281,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                         ssl=self._ssl,
                         server_hostname=self._identifier,
                     )
+                    LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except asyncio.TimeoutError as exception:
             raise RequestError(
