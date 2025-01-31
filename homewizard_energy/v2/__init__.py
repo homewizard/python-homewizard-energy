@@ -221,11 +221,14 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
         """Make a request to the API."""
 
-        if self._session is None:
-            await self._create_clientsession()
+        async with self._lock:
+            if self._session is None:
+                LOGGER.warning("Creating new session")
+                await self._create_clientsession()
 
-        if self._ssl is False:
-            self._ssl = await self._get_ssl_context()
+            if self._ssl is False:
+                LOGGER.warning("Creating new SSL context")
+                self._ssl = await self._get_ssl_context()
 
         # Construct request
         url = f"https://{self.host}{path}"

@@ -107,6 +107,7 @@ max-attributes=20
 
 [tool.pytest.ini_options]
 addopts = "--cov"
+asyncio_mode = "auto"
 
 [tool.vulture]
 min_confidence = 80
