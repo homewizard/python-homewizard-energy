@@ -56,6 +56,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         _, response = await self._request("api/v1/data")
         return Measurement.from_json(response)
 
+    @optional_method
     async def telegram(self) -> Any:
         """Return the most recent, valid telegram that was given by the device.
         The telegram is not processed in any other form.
