@@ -62,6 +62,9 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         The telegram is not processed in any other form.
         If you need parsed data, use the measurement method.
         """
+        if self._device is not None and self._device.supports_telegram() is False:
+            raise UnsupportedError("Telegram is not supported")
+
         _, response = await self._request("api/v1/telegram")
         telegram = response
         return telegram

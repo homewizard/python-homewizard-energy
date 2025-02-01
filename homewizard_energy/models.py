@@ -153,6 +153,9 @@ class Device(BaseModel):
             Model.ENERGY_METER_EASTRON_SDM630,
         )
 
+    def supports_telegram(self) -> bool:
+        """Return if the device supports telegram."""
+        return self.product_type == Model.P1_METER
 
 @dataclass(kw_only=True)
 class Measurement(BaseModel):
