@@ -157,6 +157,7 @@ class Device(BaseModel):
         """Return if the device supports telegram."""
         return self.product_type == Model.P1_METER
 
+
 @dataclass(kw_only=True)
 class Measurement(BaseModel):
     """Represent Measurement."""
