@@ -133,7 +133,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         """Send identify request."""
 
         if self._device is not None and self._device.supports_identify() is False:
-            raise UnsupportedError("State is not supported")
+            raise UnsupportedError("Identify is not supported")
 
         await self._request("api/v1/identify", method=METH_PUT)
         return True
