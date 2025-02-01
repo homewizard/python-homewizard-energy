@@ -57,6 +57,19 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         return Measurement.from_json(response)
 
     @optional_method
+    async def telegram(self) -> Any:
+        """Return the most recent, valid telegram that was given by the device.
+        The telegram is not processed in any other form.
+        If you need parsed data, use the measurement method.
+        """
+        if self._device is not None and self._device.supports_telegram() is False:
+            raise UnsupportedError("Telegram is not supported")
+
+        _, response = await self._request("api/v1/telegram")
+        telegram = response
+        return telegram
+
+    @optional_method
     async def system(
         self,
         cloud_enabled: bool | None = None,
@@ -120,7 +133,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         """Send identify request."""
 
         if self._device is not None and self._device.supports_identify() is False:
-            raise UnsupportedError("State is not supported")
+            raise UnsupportedError("Identify is not supported")
 
         await self._request("api/v1/identify", method=METH_PUT)
         return True
