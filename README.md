@@ -39,6 +39,10 @@ async def main():
         measurement = await api.measurement()
         print(measurement.energy_import_kwh)
 
+        # Example of getting raw telegram data
+        telegram = await api.telegram()
+        print(telegram)  # Raw P1 meter data
+
         # Get all data and remap v1 data to new v2 structure
         print(await api.combined())
 
