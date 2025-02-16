@@ -96,6 +96,16 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         return measurement
 
     @authorized_method
+    async def telegram(self) -> Any:
+        """Return the most recent, valid telegram that was given by the device.
+        The telegram is not processed in any other form.
+        If you need parsed data, use the measurement method.
+        """
+        _, response = await self._request("/api/telegram")
+        telegram = response
+        return telegram
+
+    @authorized_method
     async def system(
         self,
         cloud_enabled: bool | None = None,
