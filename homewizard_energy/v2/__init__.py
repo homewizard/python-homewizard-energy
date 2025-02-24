@@ -101,8 +101,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         The telegram is not processed in any other form.
         If you need parsed data, use the measurement method.
         """
-        _, response = await self._request("/api/telegram")
-        telegram = response
+        _, telegram = await self._request("/api/telegram")
         return telegram
 
     @authorized_method

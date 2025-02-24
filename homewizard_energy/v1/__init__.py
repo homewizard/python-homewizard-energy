@@ -65,8 +65,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         if self._device is not None and self._device.supports_telegram() is False:
             raise UnsupportedError("Telegram is not supported")
 
-        _, response = await self._request("api/v1/telegram")
-        telegram = response
+        _, telegram = await self._request("api/v1/telegram")
         return telegram
 
     @optional_method
@@ -133,7 +132,7 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         """Send identify request."""
 
         if self._device is not None and self._device.supports_identify() is False:
-            raise UnsupportedError("Identify is not supported")
+            raise UnsupportedError("State is not supported")
 
         await self._request("api/v1/identify", method=METH_PUT)
         return True
