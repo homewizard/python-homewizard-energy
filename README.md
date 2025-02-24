@@ -23,7 +23,7 @@ python3 -m pip install python-homewizard-energy
 ### API v1
 ```python
 import asyncio
-from homewizard_energy import HomeWizardEnergyV1V1
+from homewizard_energy import HomeWizardEnergyV1
 
 IP_ADDRESS = "192.168.1.123"
 
