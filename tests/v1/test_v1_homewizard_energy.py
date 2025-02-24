@@ -740,6 +740,27 @@ async def test_identify_not_supported_with_cached_device(aresponses, model: str)
         await api.close()
 
 
+async def test_telegram_gets_latest_telegram(aresponses, snapshot: SnapshotAssertion):
+    """Telegram returns latest telegram."""
+    
+    aresponses.add(
+        "example.com",
+        "/api/v1/telegram",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("HWE-P1/telegram.txt"),
+            status=200,
+            headers={"Content-Type": "application/txt; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        telegram = await api.telegram()
+        assert telegram
+        assert telegram == snapshot
+
 async def test_get_system_object(aresponses):
     """Test fetches system object and device object when unknown."""
 
