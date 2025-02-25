@@ -142,7 +142,7 @@ class Device(BaseModel):
 
     def supports_reboot(self) -> bool:
         """Return if the device supports reboot."""
-        return self.api_version.major >= 2
+        return self.api_version.major >= 2 and self.product_type != Model.BATTERY
 
     def supports_identify(self) -> bool:
         """Return if the device supports identify."""

@@ -387,16 +387,16 @@ async def test_measurement_with_valid_authentication(
 ### Telegram tests ###
 
 
-async def test_measurement_without_authentication():
-    """Test measurement request is rejected when no authentication is provided."""
+async def test_telegram_without_authentication():
+    """Test telegram request is rejected when no authentication is provided."""
 
     async with HomeWizardEnergyV2("example.com") as api:
         with pytest.raises(UnauthorizedError):
             await api.telegram()
 
 
-async def test_measurement_with_invalid_authentication(aresponses):
-    """Test measurement request is unsuccessful when invalid authentication is provided."""
+async def test_telegram_with_invalid_authentication(aresponses):
+    """Test telegram request is unsuccessful when invalid authentication is provided."""
 
     aresponses.add(
         "example.com",

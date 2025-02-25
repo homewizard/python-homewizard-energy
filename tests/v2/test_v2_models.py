@@ -120,17 +120,20 @@ async def test_system_update_raises_when_none_set():
         update.to_dict()
 
 
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 @pytest.mark.parametrize(
     (
         "model",
         "supports_state",
         "supports_identify",
         "supports_cloud_enable",
+        "supports_reboot",
         "supports_telegram",
     ),
     [
-        ("HWE-P1", False, True, True, True),
-        ("HWE-BAT", False, True, False, False),
+        ("HWE-P1", False, True, True, True, True),
+        ("HWE-BAT", False, True, False, False, False),
     ],
 )
 async def test_device_support_functions(
@@ -138,6 +141,7 @@ async def test_device_support_functions(
     supports_state: bool,
     supports_identify: bool,
     supports_cloud_enable: bool,
+    supports_reboot: bool,
     supports_telegram: bool,
 ):
     """Test Device model support functions."""
@@ -147,5 +151,5 @@ async def test_device_support_functions(
     assert device.supports_state() == supports_state
     assert device.supports_identify() == supports_identify
     assert device.supports_cloud_enable() == supports_cloud_enable
-    assert device.supports_reboot() == True
+    assert device.supports_reboot() == supports_reboot
     assert device.supports_telegram() == supports_telegram
