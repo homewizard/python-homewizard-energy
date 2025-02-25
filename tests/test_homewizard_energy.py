@@ -13,6 +13,7 @@ pytestmark = [pytest.mark.asyncio]
     [
         ("device", NotImplementedError),
         ("measurement", NotImplementedError),
+        ("telegram", NotImplementedError),
         ("system", NotImplementedError),
         ("state", UnsupportedError),
         ("identify", NotImplementedError),

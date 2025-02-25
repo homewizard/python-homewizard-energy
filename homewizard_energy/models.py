@@ -142,7 +142,7 @@ class Device(BaseModel):
 
     def supports_reboot(self) -> bool:
         """Return if the device supports reboot."""
-        return self.api_version.major >= 2
+        return self.api_version.major >= 2 and self.product_type != Model.BATTERY
 
     def supports_identify(self) -> bool:
         """Return if the device supports identify."""
@@ -152,6 +152,10 @@ class Device(BaseModel):
             Model.ENERGY_METER_EASTRON_SDM230,
             Model.ENERGY_METER_EASTRON_SDM630,
         )
+
+    def supports_telegram(self) -> bool:
+        """Return if the device supports telegram."""
+        return self.product_type == Model.P1_METER
 
 
 @dataclass(kw_only=True)

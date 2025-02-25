@@ -384,6 +384,58 @@ async def test_measurement_with_valid_authentication(
             assert measurement == snapshot
 
 
+### Telegram tests ###
+
+
+async def test_telegram_without_authentication():
+    """Test telegram request is rejected when no authentication is provided."""
+
+    async with HomeWizardEnergyV2("example.com") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.telegram()
+
+
+async def test_telegram_with_invalid_authentication(aresponses):
+    """Test telegram request is unsuccessful when invalid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/telegram",
+        "GET",
+        aresponses.Response(
+            status=401,
+            headers={"Content-Type": "application/text"},
+            text='{"error": "user:unauthorized"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.telegram()
+
+
+async def test_telegram_with_valid_authentication(
+    snapshot: SnapshotAssertion, aresponses
+):
+    """Test telegram request is successful when valid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/telegram",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("HWE-P1/telegram.txt"),
+            status=200,
+            headers={"Content-Type": "application/txt"},
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        telegram = await api.telegram()
+        assert telegram is not None
+        assert telegram == snapshot
+
+
 ### System tests ###
 
 

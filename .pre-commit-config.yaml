@@ -167,6 +167,7 @@ repos:
         types: [text]
         entry: poetry run trailing-whitespace-fixer
         stages: [commit, push, manual]
+        exclude: ^.*\.ambr$
 
       - id: vulture
         name: Find unused Python code with Vulture

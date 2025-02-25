@@ -82,6 +82,10 @@ class HomeWizardEnergy:
         """Get the current measurement."""
         raise NotImplementedError
 
+    async def telegram(self) -> str:
+        """Get the latest telegram."""
+        raise NotImplementedError
+
     async def system(
         self,
         cloud_enabled: bool | None = None,
