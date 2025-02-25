@@ -383,7 +383,9 @@ async def test_measurement_with_valid_authentication(
             assert measurement is not None
             assert measurement == snapshot
 
+
 ### Telegram tests ###
+
 
 async def test_measurement_without_authentication():
     """Test measurement request is rejected when no authentication is provided."""
@@ -412,17 +414,17 @@ async def test_measurement_with_invalid_authentication(aresponses):
             await api.telegram()
 
 
-async def test_measurement_with_valid_authentication(
+async def test_telegram_with_valid_authentication(
     snapshot: SnapshotAssertion, aresponses
 ):
-    """Test measurement request is successful when valid authentication is provided."""
+    """Test telegram request is successful when valid authentication is provided."""
 
     aresponses.add(
         "example.com",
         "/api/telegram",
         "GET",
         aresponses.Response(
-            text=load_fixtures(f"HWE-P1/telegram.txt"),
+            text=load_fixtures("HWE-P1/telegram.txt"),
             status=200,
             headers={"Content-Type": "application/txt"},
         ),

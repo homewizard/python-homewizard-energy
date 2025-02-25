@@ -121,7 +121,13 @@ async def test_system_update_raises_when_none_set():
 
 
 @pytest.mark.parametrize(
-    ("model", "supports_state", "supports_identify", "supports_cloud_enable", "supports_telegram"),
+    (
+        "model",
+        "supports_state",
+        "supports_identify",
+        "supports_cloud_enable",
+        "supports_telegram",
+    ),
     [
         ("HWE-P1", False, True, True, True),
         ("HWE-BAT", False, True, False, False),

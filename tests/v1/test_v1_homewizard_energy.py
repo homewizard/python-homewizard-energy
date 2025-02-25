@@ -742,7 +742,7 @@ async def test_identify_not_supported_with_cached_device(aresponses, model: str)
 
 async def test_telegram_gets_latest_telegram(aresponses, snapshot: SnapshotAssertion):
     """Telegram returns latest telegram."""
-    
+
     aresponses.add(
         "example.com",
         "/api/v1/telegram",
@@ -760,6 +760,7 @@ async def test_telegram_gets_latest_telegram(aresponses, snapshot: SnapshotAsser
         telegram = await api.telegram()
         assert telegram
         assert telegram == snapshot
+
 
 async def test_get_system_object(aresponses):
     """Test fetches system object and device object when unknown."""
