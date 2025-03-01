@@ -50,7 +50,7 @@ ruff = "0.9.4"
 darglint = "^1.8.1"
 safety = "^3.2.10"
 codespell = "^2.3.0"
-bandit = "^1.8.2"
+bandit = "^1.8.3"
 syrupy = "^4.8.2"
 
 [tool.poetry.urls]
