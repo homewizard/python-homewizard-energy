@@ -112,13 +112,12 @@ class CombinedModels:
             ):
                 self.measurement.energy_export_t1_kwh = None
 
-            # Remove duplicate 'power_l1' from non-3-phase meters
+            # Remove duplicate 'power_l1' from 1-phase meters
+            # If l2 or l3 is present, keep 'power_l1'
             if (
                 self.measurement.power_w is not None
-                and (  # Show when l2 or l3 is present
-                    self.measurement.power_l2_w is not None
-                    or self.measurement.power_l3_w is not None
-                )
+                and self.measurement.power_l2_w is None
+                and self.measurement.power_l3_w is None
                 and (self.measurement.power_w == self.measurement.power_l1_w)
             ):
                 # Remove duplicate 'power_l1_w' when it matches 'power_w' and l2 or l3 is present
