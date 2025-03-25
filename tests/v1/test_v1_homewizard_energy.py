@@ -129,7 +129,7 @@ async def test_request_detects_clienterror():
     [
         ("HWE-KWH1", "device", "data", None, "system"),
         ("HWE-KWH3", "device", "data", None, "system"),
-        ("HWE-P1", "device", "data_all_data", None, "system"),
+        ("HWE-P1", "device", "data", None, "system"),
         ("HWE-SKT", "device", "data", "state_all", "system"),
         ("HWE-WTR", "device", "data", None, "system"),
         ("SDM230-wifi", "device", "data", None, "system"),
@@ -204,7 +204,7 @@ async def test_combined_models_with_valid_authentication(
     [
         ("HWE-KWH1", "device", "data", None, "system"),
         ("HWE-KWH3", "device", "data", None, "system"),
-        ("HWE-P1", "device", "data_all_data", None, "system"),
+        ("HWE-P1", "device", "data", None, "system"),
         ("HWE-SKT", "device", "data", "state_all", "system"),
         ("HWE-WTR", "device", "data", None, "system"),
         ("SDM230-wifi", "device", "data", None, "system"),
@@ -423,7 +423,7 @@ async def test_get_device_with_clear_cache_flag(aresponses):
     [
         (
             "HWE-P1",
-            ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
+            ["data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
         ("HWE-SKT", ["data"]),
         ("HWE-WTR", ["data"]),
@@ -476,7 +476,7 @@ async def test_get_data_object(
     [
         (
             "HWE-P1",
-            ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
+            ["data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
         ("HWE-SKT", ["data"]),
         ("HWE-WTR", ["data"]),

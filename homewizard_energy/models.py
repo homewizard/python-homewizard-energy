@@ -121,6 +121,7 @@ class CombinedModels:
                 )
                 and (self.measurement.power_w == self.measurement.power_l1_w)
             ):
+                # Remove duplicate 'power_l1_w' when it matches 'power_w' and l2 or l3 is present
                 self.measurement.power_l1_w = None
 
 
