@@ -97,6 +97,21 @@ class CombinedModels:
                 self.system = System()
             self.system.status_led_brightness_pct = (self.state.brightness / 255) * 100
 
+        # Remove duplicate 't1' tariff from non-tariff meters
+        if self.device.product_type != Model.P1_METER and self.measurement is not None:
+            if (
+                self.measurement.energy_import_kwh is not None
+                and self.measurement.energy_import_kwh
+                == self.measurement.energy_import_t1_kwh
+            ):
+                self.measurement.energy_import_t1_kwh = None
+            if (
+                self.measurement.energy_export_kwh is not None
+                and self.measurement.energy_export_kwh
+                == self.measurement.energy_export_t1_kwh
+            ):
+                self.measurement.energy_export_t1_kwh = None
+
 
 def get_verification_hostname(model: str, serial_number: str) -> str:
     """Helper method to convert device model and serial to identifier
