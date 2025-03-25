@@ -97,8 +97,8 @@ class CombinedModels:
                 self.system = System()
             self.system.status_led_brightness_pct = (self.state.brightness / 255) * 100
 
-        # Remove duplicate 't1' tariff from non-tariff meters
         if self.device.product_type != Model.P1_METER and self.measurement is not None:
+            # Remove duplicate 't1' tariff from non-tariff meters
             if (
                 self.measurement.energy_import_kwh is not None
                 and self.measurement.energy_import_kwh
@@ -111,6 +111,17 @@ class CombinedModels:
                 == self.measurement.energy_export_t1_kwh
             ):
                 self.measurement.energy_export_t1_kwh = None
+
+            # Remove duplicate 'power_l1' from non-3-phase meters
+            if (
+                self.measurement.power_w is not None
+                and (  # Show when l2 or l3 is present
+                    self.measurement.power_l2_w is not None
+                    or self.measurement.power_l3_w is not None
+                )
+                and (self.measurement.power_w == self.measurement.power_l1_w)
+            ):
+                self.measurement.power_l1_w = None
 
 
 def get_verification_hostname(model: str, serial_number: str) -> str:
