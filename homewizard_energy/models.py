@@ -628,16 +628,15 @@ class Batteries(BaseModel):
         TO_FULL = "to_full"
         STANDBY = "standby"
 
-    mode: Mode | None = field(
-        default=None,
+    mode: Mode = field(
         metadata={
             "deserialize": lambda x: Batteries.Mode.__members__.get(x.upper(), None)
         },
     )
-    power_w: float | None = field(default=None)
-    target_power_w: float | None = field(default=None)
-    max_consumption_w: float | None = field(default=None)
-    max_production_w: float | None = field(default=None)
+    power_w: float = field()
+    target_power_w: float = field()
+    max_consumption_w: float = field()
+    max_production_w: float = field()
 
 
 @dataclass(kw_only=True)
