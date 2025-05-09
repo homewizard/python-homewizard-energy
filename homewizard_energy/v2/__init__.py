@@ -175,7 +175,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             # The batteries endpoint is not available on the device
             raise UnsupportedError("Batteries is not supported") from exception
 
-        return json.loads(response)
+        return Batteries.from_json(response)
 
     @authorized_method
     async def identify(

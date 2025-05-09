@@ -688,7 +688,6 @@ async def test_batteries_with_valid_authentication(
             batteries = await api.batteries()
             assert batteries is not None
             assert batteries == snapshot
-        assert batteries == snapshot
 
 
 async def test_batteries_returns_unexpected_response(aresponses):
