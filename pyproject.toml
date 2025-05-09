@@ -13,6 +13,10 @@ readme = "README.md"
 dynamic = ["classifiers"]
 classifiers = []
 
+packages = [
+    { include = "homewizard_energy" }
+]
+
 [project.urls]
 Homepage = "https://github.com/homewizard/python-homewizard-energy"
 Repository = "https://github.com/homewizard/python-homewizard-energy"
