@@ -1,19 +1,24 @@
-[tool.poetry]
+[project]
 name = "python-homewizard-energy"
 version = "0.0.0"
 description = "Asynchronous Python client for the HomeWizard Energy"
-authors = ["DCSBL"]
-maintainers = ["DCSBL"]
-license = "Apache License 2.0"
+authors = [
+    {name = "DCSBL"}
+]
+maintainers = [
+    {name = "DCSBL"}
+]
+license = { text = "Apache License 2.0" }
 readme = "README.md"
-homepage = "https://github.com/homewizard/python-homewizard-energy"
-repository = "https://github.com/homewizard/python-homewizard-energy"
-documentation = "https://github.com/homewizard/python-homewizard-energy"
-classifiers = [
-]
-packages = [
-    { include = "homewizard_energy" },
-]
+dynamic = ["classifiers"]
+classifiers = []
+
+[project.urls]
+Homepage = "https://github.com/homewizard/python-homewizard-energy"
+Repository = "https://github.com/homewizard/python-homewizard-energy"
+Documentation = "https://github.com/homewizard/python-homewizard-energy"
+"Bug Tracker" = "https://github.com/homewizard/python-homewizard-energy/issues"
+Changelog = "https://github.com/homewizard/python-homewizard-energy/releases"
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -25,7 +30,7 @@ orjson = "^3.10"
 mashumaro = "^3.15"
 awesomeversion = "^24.6.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 aresponses = "^3.0.0"
 flake8 = "^4.0.1"
 flake8-docstrings = "^1.7.0"
@@ -52,10 +57,6 @@ safety = "^3.2.10"
 codespell = "^2.4.1"
 bandit = "^1.8.3"
 syrupy = "^4.9.1"
-
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/homewizard/python-homewizard-energy/issues"
-Changelog = "https://github.com/homewizard/python-homewizard-energy/releases"
 
 [tool.coverage.paths]
 source = ["homewizard_energy"]
