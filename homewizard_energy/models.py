@@ -189,7 +189,7 @@ class Device(BaseModel):
         return self.product_type == Model.P1_METER
 
     def supports_batteries(self) -> bool:
-        """Return if the device supports telegram."""
+        """Return if the device supports batteries."""
         return self.product_type == Model.P1_METER
 
 
