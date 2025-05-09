@@ -151,7 +151,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
     async def batteries(
         self,
         mode: Batteries.Mode | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> Batteries:
         """Return the batteries object."""
 
         if self._device is not None and self._device.supports_batteries() is False:
