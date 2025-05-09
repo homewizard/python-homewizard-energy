@@ -22,7 +22,7 @@ class AwesomeVersionSerializationStrategy(SerializationStrategy, use_annotations
 
     def serialize(self, value: AwesomeVersion) -> str:
         """Serialize AwesomeVersion object to string."""
-        return str(value)
+        return str(value)  # pragma: no cover
 
     def deserialize(self, value: str) -> AwesomeVersion | None:
         """Deserialize string to AwesomeVersion object."""
@@ -65,18 +65,23 @@ class CombinedModels:
     measurement: Measurement
     state: State | None
     system: System | None
+    batteries: Batteries | None
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         device: Device,
         measurement: Measurement,
         state: State | None,
         system: System | None,
+        batteries: Batteries | None = None,
     ):
         self.device = device
         self.measurement = measurement
         self.state = state
         self.system = system
+        self.batteries = batteries
 
         # Move things around for backwards compatibility
         ## measurement.wifi_ssid -> system.wifi_ssid
@@ -180,6 +185,10 @@ class Device(BaseModel):
         )
 
     def supports_telegram(self) -> bool:
+        """Return if the device supports telegram."""
+        return self.product_type == Model.P1_METER
+
+    def supports_batteries(self) -> bool:
         """Return if the device supports telegram."""
         return self.product_type == Model.P1_METER
 
@@ -599,6 +608,36 @@ class System(BaseModel):
             )
 
         return obj
+
+
+@dataclass
+class BatteriesUpdate(UpdateBaseModel):
+    """Represent Batteries update config."""
+
+    mode: Batteries.Mode | None = field(default=None)
+
+
+@dataclass(kw_only=True)
+class Batteries(BaseModel):
+    """Represent Batteries config."""
+
+    class Mode(StrEnum):
+        """Device type allocations."""
+
+        ZERO = "zero"
+        TO_FULL = "to_full"
+        STANDBY = "standby"
+
+    mode: Mode | None = field(
+        default=None,
+        metadata={
+            "deserialize": lambda x: Batteries.Mode.__members__.get(x.upper(), None)
+        },
+    )
+    power_w: float | None = field(default=None)
+    target_power_w: float | None = field(default=None)
+    max_consumption_w: float | None = field(default=None)
+    max_production_w: float | None = field(default=None)
 
 
 @dataclass(kw_only=True)

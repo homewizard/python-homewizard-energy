@@ -18,6 +18,7 @@ pytestmark = [pytest.mark.asyncio]
         ("state", UnsupportedError),
         ("identify", NotImplementedError),
         ("reboot", UnsupportedError),
+        ("batteries", UnsupportedError),
     ],
 )
 async def test_base_class_raises_notimplementederror(
