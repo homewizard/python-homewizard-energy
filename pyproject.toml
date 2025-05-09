@@ -14,7 +14,7 @@ dynamic = ["classifiers"]
 classifiers = []
 
 packages = [
-    { include = "homewizard_energy" }
+    { include = "homewizard_energy", from = "src" }
 ]
 
 [project.urls]
