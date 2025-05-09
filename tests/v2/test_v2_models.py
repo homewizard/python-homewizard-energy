@@ -5,7 +5,14 @@ import json
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.models import Device, Measurement, System, SystemUpdate
+from homewizard_energy.models import (
+    Batteries,
+    BatteriesUpdate,
+    Device,
+    Measurement,
+    System,
+    SystemUpdate,
+)
 
 from . import load_fixtures
 
@@ -118,6 +125,40 @@ async def test_system_update_raises_when_none_set():
 
     with pytest.raises(ValueError):
         update.to_dict()
+
+
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        ("HWE-P1", ["batteries"]),
+    ],
+)
+async def test_batteries(model: str, fixtures: str, snapshot: SnapshotAssertion):
+    """Test Batteries model."""
+    for fixture in fixtures:
+        data = Batteries.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        assert data
+
+        assert snapshot == data
+
+
+@pytest.mark.parametrize(
+    ("mode"),
+    [
+        Batteries.Mode.ZERO,
+        Batteries.Mode.TO_FULL,
+        Batteries.Mode.STANDBY,
+    ],
+)
+async def test_batteries_update(
+    mode: Batteries.Mode,
+    snapshot: SnapshotAssertion,
+):
+    """Test System update."""
+    data = BatteriesUpdate(
+        mode=mode,
+    )
+    assert snapshot == data.to_dict()
 
 
 # pylint: disable=too-many-arguments

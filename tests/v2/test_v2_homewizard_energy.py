@@ -15,6 +15,7 @@ from homewizard_energy.errors import (
     ResponseError,
     UnauthorizedError,
 )
+from homewizard_energy.models import Batteries
 
 from . import load_fixtures
 
@@ -75,10 +76,10 @@ async def test_combined_models_with_invalid_authentication(aresponses):
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 @pytest.mark.parametrize(
-    ("model", "device", "measurement", "state", "system"),
+    ("model", "device", "measurement", "state", "system", "batteries"),
     [
-        ("HWE-P1", "device", "measurement_1_phase_no_gas", None, "system"),
-        ("HWE-BAT", "device", "measurement", None, "system"),
+        ("HWE-P1", "device", "measurement_1_phase_no_gas", None, "system", "batteries"),
+        ("HWE-BAT", "device", "measurement", None, "system", None),
     ],
 )
 async def test_combined_models_with_valid_authentication(
@@ -87,6 +88,7 @@ async def test_combined_models_with_valid_authentication(
     measurement: str,
     state: str | None,
     system: str,
+    batteries: str | None,
     snapshot: SnapshotAssertion,
     aresponses,
 ):
@@ -135,6 +137,18 @@ async def test_combined_models_with_valid_authentication(
             headers={"Content-Type": "application/json"},
         ),
     )
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{batteries}.json")
+            if batteries
+            else "404 Not Found",
+            status=200 if batteries else 404,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
 
     async with HomeWizardEnergyV2("example.com", token="token") as api:
         data = await api.combined()
@@ -145,10 +159,10 @@ async def test_combined_models_with_valid_authentication(
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-positional-arguments
 @pytest.mark.parametrize(
-    ("model", "device", "measurement", "state", "system"),
+    ("model", "device", "measurement", "state", "system", "batteries"),
     [
-        ("HWE-P1", "device", "measurement_1_phase_no_gas", None, "system"),
-        ("HWE-BAT", "device", "measurement", None, "system"),
+        ("HWE-P1", "device", "measurement_1_phase_no_gas", None, "system", "batteries"),
+        ("HWE-BAT", "device", "measurement", None, "system", None),
     ],
 )
 async def test_combined_models_with_valid_authentication_caches_device(
@@ -157,6 +171,7 @@ async def test_combined_models_with_valid_authentication_caches_device(
     measurement: str,
     state: str | None,
     system: str,
+    batteries: str | None,
     snapshot: SnapshotAssertion,
     aresponses,
 ):
@@ -206,6 +221,18 @@ async def test_combined_models_with_valid_authentication_caches_device(
             headers={"Content-Type": "application/json"},
         ),
     )
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{batteries}.json")
+            if batteries
+            else "404 Not Found",
+            status=200 if batteries else 404,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
 
     # Request 2, should use cache of `/api`
     aresponses.add(
@@ -241,6 +268,19 @@ async def test_combined_models_with_valid_authentication_caches_device(
         ),
     )
 
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{batteries}.json")
+            if batteries
+            else "404 Not Found",
+            status=200 if batteries else 404,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
     async with HomeWizardEnergyV2("example.com", token="token") as api:
         data = await api.combined()
         assert data is not None
@@ -248,6 +288,62 @@ async def test_combined_models_with_valid_authentication_caches_device(
 
         data_2 = await api.combined()
         assert data_2 == data
+
+
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+@pytest.mark.parametrize(
+    ("model", "device", "measurement", "system"),
+    [
+        ("HWE-BAT", "device", "measurement", "system"),
+    ],
+)
+async def test_batteries_request_is_not_requested_when_known_unsupported(
+    model: str,
+    device: str,
+    measurement: str,
+    system: str,
+    aresponses,
+):
+    """Test combined models request is does not request unsupported API's when already known it is unsupported."""
+
+    # Request 1
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{device}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/measurement",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{measurement}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    aresponses.add(
+        "example.com",
+        "/api/system",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/{system}.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        await api.device()
+        await api.combined()
 
 
 ### Device tests ###
@@ -533,6 +629,140 @@ async def test_system_returns_unexpected_response(aresponses):
         with pytest.raises(RequestError) as e:
             await api.system()
             assert str(e.value) == "server:error"
+
+
+### Batteries tests ###
+
+
+async def test_batteries_without_authentication():
+    """Test batteries request is rejected when no authentication is provided."""
+
+    async with HomeWizardEnergyV2("example.com") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.batteries()
+
+
+async def test_batteries_with_invalid_authentication(aresponses):
+    """Test batteries request is unsuccessful when invalid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "GET",
+        aresponses.Response(
+            status=401,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "user:unauthorized"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.batteries()
+
+
+@pytest.mark.parametrize(
+    ("model", "fixtures"),
+    [
+        ("HWE-P1", ["batteries"]),
+    ],
+)
+async def test_batteries_with_valid_authentication(
+    model: str, fixtures: list[str], snapshot: SnapshotAssertion, aresponses
+):
+    """Test batteries request is successful when valid authentication is provided."""
+
+    for fixture in fixtures:
+        aresponses.add(
+            "example.com",
+            "/api/batteries",
+            "GET",
+            aresponses.Response(
+                text=load_fixtures(f"{model}/{fixture}.json"),
+                status=200,
+                headers={"Content-Type": "application/json"},
+            ),
+        )
+
+        async with HomeWizardEnergyV2("example.com", token="token") as api:
+            batteries = await api.batteries()
+            assert batteries is not None
+            assert batteries == snapshot
+
+
+async def test_batteries_returns_unexpected_response(aresponses):
+    """Test batteries request is successful when valid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "GET",
+        aresponses.Response(
+            status=500,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "server:error"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        with pytest.raises(RequestError) as e:
+            await api.batteries()
+            assert str(e.value) == "server:error"
+
+
+async def test_batteries_put_without_authentication():
+    """Test batteries request is rejected when no authentication is provided."""
+
+    async with HomeWizardEnergyV2("example.com") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.batteries(mode=Batteries.Mode.STANDBY)
+
+
+async def test_batteries_put_with_invalid_authentication(aresponses):
+    """Test batteries request is unsuccessful when invalid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "PUT",
+        aresponses.Response(
+            status=401,
+            headers={"Content-Type": "application/json"},
+            text='{"error": "user:unauthorized"}',
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        with pytest.raises(UnauthorizedError):
+            await api.batteries(mode=Batteries.Mode.STANDBY)
+
+
+@pytest.mark.parametrize(
+    ("model"),
+    [
+        ("HWE-P1"),
+    ],
+)
+async def test_batteries_put_with_valid_authentication(
+    model: str, snapshot: SnapshotAssertion, aresponses
+):
+    """Test batteries request is successful when valid authentication is provided."""
+
+    aresponses.add(
+        "example.com",
+        "/api/batteries",
+        "PUT",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/batteries.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        batteries = await api.batteries(mode=Batteries.Mode.STANDBY)
+        assert batteries is not None
+        assert batteries == snapshot
 
 
 ### Identify tests ###

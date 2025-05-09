@@ -19,12 +19,22 @@ from ..const import LOGGER
 from ..errors import (
     DisabledError,
     InvalidUserNameError,
+    NotFoundError,
     RequestError,
     ResponseError,
     UnauthorizedError,
+    UnsupportedError,
 )
 from ..homewizard_energy import HomeWizardEnergy
-from ..models import Device, Measurement, System, SystemUpdate, Token
+from ..models import (
+    Batteries,
+    BatteriesUpdate,
+    Device,
+    Measurement,
+    System,
+    SystemUpdate,
+    Token,
+)
 from .cacert import CACERT
 
 T = TypeVar("T")
@@ -136,6 +146,36 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         system = System.from_json(response)
         return system
+
+    @authorized_method
+    async def batteries(
+        self,
+        mode: Batteries.Mode | None = None,
+    ) -> Batteries:
+        """Return the batteries object."""
+
+        if self._device is not None and self._device.supports_batteries() is False:
+            raise UnsupportedError("Batteries is not supported")
+
+        try:
+            if mode is not None:
+                data = BatteriesUpdate(
+                    mode=mode,
+                ).to_dict()
+                status, response = await self._request(
+                    "/api/batteries", method=METH_PUT, data=data
+                )
+            else:
+                status, response = await self._request("/api/batteries")
+
+            if status != HTTPStatus.OK:
+                error = json.loads(response).get("error", response)
+                raise RequestError(f"Failed to get batteries: {error}")
+        except NotFoundError as exception:
+            # The batteries endpoint is not available on the device
+            raise UnsupportedError("Batteries is not supported") from exception
+
+        return Batteries.from_json(response)
 
     @authorized_method
     async def identify(
@@ -275,6 +315,8 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             case HTTPStatus.NO_CONTENT:
                 # No content, just return
                 return (HTTPStatus.NO_CONTENT, None)
+            case HTTPStatus.NOT_FOUND:
+                raise NotFoundError("Resource not found")
             case HTTPStatus.OK:
                 pass
 
