@@ -22,7 +22,7 @@ class AwesomeVersionSerializationStrategy(SerializationStrategy, use_annotations
 
     def serialize(self, value: AwesomeVersion) -> str:
         """Serialize AwesomeVersion object to string."""
-        return str(value)
+        return str(value)  # pragma: no cover
 
     def deserialize(self, value: str) -> AwesomeVersion | None:
         """Deserialize string to AwesomeVersion object."""
@@ -65,18 +65,23 @@ class CombinedModels:
     measurement: Measurement
     state: State | None
     system: System | None
+    batteries: Batteries | None
 
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
     def __init__(
         self,
         device: Device,
         measurement: Measurement,
         state: State | None,
         system: System | None,
+        batteries: Batteries | None = None,
     ):
         self.device = device
         self.measurement = measurement
         self.state = state
         self.system = system
+        self.batteries = batteries
 
         # Move things around for backwards compatibility
         ## measurement.wifi_ssid -> system.wifi_ssid
@@ -96,6 +101,32 @@ class CombinedModels:
             if self.system is None:
                 self.system = System()
             self.system.status_led_brightness_pct = (self.state.brightness / 255) * 100
+
+        if self.device.product_type != Model.P1_METER and self.measurement is not None:
+            # Remove duplicate 't1' tariff from non-tariff meters
+            if (
+                self.measurement.energy_import_kwh is not None
+                and self.measurement.energy_import_kwh
+                == self.measurement.energy_import_t1_kwh
+            ):
+                self.measurement.energy_import_t1_kwh = None
+            if (
+                self.measurement.energy_export_kwh is not None
+                and self.measurement.energy_export_kwh
+                == self.measurement.energy_export_t1_kwh
+            ):
+                self.measurement.energy_export_t1_kwh = None
+
+            # Remove duplicate 'power_l1' from 1-phase meters
+            # If l2 or l3 is present, keep 'power_l1'
+            if (
+                self.measurement.power_w is not None
+                and self.measurement.power_l2_w is None
+                and self.measurement.power_l3_w is None
+                and (self.measurement.power_w == self.measurement.power_l1_w)
+            ):
+                # Remove duplicate 'power_l1_w' when it matches 'power_w' and l2 or l3 is present
+                self.measurement.power_l1_w = None
 
 
 def get_verification_hostname(model: str, serial_number: str) -> str:
@@ -142,7 +173,7 @@ class Device(BaseModel):
 
     def supports_reboot(self) -> bool:
         """Return if the device supports reboot."""
-        return self.api_version.major >= 2
+        return self.api_version.major >= 2 and self.product_type != Model.BATTERY
 
     def supports_identify(self) -> bool:
         """Return if the device supports identify."""
@@ -152,6 +183,14 @@ class Device(BaseModel):
             Model.ENERGY_METER_EASTRON_SDM230,
             Model.ENERGY_METER_EASTRON_SDM630,
         )
+
+    def supports_telegram(self) -> bool:
+        """Return if the device supports telegram."""
+        return self.product_type == Model.P1_METER
+
+    def supports_batteries(self) -> bool:
+        """Return if the device supports batteries."""
+        return self.product_type == Model.P1_METER
 
 
 @dataclass(kw_only=True)
@@ -569,6 +608,35 @@ class System(BaseModel):
             )
 
         return obj
+
+
+@dataclass
+class BatteriesUpdate(UpdateBaseModel):
+    """Represent Batteries update config."""
+
+    mode: Batteries.Mode | None = field(default=None)
+
+
+@dataclass(kw_only=True)
+class Batteries(BaseModel):
+    """Represent Batteries config."""
+
+    class Mode(StrEnum):
+        """Device type allocations."""
+
+        ZERO = "zero"
+        TO_FULL = "to_full"
+        STANDBY = "standby"
+
+    mode: Mode = field(
+        metadata={
+            "deserialize": lambda x: Batteries.Mode.__members__.get(x.upper(), None)
+        },
+    )
+    power_w: float = field()
+    target_power_w: float = field()
+    max_consumption_w: float = field()
+    max_production_w: float = field()
 
 
 @dataclass(kw_only=True)

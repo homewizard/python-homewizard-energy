@@ -5,7 +5,14 @@ import json
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.models import Device, Measurement, System, SystemUpdate
+from homewizard_energy.models import (
+    Batteries,
+    BatteriesUpdate,
+    Device,
+    Measurement,
+    System,
+    SystemUpdate,
+)
 
 from . import load_fixtures
 
@@ -121,10 +128,53 @@ async def test_system_update_raises_when_none_set():
 
 
 @pytest.mark.parametrize(
-    ("model", "supports_state", "supports_identify", "supports_cloud_enable"),
+    ("model", "fixtures"),
     [
-        ("HWE-P1", False, True, True),
-        ("HWE-BAT", False, True, False),
+        ("HWE-P1", ["batteries"]),
+    ],
+)
+async def test_batteries(model: str, fixtures: str, snapshot: SnapshotAssertion):
+    """Test Batteries model."""
+    for fixture in fixtures:
+        data = Batteries.from_dict(json.loads(load_fixtures(f"{model}/{fixture}.json")))
+        assert data
+
+        assert snapshot == data
+
+
+@pytest.mark.parametrize(
+    ("mode"),
+    [
+        Batteries.Mode.ZERO,
+        Batteries.Mode.TO_FULL,
+        Batteries.Mode.STANDBY,
+    ],
+)
+async def test_batteries_update(
+    mode: Batteries.Mode,
+    snapshot: SnapshotAssertion,
+):
+    """Test System update."""
+    data = BatteriesUpdate(
+        mode=mode,
+    )
+    assert snapshot == data.to_dict()
+
+
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+@pytest.mark.parametrize(
+    (
+        "model",
+        "supports_state",
+        "supports_identify",
+        "supports_cloud_enable",
+        "supports_reboot",
+        "supports_telegram",
+    ),
+    [
+        ("HWE-P1", False, True, True, True, True),
+        ("HWE-BAT", False, True, False, False, False),
     ],
 )
 async def test_device_support_functions(
@@ -132,6 +182,8 @@ async def test_device_support_functions(
     supports_state: bool,
     supports_identify: bool,
     supports_cloud_enable: bool,
+    supports_reboot: bool,
+    supports_telegram: bool,
 ):
     """Test Device model support functions."""
     device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
@@ -140,4 +192,5 @@ async def test_device_support_functions(
     assert device.supports_state() == supports_state
     assert device.supports_identify() == supports_identify
     assert device.supports_cloud_enable() == supports_cloud_enable
-    assert device.supports_reboot() is True  # Always True for v2
+    assert device.supports_reboot() == supports_reboot
+    assert device.supports_telegram() == supports_telegram

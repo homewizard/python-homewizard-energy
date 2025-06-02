@@ -33,6 +33,29 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
         assert snapshot == data
 
 
+@pytest.mark.parametrize(
+    ("model"),
+    [
+        "HWE-P1",
+        "HWE-SKT",
+        "HWE-WTR",
+        "HWE-KWH1",
+        "HWE-KWH3",
+        "SDM230-wifi",
+        "SDM630-wifi",
+    ],
+)
+async def test_combined_model(model: str, snapshot: SnapshotAssertion):
+    """Test combined model."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    measurement = Measurement.from_dict(json.loads(load_fixtures(f"{model}/data.json")))
+
+    combined = CombinedModels(
+        device=device, measurement=measurement, state=None, system=None
+    )
+    assert snapshot == combined
+
+
 async def test_combined_remaps_legacy_wifi_ssid_to_system(snapshot: SnapshotAssertion):
     """Test CombinedModels model remaps wifi_ssid to system."""
     device = Device.from_dict(json.loads(load_fixtures("HWE-SKT/device.json")))
@@ -92,7 +115,7 @@ async def test_device_support_functions(
             "HWE-P1",
             [
                 "data_minimal",
-                "data_all_data",
+                "data",
                 "data_no_gas",
                 "data_single_phase",
             ],

@@ -9,7 +9,7 @@ from aiohttp.client import ClientSession, ClientTimeout, TCPConnector
 
 from .const import LOGGER
 from .errors import UnsupportedError
-from .models import CombinedModels, Device, Measurement, State, System
+from .models import Batteries, CombinedModels, Device, Measurement, State, System
 
 
 class HomeWizardEnergy:
@@ -63,15 +63,20 @@ class HomeWizardEnergy:
             except (UnsupportedError, NotImplementedError):
                 return None
 
-        device, measurement, system, state = await asyncio.gather(
+        device, measurement, system, state, batteries = await asyncio.gather(
             fetch_data(self.device()),
             fetch_data(self.measurement()),
             fetch_data(self.system()),
             fetch_data(self.state()),
+            fetch_data(self.batteries()),
         )
 
         return CombinedModels(
-            device=device, measurement=measurement, system=system, state=state
+            device=device,
+            measurement=measurement,
+            system=system,
+            state=state,
+            batteries=batteries,
         )
 
     async def device(self, reset_cache: bool = False) -> Device:
@@ -80,6 +85,10 @@ class HomeWizardEnergy:
 
     async def measurement(self) -> Measurement:
         """Get the current measurement."""
+        raise NotImplementedError
+
+    async def telegram(self) -> str:
+        """Get the latest telegram."""
         raise NotImplementedError
 
     async def system(
@@ -99,6 +108,10 @@ class HomeWizardEnergy:
     ) -> State:
         """Get/set the state."""
         raise UnsupportedError("State is not supported")
+
+    async def batteries(self, mode: Batteries.Mode | None = None) -> Batteries:
+        """Get the batteries."""
+        raise UnsupportedError("Batteries are not supported")
 
     async def identify(
         self,

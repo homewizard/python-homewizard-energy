@@ -129,7 +129,7 @@ async def test_request_detects_clienterror():
     [
         ("HWE-KWH1", "device", "data", None, "system"),
         ("HWE-KWH3", "device", "data", None, "system"),
-        ("HWE-P1", "device", "data_all_data", None, "system"),
+        ("HWE-P1", "device", "data", None, "system"),
         ("HWE-SKT", "device", "data", "state_all", "system"),
         ("HWE-WTR", "device", "data", None, "system"),
         ("SDM230-wifi", "device", "data", None, "system"),
@@ -204,7 +204,7 @@ async def test_combined_models_with_valid_authentication(
     [
         ("HWE-KWH1", "device", "data", None, "system"),
         ("HWE-KWH3", "device", "data", None, "system"),
-        ("HWE-P1", "device", "data_all_data", None, "system"),
+        ("HWE-P1", "device", "data", None, "system"),
         ("HWE-SKT", "device", "data", "state_all", "system"),
         ("HWE-WTR", "device", "data", None, "system"),
         ("SDM230-wifi", "device", "data", None, "system"),
@@ -423,7 +423,7 @@ async def test_get_device_with_clear_cache_flag(aresponses):
     [
         (
             "HWE-P1",
-            ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
+            ["data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
         ("HWE-SKT", ["data"]),
         ("HWE-WTR", ["data"]),
@@ -476,7 +476,7 @@ async def test_get_data_object(
     [
         (
             "HWE-P1",
-            ["data_all_data", "data_minimal", "data_no_gas", "data_single_phase"],
+            ["data", "data_minimal", "data_no_gas", "data_single_phase"],
         ),
         ("HWE-SKT", ["data"]),
         ("HWE-WTR", ["data"]),
@@ -738,6 +738,28 @@ async def test_identify_not_supported_with_cached_device(aresponses, model: str)
             await api.identify()
 
         await api.close()
+
+
+async def test_telegram_gets_latest_telegram(aresponses, snapshot: SnapshotAssertion):
+    """Telegram returns latest telegram."""
+
+    aresponses.add(
+        "example.com",
+        "/api/v1/telegram",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures("HWE-P1/telegram.txt"),
+            status=200,
+            headers={"Content-Type": "application/txt; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        telegram = await api.telegram()
+        assert telegram
+        assert telegram == snapshot
 
 
 async def test_get_system_object(aresponses):

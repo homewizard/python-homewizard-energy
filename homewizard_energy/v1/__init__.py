@@ -57,6 +57,18 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         return Measurement.from_json(response)
 
     @optional_method
+    async def telegram(self) -> str:
+        """Return the most recent, valid telegram that was given by the device.
+        The telegram is not processed in any other form.
+        If you need parsed data, use the measurement method.
+        """
+        if self._device is not None and self._device.supports_telegram() is False:
+            raise UnsupportedError("Telegram is not supported")
+
+        _, telegram = await self._request("api/v1/telegram")
+        return telegram
+
+    @optional_method
     async def system(
         self,
         cloud_enabled: bool | None = None,

@@ -23,7 +23,7 @@ python3 -m pip install python-homewizard-energy
 ### API v1
 ```python
 import asyncio
-from homewizard_energy import HomeWizardEnergyV1V1
+from homewizard_energy import HomeWizardEnergyV1
 
 IP_ADDRESS = "192.168.1.123"
 
@@ -38,6 +38,10 @@ async def main():
         # Get measurements, like energy or water usage
         measurement = await api.measurement()
         print(measurement.energy_import_kwh)
+
+        # Example of getting raw telegram data
+        telegram = await api.telegram()
+        print(telegram)  # Raw P1 meter data
 
         # Get all data and remap v1 data to new v2 structure
         print(await api.combined())
