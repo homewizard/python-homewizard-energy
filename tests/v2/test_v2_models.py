@@ -23,6 +23,8 @@ pytestmark = [pytest.mark.asyncio]
     ("model", "fixtures"),
     [
         ("HWE-P1", ["device"]),
+        ("HWE-KWH1", ["device"]),
+        ("HWE-KWH3", ["device"]),
         ("HWE-BAT", ["device"]),
     ],
 )
@@ -45,6 +47,18 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
                 "measurement_3_phase_with_gas_with_watermeter",
                 "measurement_invalid_ean",
                 "measurement_invalid_external",
+            ],
+        ),
+        (
+            "HWE-KWH1",
+            [
+                "measurement",
+            ],
+        ),
+        (
+            "HWE-KWH3",
+            [
+                "measurement",
             ],
         ),
         (
@@ -78,6 +92,8 @@ async def test_measurement_ignores_invalid_tariff():
     ("model", "fixtures"),
     [
         ("HWE-P1", ["system"]),
+        ("HWE-KWH1", ["system"]),
+        ("HWE-KWH3", ["system"]),
         ("HWE-BAT", ["system"]),
     ],
 )
@@ -131,6 +147,8 @@ async def test_system_update_raises_when_none_set():
     ("model", "fixtures"),
     [
         ("HWE-P1", ["batteries"]),
+        ("HWE-KWH1", ["batteries"]),
+        ("HWE-KWH3", ["batteries"]),
     ],
 )
 async def test_batteries(model: str, fixtures: str, snapshot: SnapshotAssertion):
@@ -174,6 +192,8 @@ async def test_batteries_update(
     ),
     [
         ("HWE-P1", False, True, True, True, True),
+        ("HWE-KWH1", False, False, True, True, False),
+        ("HWE-KWH3", False, False, True, True, False),
         ("HWE-BAT", False, True, False, False, False),
     ],
 )

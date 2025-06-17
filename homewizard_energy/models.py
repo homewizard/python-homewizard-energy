@@ -164,7 +164,13 @@ class Device(BaseModel):
 
     def supports_batteries(self) -> bool:
         """Return if the device supports batteries."""
-        return self.product_type == Model.P1_METER
+        return self.product_type in (
+            Model.P1_METER,
+            Model.ENERGY_METER_1_PHASE,
+            Model.ENERGY_METER_3_PHASE,
+            Model.ENERGY_METER_EASTRON_SDM230,
+            Model.ENERGY_METER_EASTRON_SDM630,
+        )
 
 
 @dataclass(kw_only=True)

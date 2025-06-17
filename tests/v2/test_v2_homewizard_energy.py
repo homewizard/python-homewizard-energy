@@ -79,6 +79,8 @@ async def test_combined_models_with_invalid_authentication(aresponses):
     ("model", "device", "measurement", "state", "system", "batteries"),
     [
         ("HWE-P1", "device", "measurement_1_phase_no_gas", None, "system", "batteries"),
+        ("HWE-KWH1", "device", "measurement", None, "system", "batteries"),
+        ("HWE-KWH3", "device", "measurement", None, "system", "batteries"),
         ("HWE-BAT", "device", "measurement", None, "system", None),
     ],
 )
@@ -162,6 +164,8 @@ async def test_combined_models_with_valid_authentication(
     ("model", "device", "measurement", "state", "system", "batteries"),
     [
         ("HWE-P1", "device", "measurement_1_phase_no_gas", None, "system", "batteries"),
+        ("HWE-KWH1", "device", "measurement", None, "system", "batteries"),
+        ("HWE-KWH3", "device", "measurement", None, "system", "batteries"),
         ("HWE-BAT", "device", "measurement", None, "system", None),
     ],
 )
