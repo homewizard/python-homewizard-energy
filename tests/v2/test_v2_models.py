@@ -179,38 +179,93 @@ async def test_batteries_update(
     assert snapshot == data.to_dict()
 
 
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-positional-arguments
 @pytest.mark.parametrize(
-    (
-        "model",
-        "supports_state",
-        "supports_identify",
-        "supports_cloud_enable",
-        "supports_reboot",
-        "supports_telegram",
-    ),
+    ("model", "supports_state"),
     [
-        ("HWE-P1", False, True, True, True, True),
-        ("HWE-KWH1", False, False, True, True, False),
-        ("HWE-KWH3", False, False, True, True, False),
-        ("HWE-BAT", False, True, False, False, False),
+        ("HWE-P1", False),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("HWE-BAT", False),
     ],
 )
-async def test_device_support_functions(
-    model: str,
-    supports_state: bool,
-    supports_identify: bool,
-    supports_cloud_enable: bool,
-    supports_reboot: bool,
-    supports_telegram: bool,
-):
-    """Test Device model support functions."""
+async def test_device_supports_state(model: str, supports_state: bool):
+    """Test Device model supports_state function."""
     device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
-    assert device
-
     assert device.supports_state() == supports_state
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_identify"),
+    [
+        ("HWE-P1", True),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("HWE-BAT", True),
+    ],
+)
+async def test_device_supports_identify(model: str, supports_identify: bool):
+    """Test Device model supports_identify function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
     assert device.supports_identify() == supports_identify
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_cloud_enable"),
+    [
+        ("HWE-P1", True),
+        ("HWE-KWH1", True),
+        ("HWE-KWH3", True),
+        ("HWE-BAT", False),
+    ],
+)
+async def test_device_supports_cloud_enable(model: str, supports_cloud_enable: bool):
+    """Test Device model supports_cloud_enable function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
     assert device.supports_cloud_enable() == supports_cloud_enable
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_reboot"),
+    [
+        ("HWE-P1", True),
+        ("HWE-KWH1", True),
+        ("HWE-KWH3", True),
+        ("HWE-BAT", False),
+    ],
+)
+async def test_device_supports_reboot(model: str, supports_reboot: bool):
+    """Test Device model supports_reboot function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
     assert device.supports_reboot() == supports_reboot
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_telegram"),
+    [
+        ("HWE-P1", True),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("HWE-BAT", False),
+    ],
+)
+async def test_device_supports_telegram(model: str, supports_telegram: bool):
+    """Test Device model supports_telegram function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
     assert device.supports_telegram() == supports_telegram
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_led_brightness"),
+    [
+        ("HWE-P1", True),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("HWE-BAT", True),
+    ],
+)
+async def test_device_supports_led_brightness(
+    model: str, supports_led_brightness: bool
+):
+    """Test Device model supports_led_brightness function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device.supports_led_brightness() == supports_led_brightness
