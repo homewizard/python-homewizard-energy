@@ -141,6 +141,20 @@ class Device(BaseModel):
         """Return if the device supports state."""
         return self.product_type == Model.ENERGY_SOCKET
 
+    def supports_led_brightness(self) -> bool:
+        """Return if the device supports LED brightness control."""
+        if self.product_type in (
+            Model.BATTERY,
+            Model.ENERGY_SOCKET,
+        ):
+            return True
+
+        # P1 Meter supports LED brightness from API v2.0.0 onwards
+        if self.product_type == Model.P1_METER:
+            return self.api_version.major >= 2
+
+        return False
+
     def supports_cloud_enable(self) -> bool:
         """Return if the device supports cloud enable/disable."""
         return self.product_type != Model.BATTERY

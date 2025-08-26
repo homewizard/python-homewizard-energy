@@ -81,31 +81,95 @@ async def test_combined_remaps_legacy_brightness_to_system(snapshot: SnapshotAss
 
 
 @pytest.mark.parametrize(
-    ("model", "supports_state", "supports_identify", "supports_cloud_enable"),
+    ("model", "supports_state"),
     [
-        ("HWE-P1", False, True, True),
-        ("HWE-SKT", True, True, True),
-        ("HWE-WTR", False, True, True),
-        ("HWE-KWH1", False, False, True),
-        ("HWE-KWH3", False, False, True),
-        ("SDM230-wifi", False, False, True),
-        ("SDM630-wifi", False, False, True),
+        ("HWE-P1", False),
+        ("HWE-SKT", True),
+        ("HWE-WTR", False),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("SDM230-wifi", False),
+        ("SDM630-wifi", False),
     ],
 )
-async def test_device_support_functions(
-    model: str,
-    supports_state: bool,
-    supports_identify: bool,
-    supports_cloud_enable: bool,
-):
-    """Test Device model support functions."""
+async def test_device_supports_state(model: str, supports_state: bool):
+    """Test Device model supports_state function."""
     device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
-    assert device
-
     assert device.supports_state() == supports_state
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_identify"),
+    [
+        ("HWE-P1", True),
+        ("HWE-SKT", True),
+        ("HWE-WTR", True),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("SDM230-wifi", False),
+        ("SDM630-wifi", False),
+    ],
+)
+async def test_device_supports_identify(model: str, supports_identify: bool):
+    """Test Device model supports_identify function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
     assert device.supports_identify() == supports_identify
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_cloud_enable"),
+    [
+        ("HWE-P1", True),
+        ("HWE-SKT", True),
+        ("HWE-WTR", True),
+        ("HWE-KWH1", True),
+        ("HWE-KWH3", True),
+        ("SDM230-wifi", True),
+        ("SDM630-wifi", True),
+    ],
+)
+async def test_device_supports_cloud_enable(model: str, supports_cloud_enable: bool):
+    """Test Device model supports_cloud_enable function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
     assert device.supports_cloud_enable() == supports_cloud_enable
-    assert device.supports_reboot() is False  # Always False for v1
+
+
+@pytest.mark.parametrize(
+    ("model"),
+    [
+        "HWE-P1",
+        "HWE-SKT",
+        "HWE-WTR",
+        "HWE-KWH1",
+        "HWE-KWH3",
+        "SDM230-wifi",
+        "SDM630-wifi",
+    ],
+)
+async def test_device_supports_reboot(model: str):
+    """Test Device model supports_reboot function (always False for v1)."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device.supports_reboot() is False
+
+
+@pytest.mark.parametrize(
+    ("model", "supports_led_brightness"),
+    [
+        ("HWE-P1", False),
+        ("HWE-SKT", True),
+        ("HWE-WTR", False),
+        ("HWE-KWH1", False),
+        ("HWE-KWH3", False),
+        ("SDM230-wifi", False),
+        ("SDM630-wifi", False),
+    ],
+)
+async def test_device_supports_led_brightness(
+    model: str, supports_led_brightness: bool
+):
+    """Test Device model supports_led_brightness function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device.supports_led_brightness() == supports_led_brightness
 
 
 @pytest.mark.parametrize(
