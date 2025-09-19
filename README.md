@@ -57,7 +57,7 @@ asyncio.run(main())
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Requirements
-- Python 3.10 or higher
+- Python 3.12 or higher
 - [Poetry](https://python-poetry.org/docs/#installing-with-pipx)
 
 ## Installation and setup
