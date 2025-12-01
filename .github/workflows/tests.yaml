@@ -21,14 +21,14 @@ jobs:
 
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🏗 Set up Poetry
         run: pipx install poetry
 
       - name: Set up Python ${{ matrix.python }}
         id: python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           cache: "poetry"
@@ -45,7 +45,7 @@ jobs:
         run: poetry run pytest --cov homewizard_energy tests
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-${{ matrix.python }}-${{ matrix.os }}
           include-hidden-files: true
@@ -56,19 +56,19 @@ jobs:
     needs: pytest
     steps:
       - name: Check out code from GitHub
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Download coverage data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
 
       - name: 🏗 Set up Poetry
         run: pipx install poetry
 
       - name: Set up Python 3.13
         id: python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.13
           cache: "poetry"
@@ -97,7 +97,7 @@ jobs:
           poetry run coverage xml -i
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.1
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
