@@ -18,28 +18,18 @@ pytestmark = [pytest.mark.asyncio]
         (
             "HWE-P1",
             [
-                "data_minimal",
-                "data",
-                "data_no_gas",
-                "data_single_phase",
+                "measurement_1_phase_no_gas",
+                "measurement_3_phase_with_gas_with_watermeter",
+                "measurement_invalid_ean",
+                "measurement_invalid_external",
             ],
         ),
-        ("HWE-SKT", ["data"]),
-        ("HWE-WTR", ["data"]),
-        ("HWE-KWH1", ["data"]),
-        ("HWE-KWH3", ["data"]),
-        ("SDM230-wifi", ["data"]),
-        ("SDM630-wifi", ["data"]),
-        (
-            "exceptions",
-            [
-                "data_invalid_external_ean",
-                "data_invalid_external_data",
-            ],
-        ),
+        ("HWE-KWH1", ["measurement"]),
+        ("HWE-KWH3", ["measurement"]),
+        ("HWE-BAT", ["measurement"]),
     ],
 )
-async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
+async def test_measurement(model: str, fixtures: str, snapshot: SnapshotAssertion):
     """Test Measurement model."""
     for fixture in fixtures:
         data = Measurement.from_dict(
@@ -49,8 +39,8 @@ async def test_data(model: str, fixtures: str, snapshot: SnapshotAssertion):
         assert snapshot == data
 
 
-async def test_data_ignores_invalid_tariff():
-    """Test Data model ignores invalid tariff."""
-    measurement = Measurement.from_dict({"active_tariff": 5432})
+async def test_measurement_ignores_invalid_tariff():
+    """Test Measurement model ignores invalid tariff."""
+    measurement = Measurement.from_dict({"tariff": 5432})
     assert measurement
     assert measurement.tariff is None

@@ -32,16 +32,24 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
         assert snapshot == data
 
 
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 @pytest.mark.parametrize(
-    ("model", "supports_state", "supports_identify", "supports_cloud_enable"),
+    (
+        "model",
+        "supports_state",
+        "supports_identify",
+        "supports_cloud_enable",
+        "supports_reboot",
+        "supports_telegram",
+    ),
     [
-        ("HWE-P1", False, True, True),
-        ("HWE-SKT", True, True, True),
-        ("HWE-WTR", False, True, True),
-        ("HWE-KWH1", False, False, True),
-        ("HWE-KWH3", False, False, True),
-        ("SDM230-wifi", False, False, True),
-        ("SDM630-wifi", False, False, True),
+        ("HWE-P1", False, True, True, False, True),
+        ("HWE-SKT", True, True, True, False, False),
+        ("HWE-WTR", False, True, True, False, False),
+        ("HWE-KWH1", False, False, True, False, False),
+        ("HWE-KWH3", False, False, True, False, False),
+        ("SDM230-wifi", False, False, True, False, False),
+        ("SDM630-wifi", False, False, True, False, False),
     ],
 )
 async def test_device_support_functions(
@@ -49,6 +57,8 @@ async def test_device_support_functions(
     supports_state: bool,
     supports_identify: bool,
     supports_cloud_enable: bool,
+    supports_reboot: bool,
+    supports_telegram: bool,
 ):
     """Test Device model support functions."""
     device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
@@ -56,4 +66,5 @@ async def test_device_support_functions(
     assert device.supports_state() == supports_state
     assert device.supports_identify() == supports_identify
     assert device.supports_cloud_enable() == supports_cloud_enable
-    assert device.supports_reboot() is False  # Always False for v1
+    assert device.supports_reboot() == supports_reboot
+    assert device.supports_telegram() == supports_telegram
