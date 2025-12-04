@@ -1,0 +1,22 @@
+# serializer version: 1
+# name: test_system[HWE-KWH1-fixtures3]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-KWH3-fixtures4]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-P1-fixtures0]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-SKT-fixtures1]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-WTR-fixtures2]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
+# name: test_system[SDM230-wifi-fixtures5]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
+# name: test_system[SDM630-wifi-fixtures6]
+  System(wifi_strength_pct=None, wifi_ssid=None, wifi_rssi_db=None, cloud_enabled=True, uptime_s=None, status_led_brightness_pct=None, api_v1_enabled=None)
+# ---
