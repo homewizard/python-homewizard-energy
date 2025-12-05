@@ -703,16 +703,19 @@ class Batteries(BaseModel):
     def __post_deserialize__(cls, obj: Batteries) -> Batteries:
         """Set correct mode based on permissions after deserialization."""
         # Only adjust if mode is ZERO
-        if obj.mode == cls.Mode.ZERO and obj.permissions:
+        if obj.mode == cls.Mode.ZERO:
             perms = set(obj.permissions)
-            charge = cls.Permissions.CHARGE_ALLOWED
-            discharge = cls.Permissions.DISCHARGE_ALLOWED
-            if perms == {charge}:
+            if perms == {cls.Permissions.CHARGE_ALLOWED}:
                 obj.mode = cls.Mode.ZERO_CHARGE_ONLY
-            elif perms == {discharge}:
+            elif perms == {cls.Permissions.DISCHARGE_ALLOWED}:
                 obj.mode = cls.Mode.ZERO_DISCHARGE_ONLY
-            elif perms == {charge, discharge}:
+            elif perms == {
+                cls.Permissions.CHARGE_ALLOWED,
+                cls.Permissions.DISCHARGE_ALLOWED,
+            }:
                 obj.mode = cls.Mode.ZERO
+            elif perms == set():
+                obj.mode = cls.Mode.STANDBY
         return obj
 
 
