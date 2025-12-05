@@ -1,0 +1,22 @@
+# serializer version: 1
+# name: test_device[HWE-KWH1-fixtures3]
+  Device(model_name='Wi-Fi kWh Meter 1-phase', id='appliance/energymeter/3c39e7aabbcc', product_name='kWh Meter', product_type='HWE-KWH1', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---
+# name: test_device[HWE-KWH3-fixtures4]
+  Device(model_name='Wi-Fi kWh Meter 3-phase', id='appliance/energymeter/3c39e7aabbcc', product_name='kWh Meter 3-phase', product_type='HWE-KWH3', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---
+# name: test_device[HWE-P1-fixtures0]
+  Device(model_name='Wi-Fi P1 Meter', id='appliance/p1dongle/3c39e7aabbcc', product_name='P1 Meter', product_type='HWE-P1', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---
+# name: test_device[HWE-SKT-fixtures1]
+  Device(model_name='Wi-Fi Energy Socket', id='appliance/energysocket/3c39e7aabbcc', product_name='Energy Socket', product_type='HWE-SKT', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---
+# name: test_device[HWE-WTR-fixtures2]
+  Device(model_name='Wi-Fi Watermeter', id='appliance/watermeter/3c39e7aabbcc', product_name='Water Meter', product_type='HWE-WTR', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---
+# name: test_device[SDM230-wifi-fixtures5]
+  Device(model_name='Wi-Fi kWh Meter 1-phase', id='appliance/energymeter/3c39e7aabbcc', product_name='kWh Meter', product_type='SDM230-wifi', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---
+# name: test_device[SDM630-wifi-fixtures6]
+  Device(model_name='Wi-Fi kWh Meter 3-phase', id='appliance/energymeter/3c39e7aabbcc', product_name='kWh Meter 3-phase', product_type='SDM630-wifi', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '1.0.0'>, firmware_version='2.11')
+# ---

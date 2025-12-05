@@ -1,0 +1,53 @@
+# serializer version: 1
+# name: test_system[HWE-BAT-fixtures3]
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-KWH1-fixtures1]
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-KWH3-fixtures2]
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None)
+# ---
+# name: test_system[HWE-P1-fixtures0]
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=True)
+# ---
+# name: test_system_update[None-100-None]
+  dict({
+    'status_led_brightness_pct': 100,
+  })
+# ---
+# name: test_system_update[None-100-True]
+  dict({
+    'api_v1_enabled': True,
+    'status_led_brightness_pct': 100,
+  })
+# ---
+# name: test_system_update[None-None-True]
+  dict({
+    'api_v1_enabled': True,
+  })
+# ---
+# name: test_system_update[True-100-None]
+  dict({
+    'cloud_enabled': True,
+    'status_led_brightness_pct': 100,
+  })
+# ---
+# name: test_system_update[True-100-True]
+  dict({
+    'api_v1_enabled': True,
+    'cloud_enabled': True,
+    'status_led_brightness_pct': 100,
+  })
+# ---
+# name: test_system_update[True-None-None]
+  dict({
+    'cloud_enabled': True,
+  })
+# ---
+# name: test_system_update[True-None-True]
+  dict({
+    'api_v1_enabled': True,
+    'cloud_enabled': True,
+  })
+# ---
