@@ -51,6 +51,48 @@ def test_batteries_battery_count_optional():
 
 
 @pytest.mark.parametrize(
+    ("input_mode", "permissions", "expected_mode"),
+    [
+        (
+            Batteries.Mode.ZERO,
+            [Batteries.Permissions.CHARGE_ALLOWED],
+            Batteries.Mode.ZERO_CHARGE_ONLY,
+        ),
+        (
+            Batteries.Mode.ZERO,
+            [Batteries.Permissions.DISCHARGE_ALLOWED],
+            Batteries.Mode.ZERO_DISCHARGE_ONLY,
+        ),
+        (
+            Batteries.Mode.ZERO,
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+                Batteries.Permissions.DISCHARGE_ALLOWED,
+            ],
+            Batteries.Mode.ZERO,
+        ),
+        (Batteries.Mode.TO_FULL, [], Batteries.Mode.TO_FULL),
+        (Batteries.Mode.STANDBY, [], Batteries.Mode.STANDBY),
+    ],
+)
+def test_batteries_post_deserialize_mode_mapping(
+    input_mode, permissions, expected_mode
+):
+    """Test Batteries __post_deserialize__ mode/permissions mapping."""
+    data = Batteries(
+        mode=input_mode,
+        permissions=permissions,
+        power_w=100.0,
+        target_power_w=200.0,
+        max_consumption_w=300.0,
+        max_production_w=400.0,
+    )
+    # Simulate post-deserialization logic
+    result = Batteries.__post_deserialize__(data)
+    assert result.mode == expected_mode
+
+
+@pytest.mark.parametrize(
     ("mode"),
     [
         Batteries.Mode.ZERO,

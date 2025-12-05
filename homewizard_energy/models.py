@@ -694,6 +694,22 @@ class Batteries(BaseModel):
     max_production_w: float = field()
     battery_count: int | None = field(default=None)
 
+    @classmethod
+    def __post_deserialize__(cls, obj: Batteries) -> Batteries:
+        """Set correct mode based on permissions after deserialization."""
+        # Only adjust if mode is ZERO
+        if obj.mode == cls.Mode.ZERO and obj.permissions:
+            perms = set(obj.permissions)
+            charge = cls.Permissions.CHARGE_ALLOWED
+            discharge = cls.Permissions.DISCHARGE_ALLOWED
+            if perms == {charge}:
+                obj.mode = cls.Mode.ZERO_CHARGE_ONLY
+            elif perms == {discharge}:
+                obj.mode = cls.Mode.ZERO_DISCHARGE_ONLY
+            elif perms == {charge, discharge}:
+                obj.mode = cls.Mode.ZERO
+        return obj
+
 
 @dataclass(kw_only=True)
 class Token(BaseModel):
