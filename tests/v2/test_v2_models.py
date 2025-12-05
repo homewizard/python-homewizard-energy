@@ -80,4 +80,4 @@ async def test_measurement_ignores_invalid_tariff():
     """Test Measurement model ignores invalid tariff."""
 
     measurement = Measurement.from_dict({"tariff": 5432})
-    assert measurement
+    assert measurement.tariff is None
