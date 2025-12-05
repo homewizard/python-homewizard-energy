@@ -652,6 +652,8 @@ class BatteriesUpdate(UpdateBaseModel):
                 return BatteriesUpdate(mode=Batteries.Mode.STANDBY, permissions=[])
             case _:
                 raise ValueError(f"Unsupported Batteries.Mode: {mode!r}")
+
+
 @dataclass(kw_only=True)
 class Batteries(BaseModel):
     """Represent Batteries config."""
@@ -684,8 +686,10 @@ class Batteries(BaseModel):
         default_factory=list,
         metadata={
             "deserialize": lambda lst: [
-                perm for item in lst
-                if (perm := Batteries.Permissions.__members__.get(item.upper(), None)) is not None
+                perm
+                for item in lst
+                if (perm := Batteries.Permissions.__members__.get(item.upper(), None))
+                is not None
             ]
         },
     )
