@@ -1,0 +1,13 @@
+# serializer version: 1
+# name: test_state[HWE-SKT-fixtures0]
+  State(power_on=False, switch_lock=False, brightness=255)
+# ---
+# name: test_state[HWE-SKT-fixtures0].1
+  State(power_on=False, switch_lock=None, brightness=None)
+# ---
+# name: test_state[HWE-SKT-fixtures0].2
+  State(power_on=None, switch_lock=False, brightness=None)
+# ---
+# name: test_state[HWE-SKT-fixtures0].3
+  State(power_on=None, switch_lock=None, brightness=255)
+# ---

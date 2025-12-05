@@ -1,0 +1,13 @@
+# serializer version: 1
+# name: test_device[HWE-BAT-fixtures3]
+  Device(model_name='Plug-In Battery', id='appliance/battery/5c2fafaabbcc', product_name='Plug-in Battery', product_type='HWE-BAT', serial='5c2fafaabbcc', api_version=<AwesomeVersion SemVer '2.0.0'>, firmware_version='6.00')
+# ---
+# name: test_device[HWE-KWH1-fixtures1]
+  Device(model_name='Wi-Fi kWh Meter 1-phase', id='appliance/energymeter/5c2fafaabbcc', product_name='kWh Meter 1-Phase', product_type='HWE-KWH1', serial='5c2fafaabbcc', api_version=<AwesomeVersion SemVer '2.1.0'>, firmware_version='6.00')
+# ---
+# name: test_device[HWE-KWH3-fixtures2]
+  Device(model_name='Wi-Fi kWh Meter 3-phase', id='appliance/energymeter/5c2fafaabbcc', product_name='kWh Meter 3-Phase', product_type='HWE-KWH3', serial='5c2fafaabbcc', api_version=<AwesomeVersion SemVer '2.1.0'>, firmware_version='6.00')
+# ---
+# name: test_device[HWE-P1-fixtures0]
+  Device(model_name='Wi-Fi P1 Meter', id='appliance/p1dongle/5c2fafaabbcc', product_name='P1 Meter', product_type='HWE-P1', serial='5c2fafaabbcc', api_version=<AwesomeVersion SemVer '2.0.0'>, firmware_version='6.00')
+# ---

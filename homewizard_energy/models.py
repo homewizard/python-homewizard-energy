@@ -631,6 +631,7 @@ class Batteries(BaseModel):
     target_power_w: float = field()
     max_consumption_w: float = field()
     max_production_w: float = field()
+    battery_count: int | None = field(default=None)
 
 
 @dataclass(kw_only=True)
