@@ -609,6 +609,7 @@ class BatteriesUpdate(UpdateBaseModel):
     """Represent Batteries update config."""
 
     mode: Batteries.Mode | None = field(default=None)
+    permissions: list[Batteries.Permissions] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
@@ -616,15 +617,46 @@ class Batteries(BaseModel):
     """Represent Batteries config."""
 
     class Mode(StrEnum):
-        """Device type allocations."""
+        """Device type allocations.
+
+        This is the list of modes supported by the API.
+        """
 
         ZERO = "zero"
         TO_FULL = "to_full"
         STANDBY = "standby"
 
+    class UserfacingMode(StrEnum):
+        """Device type allocations.
+
+        This is the list of modes shown to the user. 'zero_charge_only' and 'zero_discharge_only' are
+        mapped to 'zero' in the API via the Permissions parameter
+        """
+
+        ZERO = "zero"
+        ZERO_CHARGE_ONLY = "zero_charge_only"
+        ZERO_DISCHARGE_ONLY = "zero_discharge_only"
+        TO_FULL = "to_full"
+        STANDBY = "standby"
+
+    class Permissions(StrEnum):
+        """Device permission allocations."""
+
+        CHARGE_ALLOWED = "charge_allowed"
+        DISCHARGE_ALLOWED = "discharge_allowed"
+
     mode: Mode = field(
         metadata={
             "deserialize": lambda x: Batteries.Mode.__members__.get(x.upper(), None)
+        },
+    )
+    permissions: list[Permissions] = field(
+        default_factory=list,
+        metadata={
+            "deserialize": lambda lst: [
+                Batteries.Permissions.__members__.get(item.upper(), None)
+                for item in lst
+            ]
         },
     )
     power_w: float = field()
