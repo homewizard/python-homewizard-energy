@@ -51,19 +51,84 @@ def test_batteries_battery_count_optional():
 
 
 @pytest.mark.parametrize(
-    ("mode"),
+    "mode, expected_mode, expected_permissions",
     [
-        Batteries.Mode.ZERO,
-        Batteries.Mode.TO_FULL,
-        Batteries.Mode.STANDBY,
+        (
+            Batteries.Mode.ZERO,
+            Batteries.Mode.ZERO,
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+                Batteries.Permissions.DISCHARGE_ALLOWED,
+            ],
+        ),
+        (
+            Batteries.Mode.ZERO_CHARGE_ONLY,
+            Batteries.Mode.ZERO,
+            [Batteries.Permissions.CHARGE_ALLOWED],
+        ),
+        (
+            Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            Batteries.Mode.ZERO,
+            [Batteries.Permissions.DISCHARGE_ALLOWED],
+        ),
+        (Batteries.Mode.TO_FULL, Batteries.Mode.TO_FULL, None),
+        (Batteries.Mode.STANDBY, Batteries.Mode.STANDBY, []),
     ],
 )
-async def test_batteries_update(
-    mode: Batteries.Mode,
-    snapshot: SnapshotAssertion,
+def test_batteries_update_modes_and_permissions(
+    mode, expected_mode, expected_permissions
 ):
-    """Test Batteries update."""
-    data = BatteriesUpdate(
-        mode=mode,
+    """Test BatteriesUpdate for all modes and permissions."""
+    update = BatteriesUpdate.from_mode(mode=mode)
+
+    assert update.mode == expected_mode
+    assert update.permissions == expected_permissions
+
+
+@pytest.mark.parametrize(
+    "mode, permissions, expected_mode",
+    [
+        (
+            Batteries.Mode.ZERO,
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+                Batteries.Permissions.DISCHARGE_ALLOWED,
+            ],
+            Batteries.Mode.ZERO,
+        ),
+        (
+            Batteries.Mode.ZERO,
+            [Batteries.Permissions.CHARGE_ALLOWED],
+            Batteries.Mode.ZERO_CHARGE_ONLY,
+        ),
+        (
+            Batteries.Mode.ZERO,
+            [Batteries.Permissions.DISCHARGE_ALLOWED],
+            Batteries.Mode.ZERO_DISCHARGE_ONLY,
+        ),
+        (Batteries.Mode.ZERO, [], Batteries.Mode.STANDBY),
+        (Batteries.Mode.STANDBY, [], Batteries.Mode.STANDBY),
+        (Batteries.Mode.TO_FULL, [], Batteries.Mode.TO_FULL),
+    ],
+)
+def test_set_mode_based_on_permissions(mode, permissions, expected_mode):
+    """Test setting Batteries mode based on permissions."""
+    model = Batteries.from_dict(
+        {
+            "mode": mode,
+            "permissions": permissions,
+            "power_w": 0.0,
+            "target_power_w": 0.0,
+            "max_consumption_w": 0.0,
+            "max_production_w": 0.0,
+        }
     )
-    assert snapshot == data.to_dict()
+    assert model.mode == expected_mode
+
+
+def test_set_batteries_update_with_invalid_permissions_raises():
+    """Test BatteriesUpdate with invalid permissions raises ValueError."""
+    with pytest.raises(ValueError):
+        BatteriesUpdate.from_mode(
+            mode="invalid_mode",  # mypy: ignore [arg-type]
+        )

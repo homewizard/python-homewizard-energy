@@ -609,6 +609,49 @@ class BatteriesUpdate(UpdateBaseModel):
     """Represent Batteries update config."""
 
     mode: Batteries.Mode | None = field(default=None)
+    permissions: list[Batteries.Permissions] | None = field(default=None)
+
+    @staticmethod
+    def from_mode(
+        mode: Batteries.Mode,
+    ) -> BatteriesUpdate:
+        """Convert userfacing mode to API mode.
+
+        Args:
+            mode: Userfacing mode to convert.
+        Returns:
+            BatteriesUpdate object with API mode and permissions.
+        """
+
+        match mode:
+            case Batteries.Mode.ZERO:
+                return BatteriesUpdate(
+                    mode=Batteries.Mode.ZERO,
+                    permissions=[
+                        Batteries.Permissions.CHARGE_ALLOWED,
+                        Batteries.Permissions.DISCHARGE_ALLOWED,
+                    ],
+                )
+            case Batteries.Mode.ZERO_CHARGE_ONLY:
+                return BatteriesUpdate(
+                    mode=Batteries.Mode.ZERO,
+                    permissions=[
+                        Batteries.Permissions.CHARGE_ALLOWED,
+                    ],
+                )
+            case Batteries.Mode.ZERO_DISCHARGE_ONLY:
+                return BatteriesUpdate(
+                    mode=Batteries.Mode.ZERO,
+                    permissions=[
+                        Batteries.Permissions.DISCHARGE_ALLOWED,
+                    ],
+                )
+            case Batteries.Mode.TO_FULL:
+                return BatteriesUpdate(mode=Batteries.Mode.TO_FULL)
+            case Batteries.Mode.STANDBY:
+                return BatteriesUpdate(mode=Batteries.Mode.STANDBY, permissions=[])
+
+        raise ValueError(f"Unsupported Batteries.Mode: {mode!r}")
 
 
 @dataclass(kw_only=True)
@@ -616,15 +659,38 @@ class Batteries(BaseModel):
     """Represent Batteries config."""
 
     class Mode(StrEnum):
-        """Device type allocations."""
+        """Device type allocations.
+
+        This is the list of modes shown to the user. 'zero_charge_only' and 'zero_discharge_only' are
+        mapped to 'zero' in the API via the Permissions parameter
+        """
 
         ZERO = "zero"
         TO_FULL = "to_full"
         STANDBY = "standby"
+        ZERO_CHARGE_ONLY = "zero_charge_only"
+        ZERO_DISCHARGE_ONLY = "zero_discharge_only"
+
+    class Permissions(StrEnum):
+        """Device permission allocations."""
+
+        CHARGE_ALLOWED = "charge_allowed"
+        DISCHARGE_ALLOWED = "discharge_allowed"
 
     mode: Mode = field(
         metadata={
             "deserialize": lambda x: Batteries.Mode.__members__.get(x.upper(), None)
+        },
+    )
+    permissions: list[Permissions] = field(
+        default_factory=list,
+        metadata={
+            "deserialize": lambda lst: [
+                perm
+                for item in lst
+                if (perm := Batteries.Permissions.__members__.get(item.upper(), None))
+                is not None
+            ]
         },
     )
     power_w: float = field()
@@ -632,6 +698,25 @@ class Batteries(BaseModel):
     max_consumption_w: float = field()
     max_production_w: float = field()
     battery_count: int | None = field(default=None)
+
+    @classmethod
+    def __post_deserialize__(cls, obj: Batteries) -> Batteries:
+        """Set correct mode based on permissions after deserialization."""
+        # Only adjust if mode is ZERO
+        if obj.mode == cls.Mode.ZERO:
+            perms = set(obj.permissions)
+            if perms == {cls.Permissions.CHARGE_ALLOWED}:
+                obj.mode = cls.Mode.ZERO_CHARGE_ONLY
+            elif perms == {cls.Permissions.DISCHARGE_ALLOWED}:
+                obj.mode = cls.Mode.ZERO_DISCHARGE_ONLY
+            elif perms == {
+                cls.Permissions.CHARGE_ALLOWED,
+                cls.Permissions.DISCHARGE_ALLOWED,
+            }:
+                obj.mode = cls.Mode.ZERO
+            elif perms == set():
+                obj.mode = cls.Mode.STANDBY
+        return obj
 
 
 @dataclass(kw_only=True)

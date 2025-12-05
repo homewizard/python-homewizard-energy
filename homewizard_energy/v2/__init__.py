@@ -159,9 +159,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         try:
             if mode is not None:
-                data = BatteriesUpdate(
-                    mode=mode,
-                ).to_dict()
+                data = BatteriesUpdate.from_mode(mode).to_dict()
                 status, response = await self._request(
                     "/api/batteries", method=METH_PUT, data=data
                 )
