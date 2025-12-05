@@ -609,7 +609,46 @@ class BatteriesUpdate(UpdateBaseModel):
     """Represent Batteries update config."""
 
     mode: Batteries.Mode | None = field(default=None)
-    permissions: list[Batteries.Permissions] = field(default_factory=list)
+    permissions: list[Batteries.Permissions] | None = field(default=None)
+
+    @staticmethod
+    def from_mode(
+        mode: Batteries.Mode,
+    ) -> BatteriesUpdate:
+        """Convert userfacing mode to API mode.
+        Args:
+            mode: Userfacing mode to convert.
+        Returns:
+            BatteriesUpdate object with API mode and permissions.
+        """
+
+        match mode:
+            case Batteries.Mode.ZERO:
+                return BatteriesUpdate(
+                    mode=Batteries.Mode.ZERO,
+                    permissions=[
+                        Batteries.Permissions.CHARGE_ALLOWED,
+                        Batteries.Permissions.DISCHARGE_ALLOWED,
+                    ],
+                )
+            case Batteries.Mode.ZERO_CHARGE_ONLY:
+                return BatteriesUpdate(
+                    mode=Batteries.Mode.ZERO,
+                    permissions=[
+                        Batteries.Permissions.CHARGE_ALLOWED,
+                    ],
+                )
+            case Batteries.Mode.ZERO_DISCHARGE_ONLY:
+                return BatteriesUpdate(
+                    mode=Batteries.Mode.ZERO,
+                    permissions=[
+                        Batteries.Permissions.DISCHARGE_ALLOWED,
+                    ],
+                )
+            case Batteries.Mode.TO_FULL:
+                return BatteriesUpdate(mode=Batteries.Mode.TO_FULL)
+            case Batteries.Mode.STANDBY:
+                return BatteriesUpdate(mode=Batteries.Mode.STANDBY, permissions=[])
 
 
 @dataclass(kw_only=True)
@@ -619,25 +658,15 @@ class Batteries(BaseModel):
     class Mode(StrEnum):
         """Device type allocations.
 
-        This is the list of modes supported by the API.
-        """
-
-        ZERO = "zero"
-        TO_FULL = "to_full"
-        STANDBY = "standby"
-
-    class UserfacingMode(StrEnum):
-        """Device type allocations.
-
         This is the list of modes shown to the user. 'zero_charge_only' and 'zero_discharge_only' are
         mapped to 'zero' in the API via the Permissions parameter
         """
 
         ZERO = "zero"
-        ZERO_CHARGE_ONLY = "zero_charge_only"
-        ZERO_DISCHARGE_ONLY = "zero_discharge_only"
         TO_FULL = "to_full"
         STANDBY = "standby"
+        ZERO_CHARGE_ONLY = "zero_charge_only"
+        ZERO_DISCHARGE_ONLY = "zero_discharge_only"
 
     class Permissions(StrEnum):
         """Device permission allocations."""

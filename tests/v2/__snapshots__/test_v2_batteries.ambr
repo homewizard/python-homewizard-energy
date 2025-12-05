@@ -1,31 +1,16 @@
 # serializer version: 1
-# name: test_batteries[HWE-KWH1-fixtures1]
-  Batteries(mode=<Mode.ZERO: 'zero'>, permissions=[], power_w=-404.0, target_power_w=-400.0, max_consumption_w=1600.0, max_production_w=800.0, battery_count=2)
-# ---
-# name: test_batteries[HWE-KWH3-fixtures2]
-  Batteries(mode=<Mode.ZERO: 'zero'>, permissions=[], power_w=-404.0, target_power_w=-400.0, max_consumption_w=1600.0, max_production_w=800.0, battery_count=2)
-# ---
-# name: test_batteries[HWE-P1-fixtures0]
-  Batteries(mode=<Mode.ZERO: 'zero'>, permissions=[], power_w=-404.0, target_power_w=-400.0, max_consumption_w=1600.0, max_production_w=800.0, battery_count=2)
-# ---
 # name: test_batteries_update[standby]
   dict({
     'mode': 'standby',
-    'permissions': list([
-    ]),
   })
 # ---
 # name: test_batteries_update[to_full]
   dict({
     'mode': 'to_full',
-    'permissions': list([
-    ]),
   })
 # ---
 # name: test_batteries_update[zero]
   dict({
     'mode': 'zero',
-    'permissions': list([
-    ]),
   })
 # ---
