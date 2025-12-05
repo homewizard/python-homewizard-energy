@@ -650,8 +650,8 @@ class BatteriesUpdate(UpdateBaseModel):
                 return BatteriesUpdate(mode=Batteries.Mode.TO_FULL)
             case Batteries.Mode.STANDBY:
                 return BatteriesUpdate(mode=Batteries.Mode.STANDBY, permissions=[])
-            case _:
-                raise ValueError(f"Unsupported Batteries.Mode: {mode!r}")
+
+        raise ValueError(f"Unsupported Batteries.Mode: {mode!r}")
 
 
 @dataclass(kw_only=True)

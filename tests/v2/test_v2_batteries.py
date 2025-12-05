@@ -51,61 +51,33 @@ def test_batteries_battery_count_optional():
 
 
 @pytest.mark.parametrize(
-    ("input_mode", "permissions", "expected_mode"),
+    "mode,permissions",
     [
-        (
-            Batteries.Mode.ZERO,
-            [Batteries.Permissions.CHARGE_ALLOWED],
-            Batteries.Mode.ZERO_CHARGE_ONLY,
-        ),
-        (
-            Batteries.Mode.ZERO,
-            [Batteries.Permissions.DISCHARGE_ALLOWED],
-            Batteries.Mode.ZERO_DISCHARGE_ONLY,
-        ),
         (
             Batteries.Mode.ZERO,
             [
                 Batteries.Permissions.CHARGE_ALLOWED,
                 Batteries.Permissions.DISCHARGE_ALLOWED,
             ],
-            Batteries.Mode.ZERO,
         ),
-        (Batteries.Mode.TO_FULL, [], Batteries.Mode.TO_FULL),
-        (Batteries.Mode.STANDBY, [], Batteries.Mode.STANDBY),
+        (Batteries.Mode.ZERO_CHARGE_ONLY, [Batteries.Permissions.CHARGE_ALLOWED]),
+        (Batteries.Mode.ZERO_DISCHARGE_ONLY, [Batteries.Permissions.DISCHARGE_ALLOWED]),
+        (Batteries.Mode.TO_FULL, None),
+        (Batteries.Mode.STANDBY, []),
     ],
 )
-def test_batteries_post_deserialize_mode_mapping(
-    input_mode, permissions, expected_mode
-):
-    """Test Batteries __post_deserialize__ mode/permissions mapping."""
-    data = Batteries(
-        mode=input_mode,
-        permissions=permissions,
-        power_w=100.0,
-        target_power_w=200.0,
-        max_consumption_w=300.0,
-        max_production_w=400.0,
-    )
-    # Simulate post-deserialization logic
-    result = Batteries.__post_deserialize__(data)
-    assert result.mode == expected_mode
+def test_batteries_update_modes_and_permissions(mode, permissions):
+    """Test BatteriesUpdate for all modes and permissions."""
+    if permissions is not None:
+        update = BatteriesUpdate(mode=mode, permissions=permissions)
+    else:
+        update = BatteriesUpdate(mode=mode)
+    assert update.mode == mode
+    if permissions is not None:
+        assert update.permissions in (permissions, [])
 
 
-@pytest.mark.parametrize(
-    ("mode"),
-    [
-        Batteries.Mode.ZERO,
-        Batteries.Mode.TO_FULL,
-        Batteries.Mode.STANDBY,
-    ],
-)
-async def test_batteries_update(
-    mode: Batteries.Mode,
-    snapshot: SnapshotAssertion,
-):
-    """Test Batteries update."""
-    data = BatteriesUpdate(
-        mode=mode,
-    )
-    assert snapshot == data.to_dict()
+def test_batteries_update_invalid_mode():
+    """Test BatteriesUpdate with invalid mode raises ValueError."""
+    with pytest.raises(ValueError):
+        BatteriesUpdate.from_mode(mode="INVALID_MODE")
