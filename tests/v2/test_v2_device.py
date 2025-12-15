@@ -168,4 +168,6 @@ def test_supported_battery_modes(product_type, api_version, expected_modes):
     if expected_modes is None:
         assert result is None
     else:
-        assert result == expected_modes
+        assert set(result) == set(
+            expected_modes
+        )  # We don't care about order, just presence

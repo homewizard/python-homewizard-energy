@@ -192,9 +192,9 @@ class Device(BaseModel):
             return None
 
         modes = [
-            Batteries.Mode.ZERO,
-            Batteries.Mode.TO_FULL,
             Batteries.Mode.STANDBY,
+            Batteries.Mode.TO_FULL,
+            Batteries.Mode.ZERO,
         ]
 
         if self.api_version >= AwesomeVersion("2.2.0"):
