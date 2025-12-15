@@ -3,9 +3,11 @@
 import json
 
 import pytest
+from awesomeversion import AwesomeVersion
 from syrupy.assertion import SnapshotAssertion
 
-from homewizard_energy.models import Device
+from homewizard_energy.const import Model
+from homewizard_energy.models import Batteries, Device
 
 from . import load_fixtures
 
@@ -62,3 +64,108 @@ async def test_device_support_functions(
     assert device.supports_cloud_enable() == supports_cloud_enable
     assert device.supports_reboot() == supports_reboot
     assert device.supports_telegram() == supports_telegram
+
+
+@pytest.mark.parametrize(
+    "product_type,api_version,expected_modes",
+    [  # Devices that do not support batteries
+        (Model.ENERGY_SOCKET, "2.2.0", None),
+        (Model.WATER_METER, "2.2.0", None),
+        # Devices that support batteries, API < 2.2.0
+        (
+            Model.P1_METER,
+            "2.1.0",
+            [Batteries.Mode.ZERO, Batteries.Mode.TO_FULL, Batteries.Mode.STANDBY],
+        ),
+        (
+            Model.ENERGY_METER_1_PHASE,
+            "2.1.0",
+            [Batteries.Mode.ZERO, Batteries.Mode.TO_FULL, Batteries.Mode.STANDBY],
+        ),
+        (
+            Model.ENERGY_METER_3_PHASE,
+            "2.1.0",
+            [Batteries.Mode.ZERO, Batteries.Mode.TO_FULL, Batteries.Mode.STANDBY],
+        ),
+        (
+            Model.ENERGY_METER_EASTRON_SDM230,
+            "2.1.0",
+            [Batteries.Mode.ZERO, Batteries.Mode.TO_FULL, Batteries.Mode.STANDBY],
+        ),
+        (
+            Model.ENERGY_METER_EASTRON_SDM630,
+            "2.1.0",
+            [Batteries.Mode.ZERO, Batteries.Mode.TO_FULL, Batteries.Mode.STANDBY],
+        ),
+        # Devices that support batteries, API >= 2.2.0
+        (
+            Model.P1_METER,
+            "2.2.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_1_PHASE,
+            "2.2.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_3_PHASE,
+            "2.2.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_EASTRON_SDM230,
+            "2.2.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_EASTRON_SDM630,
+            "2.2.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            ],
+        ),
+    ],
+)
+def test_supported_battery_modes(product_type, api_version, expected_modes):
+    """Test supported_battery_modes method of Device."""
+    device = Device(
+        product_name="Test Device",
+        product_type=product_type,
+        serial="1234567890",
+        api_version=AwesomeVersion(api_version),
+        firmware_version="1.0.0",
+    )
+    result = device.supported_battery_modes()
+    if expected_modes is None:
+        assert result is None
+    else:
+        assert result == expected_modes

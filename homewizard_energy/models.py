@@ -186,6 +186,25 @@ class Device(BaseModel):
             Model.ENERGY_METER_EASTRON_SDM630,
         )
 
+    def supported_battery_modes(self) -> list[Batteries.Mode] | None:
+        """Return list of supported battery modes."""
+        if not self.supports_batteries():
+            return None
+
+        modes = [
+            Batteries.Mode.ZERO,
+            Batteries.Mode.TO_FULL,
+            Batteries.Mode.STANDBY,
+        ]
+
+        if self.api_version >= AwesomeVersion("2.2.0"):
+            modes += [
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+            ]
+
+        return modes
+
 
 @dataclass(kw_only=True)
 class Measurement(BaseModel):
