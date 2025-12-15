@@ -137,7 +137,7 @@ class HomeWizardEnergy:
         LOGGER.debug("Creating clientsession")
 
         if self._session is not None:
-            raise RuntimeError("Session already exists")
+            raise RuntimeError("Session already exists")  # pragma: no cover
 
         connector = TCPConnector(
             enable_cleanup_closed=True,
