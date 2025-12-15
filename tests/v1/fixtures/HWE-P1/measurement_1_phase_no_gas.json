@@ -1,0 +1,12 @@
+{
+    "protocol_version": 50,
+    "meter_model": "ISKRA  2M550T-101",
+    "unique_id": "4E6576657220476F6E6E61204769766520596F75205570",
+    "timestamp": "2024-06-28T14:12:34",
+    "energy_import_t1_kwh": 10830.511,
+    "energy_import_t2_kwh": 2948.827,
+    "energy_export_t1_kwh": 1285.951,
+    "energy_export_t2_kwh": 2876.51,
+    "power_w": -678,
+    "power_l1_w": -676
+ }
