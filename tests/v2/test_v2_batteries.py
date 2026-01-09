@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.asyncio]
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [
-        ("HWE-P1", ["batteries"]),
+        ("HWE-P1", ["batteries_2_1_0", "batteries_2_2_0"]),
         ("HWE-KWH1", ["batteries"]),
         ("HWE-KWH3", ["batteries"]),
     ],
