@@ -6,5 +6,8 @@
   Batteries(mode=<Mode.ZERO: 'zero'>, permissions=[<Permissions.CHARGE_ALLOWED: 'charge_allowed'>, <Permissions.DISCHARGE_ALLOWED: 'discharge_allowed'>], power_w=-404.0, target_power_w=-400.0, max_consumption_w=1600.0, max_production_w=800.0, battery_count=2)
 # ---
 # name: test_batteries[HWE-P1-fixtures0]
+  Batteries(mode=<Mode.ZERO: 'zero'>, permissions=None, power_w=-404.0, target_power_w=-400.0, max_consumption_w=1600.0, max_production_w=800.0, battery_count=None)
+# ---
+# name: test_batteries[HWE-P1-fixtures0].1
   Batteries(mode=<Mode.ZERO: 'zero'>, permissions=[<Permissions.CHARGE_ALLOWED: 'charge_allowed'>, <Permissions.DISCHARGE_ALLOWED: 'discharge_allowed'>], power_w=-404.0, target_power_w=-400.0, max_consumption_w=1600.0, max_production_w=800.0, battery_count=2)
 # ---

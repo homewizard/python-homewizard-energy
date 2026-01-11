@@ -701,8 +701,8 @@ class Batteries(BaseModel):
             "deserialize": lambda x: Batteries.Mode.__members__.get(x.upper(), None)
         },
     )
-    permissions: list[Permissions] = field(
-        default_factory=list,
+    permissions: list[Permissions] | None = field(
+        default=None,
         metadata={
             "deserialize": lambda lst: [
                 perm
@@ -710,6 +710,8 @@ class Batteries(BaseModel):
                 if (perm := Batteries.Permissions.__members__.get(item.upper(), None))
                 is not None
             ]
+            if lst is not None
+            else None
         },
     )
     power_w: float = field()
@@ -720,21 +722,34 @@ class Batteries(BaseModel):
 
     @classmethod
     def __post_deserialize__(cls, obj: Batteries) -> Batteries:
-        """Set correct mode based on permissions after deserialization."""
+        """Set correct mode based on permissions after deserialization.
+        If permissions is missing and mode is ZERO, keep mode as ZERO for backwards compatibility.
+        If permissions is present (even if empty), apply the mapping logic.
+        """
         # Only adjust if mode is ZERO
-        if obj.mode == cls.Mode.ZERO:
-            perms = set(obj.permissions)
-            if perms == {cls.Permissions.CHARGE_ALLOWED}:
-                obj.mode = cls.Mode.ZERO_CHARGE_ONLY
-            elif perms == {cls.Permissions.DISCHARGE_ALLOWED}:
-                obj.mode = cls.Mode.ZERO_DISCHARGE_ONLY
-            elif perms == {
-                cls.Permissions.CHARGE_ALLOWED,
-                cls.Permissions.DISCHARGE_ALLOWED,
-            }:
-                obj.mode = cls.Mode.ZERO
-            elif perms == set():
-                obj.mode = cls.Mode.STANDBY
+        if obj.mode != cls.Mode.ZERO:
+            return obj
+
+        # Detect if 'permissions' was present in the original data
+        # If using mashumaro, the original dict is not available here, so we infer:
+        # If permissions is None, treat as 'not provided'. If it's an empty list, treat as 'provided but empty'.
+        if obj.permissions is None:
+            # Permissions not provided, keep mode as ZERO (backwards compatibility)
+            return obj
+
+        perms = set(obj.permissions)
+        if perms == {cls.Permissions.CHARGE_ALLOWED}:
+            obj.mode = cls.Mode.ZERO_CHARGE_ONLY
+        elif perms == {cls.Permissions.DISCHARGE_ALLOWED}:
+            obj.mode = cls.Mode.ZERO_DISCHARGE_ONLY
+        elif perms == {
+            cls.Permissions.CHARGE_ALLOWED,
+            cls.Permissions.DISCHARGE_ALLOWED,
+        }:
+            obj.mode = cls.Mode.ZERO
+        elif perms == set():
+            obj.mode = cls.Mode.STANDBY
+
         return obj
 
 
