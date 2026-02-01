@@ -78,7 +78,7 @@ jobs:
           echo "::set-output name=dir::$(pip cache dir)"
 
       - name: Restore cached Python PIP packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: pip-${{ runner.os }}-v1-${{ steps.python.outputs.python-version }}-${{ hashFiles('.github/workflows/requirements.txt') }}
@@ -93,7 +93,7 @@ jobs:
 
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: >-

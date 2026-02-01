@@ -45,7 +45,7 @@ jobs:
         run: poetry run pytest --cov homewizard_energy tests
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.python }}-${{ matrix.os }}
           include-hidden-files: true
@@ -61,7 +61,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download coverage data
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
 
       - name: 🏗 Set up Poetry
         run: pipx install poetry
@@ -81,7 +81,7 @@ jobs:
 
       - name: Restore cached Python virtual environment
         id: cached-poetry-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .venv
           key: >-
@@ -97,7 +97,7 @@ jobs:
           poetry run coverage xml -i
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v5.5.1
+        uses: codecov/codecov-action@v5.5.2
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
