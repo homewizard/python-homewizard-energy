@@ -53,6 +53,32 @@ async def main():
 asyncio.run(main())
 ```
 
+### API v2 WebSocket (real-time updates)
+```python
+import asyncio
+from homewizard_energy import HomeWizardEnergyV2, WebSocketTopic
+
+IP_ADDRESS = "192.168.1.123"
+TOKEN = "your-token"
+
+
+async def main():
+    async with HomeWizardEnergyV2(host=IP_ADDRESS, token=TOKEN) as api:
+        async with api.websocket() as ws:
+            await ws.subscribe(WebSocketTopic.MEASUREMENT)
+
+            # Typed stream: known topics map to existing models
+            # (Measurement, Device, System, Batteries)
+            async for event in ws.events_typed(reconnect=True):
+                if event.type == WebSocketTopic.MEASUREMENT:
+                    print(event.data.power_w)
+
+
+asyncio.run(main())
+```
+
+If you prefer raw payloads, you can still use `ws.events()` / `ws.receive()`.
+
 # Development and contribution
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
