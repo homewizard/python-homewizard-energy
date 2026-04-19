@@ -9,7 +9,6 @@ from collections.abc import Callable, Coroutine
 from http import HTTPStatus
 from typing import Any, TypeVar
 
-import async_timeout
 import backoff
 from aiohttp.client import ClientError, ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_POST, METH_PUT
@@ -287,7 +286,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         LOGGER.debug("%s, %s, %s", method, url, data)
 
         try:
-            async with async_timeout.timeout(self._request_timeout):
+            async with asyncio.timeout(self._request_timeout):
                 async with self._lock:
                     resp = await self._session.request(
                         method,
@@ -298,7 +297,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                         server_hostname=self._identifier,
                     )
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
-        except asyncio.TimeoutError as exception:
+        except TimeoutError as exception:
             raise RequestError(
                 f"Timeout occurred while connecting to the HomeWizard Energy device at {self.host}"
             ) from exception
