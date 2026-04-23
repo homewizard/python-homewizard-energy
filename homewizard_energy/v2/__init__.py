@@ -36,6 +36,7 @@ from ..models import (
     Token,
 )
 from .cacert import CACERT
+from .websocket import HomeWizardEnergyWebSocket
 
 T = TypeVar("T")
 
@@ -319,6 +320,20 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                 pass
 
         return (resp.status, await resp.text())
+
+    def websocket(self) -> HomeWizardEnergyWebSocket:
+        """Create a websocket client for this device.
+
+        Note: The websocket shares this API client's session when available.
+        Keep the parent client/session open while the websocket is active.
+        """
+        return HomeWizardEnergyWebSocket(
+            host=self._host,
+            token=self._token,
+            identifier=self._identifier,
+            clientsession=self._session,
+            timeout=self._request_timeout,
+        )
 
     async def __aenter__(self) -> HomeWizardEnergyV2:
         """Async enter.
