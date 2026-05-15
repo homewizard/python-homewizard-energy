@@ -6,12 +6,20 @@ from .errors import DisabledError, InvalidStateError, RequestError, UnsupportedE
 from .homewizard_energy import HomeWizardEnergy
 from .v1 import HomeWizardEnergyV1
 from .v2 import HomeWizardEnergyV2
+from .v2.websocket import (
+    HomeWizardEnergyWebSocket,
+    HomeWizardEnergyWebSocketEvent,
+    WebSocketTopic,
+)
 
 __all__ = [
     "DisabledError",
     "HomeWizardEnergy",
     "HomeWizardEnergyV1",
     "HomeWizardEnergyV2",
+    "HomeWizardEnergyWebSocket",
+    "HomeWizardEnergyWebSocketEvent",
+    "WebSocketTopic",
     "InvalidStateError",
     "RequestError",
     "UnsupportedError",

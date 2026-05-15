@@ -704,14 +704,20 @@ class Batteries(BaseModel):
     permissions: list[Permissions] | None = field(
         default=None,
         metadata={
-            "deserialize": lambda lst: [
-                perm
-                for item in lst
-                if (perm := Batteries.Permissions.__members__.get(item.upper(), None))
-                is not None
-            ]
-            if lst is not None
-            else None
+            "deserialize": lambda lst: (
+                [
+                    perm
+                    for item in lst
+                    if (
+                        perm := Batteries.Permissions.__members__.get(
+                            item.upper(), None
+                        )
+                    )
+                    is not None
+                ]
+                if lst is not None
+                else None
+            )
         },
     )
     power_w: float = field()
