@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.asyncio]
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [
-        ("HWE-P1", ["batteries_2_1_0", "batteries_2_2_0"]),
+        ("HWE-P1", ["batteries_2_1_0", "batteries_2_2_0", "batteries_2_3_0"]),
         ("HWE-KWH1", ["batteries"]),
         ("HWE-KWH3", ["batteries"]),
     ],
@@ -72,6 +72,7 @@ def test_batteries_battery_count_optional():
             [Batteries.Permissions.DISCHARGE_ALLOWED],
         ),
         (Batteries.Mode.TO_FULL, Batteries.Mode.TO_FULL, None),
+        (Batteries.Mode.PREDICTIVE, Batteries.Mode.PREDICTIVE, None),
         (Batteries.Mode.STANDBY, Batteries.Mode.STANDBY, []),
     ],
 )
@@ -111,6 +112,7 @@ def test_batteries_update_modes_and_permissions(
         (Batteries.Mode.TO_FULL, [], Batteries.Mode.TO_FULL),
         (Batteries.Mode.ZERO, None, Batteries.Mode.ZERO),
         (Batteries.Mode.STANDBY, None, Batteries.Mode.STANDBY),
+        (Batteries.Mode.PREDICTIVE, None, Batteries.Mode.PREDICTIVE),
         (Batteries.Mode.TO_FULL, None, Batteries.Mode.TO_FULL),
     ],
 )
@@ -127,6 +129,40 @@ def test_set_mode_based_on_permissions(mode, permissions, expected_mode):
         }
     )
     assert model.mode == expected_mode
+
+
+@pytest.mark.parametrize(
+    "permissions",
+    [
+        ([]),
+        ([Batteries.Permissions.DISCHARGE_ALLOWED]),
+        (
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+            ]
+        ),
+        (
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+                Batteries.Permissions.DISCHARGE_ALLOWED,
+            ]
+        ),
+    ],
+)
+def test_predictive_mode_with_various_permissions(permissions):
+    """Test setting Batteries mode to PREDICTIVE with various permissions."""
+    model = Batteries.from_dict(
+        {
+            "mode": "predictive",
+            "permissions": permissions,
+            "power_w": 0.0,
+            "target_power_w": 0.0,
+            "max_consumption_w": 0.0,
+            "max_production_w": 0.0,
+        }
+    )
+    assert model.mode == Batteries.Mode.PREDICTIVE
+    assert model.permissions == permissions
 
 
 def test_set_batteries_update_with_invalid_permissions_raises():

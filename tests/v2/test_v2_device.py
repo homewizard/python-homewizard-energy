@@ -153,6 +153,66 @@ async def test_device_support_functions(
                 Batteries.Mode.ZERO_DISCHARGE_ONLY,
             ],
         ),
+        (
+            Model.P1_METER,
+            "2.3.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+                Batteries.Mode.PREDICTIVE,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_1_PHASE,
+            "2.3.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+                Batteries.Mode.PREDICTIVE,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_3_PHASE,
+            "2.3.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+                Batteries.Mode.PREDICTIVE,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_EASTRON_SDM230,
+            "2.3.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+                Batteries.Mode.PREDICTIVE,
+            ],
+        ),
+        (
+            Model.ENERGY_METER_EASTRON_SDM630,
+            "2.3.0",
+            [
+                Batteries.Mode.ZERO,
+                Batteries.Mode.TO_FULL,
+                Batteries.Mode.STANDBY,
+                Batteries.Mode.ZERO_CHARGE_ONLY,
+                Batteries.Mode.ZERO_DISCHARGE_ONLY,
+                Batteries.Mode.PREDICTIVE,
+            ],
+        ),
     ],
 )
 def test_supported_battery_modes(product_type, api_version, expected_modes):
