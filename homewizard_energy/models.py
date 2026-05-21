@@ -203,6 +203,9 @@ class Device(BaseModel):
                 Batteries.Mode.ZERO_DISCHARGE_ONLY,
             ]
 
+        if self.api_version >= AwesomeVersion("2.3.0"):
+            modes += [Batteries.Mode.PREDICTIVE]
+
         return modes
 
 
