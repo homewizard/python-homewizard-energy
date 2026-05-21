@@ -131,6 +131,40 @@ def test_set_mode_based_on_permissions(mode, permissions, expected_mode):
     assert model.mode == expected_mode
 
 
+@pytest.mark.parametrize(
+    "permissions",
+    [
+        ([]),
+        ([Batteries.Permissions.DISCHARGE_ALLOWED]),
+        (
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+            ]
+        ),
+        (
+            [
+                Batteries.Permissions.CHARGE_ALLOWED,
+                Batteries.Permissions.DISCHARGE_ALLOWED,
+            ]
+        ),
+    ],
+)
+def test_predictive_mode_with_various_permissions(permissions):
+    """Test setting Batteries mode to PREDICTIVE with various permissions."""
+    model = Batteries.from_dict(
+        {
+            "mode": "predictive",
+            "permissions": permissions,
+            "power_w": 0.0,
+            "target_power_w": 0.0,
+            "max_consumption_w": 0.0,
+            "max_production_w": 0.0,
+        }
+    )
+    assert model.mode == Batteries.Mode.PREDICTIVE
+    assert model.permissions == permissions
+
+
 def test_set_batteries_update_with_invalid_permissions_raises():
     """Test BatteriesUpdate with invalid permissions raises ValueError."""
     with pytest.raises(ValueError):
