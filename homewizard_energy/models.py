@@ -667,6 +667,8 @@ class BatteriesUpdate(UpdateBaseModel):
                 )
             case Batteries.Mode.TO_FULL:
                 return BatteriesUpdate(mode=Batteries.Mode.TO_FULL)
+            case Batteries.Mode.PREDICTIVE:
+                return BatteriesUpdate(mode=Batteries.Mode.PREDICTIVE)
             case Batteries.Mode.STANDBY:
                 return BatteriesUpdate(mode=Batteries.Mode.STANDBY, permissions=[])
 
@@ -686,6 +688,7 @@ class Batteries(BaseModel):
 
         ZERO = "zero"
         TO_FULL = "to_full"
+        PREDICTIVE = "predictive"
         STANDBY = "standby"
         ZERO_CHARGE_ONLY = "zero_charge_only"
         ZERO_DISCHARGE_ONLY = "zero_discharge_only"

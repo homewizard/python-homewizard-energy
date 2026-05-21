@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.asyncio]
 @pytest.mark.parametrize(
     ("model", "fixtures"),
     [
-        ("HWE-P1", ["batteries_2_1_0", "batteries_2_2_0"]),
+        ("HWE-P1", ["batteries_2_1_0", "batteries_2_2_0", "batteries_2_3_0"]),
         ("HWE-KWH1", ["batteries"]),
         ("HWE-KWH3", ["batteries"]),
     ],
@@ -72,6 +72,7 @@ def test_batteries_battery_count_optional():
             [Batteries.Permissions.DISCHARGE_ALLOWED],
         ),
         (Batteries.Mode.TO_FULL, Batteries.Mode.TO_FULL, None),
+        (Batteries.Mode.PREDICTIVE, Batteries.Mode.PREDICTIVE, None),
         (Batteries.Mode.STANDBY, Batteries.Mode.STANDBY, []),
     ],
 )
@@ -111,6 +112,7 @@ def test_batteries_update_modes_and_permissions(
         (Batteries.Mode.TO_FULL, [], Batteries.Mode.TO_FULL),
         (Batteries.Mode.ZERO, None, Batteries.Mode.ZERO),
         (Batteries.Mode.STANDBY, None, Batteries.Mode.STANDBY),
+        (Batteries.Mode.PREDICTIVE, None, Batteries.Mode.PREDICTIVE),
         (Batteries.Mode.TO_FULL, None, Batteries.Mode.TO_FULL),
     ],
 )
