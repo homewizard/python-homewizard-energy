@@ -33,13 +33,13 @@ MODEL_TO_ID = {
 }
 
 MODEL_TO_NAME = {
-    Model.P1_METER: "Wi-Fi P1 Meter",
-    Model.ENERGY_SOCKET: "Wi-Fi Energy Socket",
-    Model.WATER_METER: "Wi-Fi Watermeter",
+    Model.P1_METER: "P1 Meter",
+    Model.ENERGY_SOCKET: "Energy Socket",
+    Model.WATER_METER: "Watermeter",
     Model.DISPLAY: "Energy Display",
-    Model.ENERGY_METER_1_PHASE: "Wi-Fi kWh Meter 1-phase",
-    Model.ENERGY_METER_3_PHASE: "Wi-Fi kWh Meter 3-phase",
-    Model.ENERGY_METER_EASTRON_SDM230: "Wi-Fi kWh Meter 1-phase",
-    Model.ENERGY_METER_EASTRON_SDM630: "Wi-Fi kWh Meter 3-phase",
+    Model.ENERGY_METER_1_PHASE: "kWh Meter 1-phase",
+    Model.ENERGY_METER_3_PHASE: "kWh Meter 3-phase",
+    Model.ENERGY_METER_EASTRON_SDM230: "kWh Meter 1-phase",
+    Model.ENERGY_METER_EASTRON_SDM630: "kWh Meter 3-phase",
     Model.BATTERY: "Plug-In Battery",
 }
