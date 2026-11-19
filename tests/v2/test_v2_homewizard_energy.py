@@ -14,6 +14,7 @@ from homewizard_energy.errors import (
     RequestError,
     ResponseError,
     UnauthorizedError,
+    UnsupportedError,
 )
 from homewizard_energy.models import Batteries
 
@@ -82,6 +83,7 @@ async def test_combined_models_with_invalid_authentication(aresponses):
         ("HWE-KWH1", "device", "measurement", None, "system", "batteries"),
         ("HWE-KWH3", "device", "measurement", None, "system", "batteries"),
         ("HWE-BAT", "device", "measurement", None, "system", None),
+        ("HWE-SKT", "device", "measurement", None, "system", None),
     ],
 )
 async def test_combined_models_with_valid_authentication(
@@ -167,6 +169,7 @@ async def test_combined_models_with_valid_authentication(
         ("HWE-KWH1", "device", "measurement", None, "system", "batteries"),
         ("HWE-KWH3", "device", "measurement", None, "system", "batteries"),
         ("HWE-BAT", "device", "measurement", None, "system", None),
+        ("HWE-SKT", "device", "measurement", None, "system", None),
     ],
 )
 async def test_combined_models_with_valid_authentication_caches_device(
@@ -570,6 +573,7 @@ async def test_system_with_invalid_authentication(aresponses):
     ("model", "fixtures"),
     [
         ("HWE-P1", ["system"]),
+        ("HWE-SKT", ["system"]),
     ],
 )
 async def test_system_with_valid_authentication(
@@ -633,6 +637,86 @@ async def test_system_returns_unexpected_response(aresponses):
         with pytest.raises(RequestError) as e:
             await api.system()
             assert str(e.value) == "server:error"
+
+
+@pytest.mark.parametrize(
+    ("power_on", "switch_lock"),
+    [
+        (True, None),
+        (False, None),
+        (None, True),
+        (False, False),
+    ],
+)
+async def test_system_set_power_on_and_switch_lock(
+    power_on: bool | None, switch_lock: bool | None, aresponses
+):
+    """Test power_on and switch_lock are sent to the system endpoint."""
+
+    received: dict = {}
+
+    async def handler(request):
+        received.update(await request.json())
+        return aresponses.Response(
+            status=200,
+            headers={"Content-Type": "application/json"},
+            text=load_fixtures("HWE-SKT/system.json"),
+        )
+
+    aresponses.add("example.com", "/api/system", "PUT", handler)
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        data = await api.system(power_on=power_on, switch_lock=switch_lock)
+        assert data is not None
+        assert data.power_on is True
+        assert data.switch_lock is False
+
+    expected = {}
+    if power_on is not None:
+        expected["power_on"] = power_on
+    if switch_lock is not None:
+        expected["switch_lock"] = switch_lock
+    assert received == expected
+
+
+@pytest.mark.parametrize(
+    ("model", "power_on", "switch_lock"),
+    [
+        ("HWE-P1", True, None),
+        ("HWE-KWH1", None, True),
+        ("HWE-KWH3", True, None),
+        ("HWE-BAT", None, False),
+    ],
+)
+async def test_system_set_power_on_not_supported_with_cached_device(
+    model: str, power_on: bool | None, switch_lock: bool | None, aresponses
+):
+    """Test setting power_on or switch_lock raises when device has no switch."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        ),
+    )
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        await api.device()
+
+        with pytest.raises(UnsupportedError):
+            await api.system(power_on=power_on, switch_lock=switch_lock)
+
+
+async def test_state_is_not_supported():
+    """Test state endpoint is not available in v2, power state is in system."""
+
+    async with HomeWizardEnergyV2("example.com", token="token") as api:
+        with pytest.raises(UnsupportedError):
+            await api.state()
 
 
 ### Batteries tests ###

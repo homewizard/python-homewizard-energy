@@ -27,6 +27,7 @@ pytestmark = [pytest.mark.asyncio]
         ("HWE-KWH1", ["measurement"]),
         ("HWE-KWH3", ["measurement"]),
         ("HWE-BAT", ["measurement"]),
+        ("HWE-SKT", ["measurement"]),
     ],
 )
 async def test_measurement(model: str, fixtures: str, snapshot: SnapshotAssertion):

@@ -11,3 +11,6 @@
 # name: test_device[HWE-P1-fixtures0]
   Device(model_name='P1 Meter', id='appliance/p1dongle/5c2fafaabbcc', product_name='P1 Meter', product_type='HWE-P1', serial='5c2fafaabbcc', api_version=<AwesomeVersion SemVer '2.0.0'>, firmware_version='6.00')
 # ---
+# name: test_device[HWE-SKT-fixtures4]
+  Device(model_name='Energy Socket', id='appliance/energysocket/3c39e7aabbcc', product_name='Energy Socket', product_type='HWE-SKT', serial='3c39e7aabbcc', api_version=<AwesomeVersion SemVer '2.3.1'>, firmware_version='5.00')
+# ---

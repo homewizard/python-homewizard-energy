@@ -22,6 +22,7 @@ pytestmark = [pytest.mark.asyncio]
         ("HWE-KWH1", ["device"]),
         ("HWE-KWH3", ["device"]),
         ("HWE-BAT", ["device"]),
+        ("HWE-SKT", ["device"]),
     ],
 )
 async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):

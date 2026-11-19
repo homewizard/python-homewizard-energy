@@ -19,6 +19,7 @@ pytestmark = [pytest.mark.asyncio]
         ("HWE-KWH1", ["system"]),
         ("HWE-KWH3", ["system"]),
         ("HWE-BAT", ["system"]),
+        ("HWE-SKT", ["system"]),
     ],
 )
 async def test_system(model: str, fixtures: str, snapshot: SnapshotAssertion):
@@ -53,6 +54,24 @@ async def test_system_update(
         status_led_brightness_pct=status_led_brightness_pct,
         api_v1_enabled=api_v1_enabled,
     )
+    assert snapshot == data.to_dict()
+
+
+@pytest.mark.parametrize(
+    ("power_on", "switch_lock"),
+    [
+        (True, None),
+        (None, False),
+        (False, False),
+    ],
+)
+async def test_system_update_power_on_and_switch_lock(
+    power_on: bool | None,
+    switch_lock: bool | None,
+    snapshot: SnapshotAssertion,
+):
+    """Test System update with Energy Socket fields."""
+    data = SystemUpdate(power_on=power_on, switch_lock=switch_lock)
     assert snapshot == data.to_dict()
 
 

@@ -91,11 +91,14 @@ class HomeWizardEnergy:
         """Get the latest telegram."""
         raise NotImplementedError
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     async def system(
         self,
         cloud_enabled: bool | None = None,
         status_led_brightness_pct: int | None = None,
         api_v1_enabled: bool | None = None,
+        power_on: bool | None = None,
+        switch_lock: bool | None = None,
     ) -> System:
         """Get/set the system."""
         raise NotImplementedError
