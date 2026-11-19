@@ -46,8 +46,8 @@ async def main():
         # Get all data and remap v1 data to new v2 structure
         print(await api.combined())
 
-        # Turn on the Energy Socket outlet
-        await api.state(power_on=True)
+        # Turn on the Energy Socket outlet (works with both v1 and v2 API)
+        await api.system(power_on=True)
 
 
 asyncio.run(main())

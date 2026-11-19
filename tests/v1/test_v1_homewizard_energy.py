@@ -904,3 +904,72 @@ async def test_close_when_out_of_scope():
         assert hwe == api
 
     assert api.close.call_count == 1
+
+
+@pytest.mark.parametrize(
+    ("power_on", "switch_lock", "fixture"),
+    [
+        (False, None, "state_power_on"),
+        (None, False, "state_switch_lock"),
+        (False, False, "state_all"),
+    ],
+)
+async def test_system_routes_power_on_and_switch_lock_to_state(
+    power_on: bool | None, switch_lock: bool | None, fixture: str, aresponses
+):
+    """Test system sets power_on and switch_lock via state."""
+
+    received: dict = {}
+
+    async def handler(request):
+        received.update(await request.json())
+        return aresponses.Response(
+            text=load_fixtures(f"HWE-SKT/{fixture}.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        )
+
+    aresponses.add("example.com", "/api/v1/state", "PUT", handler)
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+
+        system = await api.system(power_on=power_on, switch_lock=switch_lock)
+        assert system.power_on == power_on
+        assert system.switch_lock == switch_lock
+        assert system.status_led_brightness_pct == (
+            100 if fixture == "state_all" else None
+        )
+        await api.close()
+
+    expected = {}
+    if power_on is not None:
+        expected["power_on"] = power_on
+    if switch_lock is not None:
+        expected["switch_lock"] = switch_lock
+    assert received == expected
+
+
+@pytest.mark.parametrize("model", ["HWE-P1", "HWE-KWH1", "HWE-WTR"])
+async def test_system_power_on_not_supported_with_cached_device(aresponses, model: str):
+    """Test setting power_on via system raises for devices without a switch."""
+
+    aresponses.add(
+        "example.com",
+        "/api",
+        "GET",
+        aresponses.Response(
+            text=load_fixtures(f"{model}/device.json"),
+            status=200,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        ),
+    )
+
+    async with aiohttp.ClientSession() as session:
+        api = HomeWizardEnergyV1("example.com", clientsession=session)
+        await api.device()
+
+        with pytest.raises(UnsupportedError):
+            await api.system(power_on=True)
+
+        await api.close()

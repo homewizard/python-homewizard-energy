@@ -21,6 +21,7 @@ pytestmark = [pytest.mark.asyncio]
         ("HWE-KWH1", ["device"]),
         ("HWE-KWH3", ["device"]),
         ("HWE-BAT", ["device"]),
+        ("HWE-SKT", ["device"]),
     ],
 )
 async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
@@ -46,6 +47,7 @@ async def test_device(model: str, fixtures: str, snapshot: SnapshotAssertion):
         ("HWE-KWH1", False, False, True, True, False),
         ("HWE-KWH3", False, False, True, True, False),
         ("HWE-BAT", False, True, False, False, False),
+        ("HWE-SKT", True, True, True, True, False),
     ],
 )
 async def test_device_support_functions(
