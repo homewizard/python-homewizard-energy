@@ -278,15 +278,26 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
-        """Make a request to the API."""
+        """Make a request to the API, one request at a time.
 
+        Devices have very few connection slots, so requests are serialized to
+        keep at most one connection open. The lock is taken per attempt, so it
+        is released during backoff sleeps, and it is taken before the timeout
+        starts, so time spent waiting for the lock does not count towards it.
+        """
         async with self._lock:
-            if self._session is None:
-                await self._create_clientsession()
+            return await self._request_unlocked(path, method, data)
 
-        async with self._lock:
-            if self._ssl is False:
-                self._ssl = await self._get_ssl_context()
+    async def _request_unlocked(
+        self, path: str, method: str = METH_GET, data: object = None
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
+        """Make a request to the API. Must be called while holding the lock."""
+
+        if self._session is None:
+            await self._create_clientsession()
+
+        if self._ssl is False:
+            self._ssl = await self._get_ssl_context()
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -300,15 +311,17 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         try:
             async with asyncio.timeout(self._request_timeout):
-                async with self._lock:
-                    resp = await self._session.request(
-                        method,
-                        url,
-                        json=data,
-                        headers=headers,
-                        ssl=self._ssl,
-                        server_hostname=self._identifier,
-                    )
+                resp = await self._session.request(
+                    method,
+                    url,
+                    json=data,
+                    headers=headers,
+                    ssl=self._ssl,
+                    server_hostname=self._identifier,
+                )
+                # Read the full body while holding the lock, so the connection
+                # is back in the pool before the next request starts.
+                await resp.read()
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except TimeoutError as exception:
             raise RequestError(
