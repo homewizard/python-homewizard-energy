@@ -43,9 +43,10 @@ def _certificate_ssl_context() -> ssl.SSLContext:
 async def _get_certificate_product_id(host: str) -> str | None:
     """Get the product type identifier from the device certificate.
 
-    The common name of the certificate of a v2 device is formatted as
-    `appliance/<product type identifier>/<serial>`, see `MODEL_TO_ID`.
-    This works without authorization.
+    Only devices with the v2 API serve HTTPS. The common name of their
+    certificate is formatted as `appliance/<product type identifier>/<serial>`,
+    see `MODEL_TO_ID`. This works without authorization, and only needs a single
+    TLS handshake, as devices have very few connection slots.
     """
     loop = asyncio.get_running_loop()
     # Loading the CA certificate is blocking IO, so run it in the executor
@@ -70,32 +71,37 @@ async def _get_certificate_product_id(host: str) -> str | None:
     return None
 
 
-async def has_v2_api(host: str, websession: ClientSession | None = None) -> bool:
+async def has_v2_api(
+    host: str,
+    websession: ClientSession | None = None,
+    product_type: str | None = None,
+) -> bool:
     """Check if the device has support for the v2 api.
 
     Only returns True for models that are supported via the v2 API by this
     version of the library (see `SUPPORTED_V2_MODELS`), so devices that enable
     the v2 API before it is officially supported keep using the v1 API.
+
+    The product type is read from the device certificate. Pass `product_type`
+    when it is already known (e.g. from discovery or an existing configuration):
+    unsupported models then return False without connecting to the device, and
+    a device of another product type at this host returns False as well.
+
+    `websession` is no longer used and only kept for backwards compatibility.
     """
-    websession_provided = websession is not None
-    if websession is None:
-        websession = ClientSession()
-    try:
-        # v2 api is https only and returns a 401 Unauthorized when no key provided,
-        # no connection can be made if the device is not v2
-        url = f"https://{host}/api"
-        res = await websession.get(url, ssl=False, raise_for_status=False, timeout=5)
-        res.close()
+    del websession  # Kept for backwards compatibility
 
-        if res.status != 401:
-            return False
-
-        # The unauthorized response does not tell which product this is,
-        # so get the product type from the device certificate instead
-        return await _get_certificate_product_id(host) in SUPPORTED_V2_CERTIFICATE_IDS
-    except Exception:  # pylint: disable=broad-except
-        # all other status/exceptions means the device is not v2 or not reachable at this time
+    if product_type is not None and product_type not in SUPPORTED_V2_MODELS:
         return False
-    finally:
-        if not websession_provided:
-            await websession.close()
+
+    try:
+        product_id = await _get_certificate_product_id(host)
+    except Exception:  # pylint: disable=broad-except
+        # No (valid) HTTPS connection means the device is not v2
+        # or not reachable at this time
+        return False
+
+    if product_type is not None:
+        return product_id == MODEL_TO_ID[product_type]
+
+    return product_id in SUPPORTED_V2_CERTIFICATE_IDS

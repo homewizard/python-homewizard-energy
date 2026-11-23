@@ -39,31 +39,15 @@ def fixture_mock_product_id() -> Generator[AsyncMock]:
         yield mock
 
 
-def _add_api_response(aresponses, status: int) -> None:
-    """Add a response for the unauthenticated v2 /api endpoint."""
-    aresponses.add(
-        "example.com",
-        "/api",
-        "GET",
-        aresponses.Response(
-            status=status,
-        ),
-    )
-
-
 @pytest.mark.parametrize(
     "product_id",
     ["p1dongle", "energysocket", "energymeter", "battery"],
 )
-async def test_has_v2_api_true(aresponses, mock_product_id, product_id):
+async def test_has_v2_api_true(mock_product_id, product_id):
     """Test if has_v2_api returns True for a supported v2 device."""
     mock_product_id.return_value = product_id
-    _add_api_response(aresponses, 401)
 
-    async with ClientSession() as session:
-        result = await has_v2_api("example.com", session)
-        assert result is True
-
+    assert await has_v2_api("example.com") is True
     mock_product_id.assert_awaited_once_with("example.com")
 
 
@@ -71,54 +55,78 @@ async def test_has_v2_api_true(aresponses, mock_product_id, product_id):
     "product_id",
     ["watermeter", "display", "unknown", None],
 )
-async def test_has_v2_api_unsupported_model(aresponses, mock_product_id, product_id):
+async def test_has_v2_api_unsupported_model(mock_product_id, product_id):
     """Test if has_v2_api returns False for a v2 device that is not supported."""
     mock_product_id.return_value = product_id
-    _add_api_response(aresponses, 401)
 
-    async with ClientSession() as session:
-        result = await has_v2_api("example.com", session)
-        assert result is False
+    assert await has_v2_api("example.com") is False
 
 
-async def test_has_v2_api_certificate_error(aresponses, mock_product_id):
-    """Test if has_v2_api returns False when the certificate can't be read."""
-    mock_product_id.side_effect = ssl.SSLCertVerificationError
-    _add_api_response(aresponses, 401)
+@pytest.mark.parametrize(
+    "exception",
+    [
+        ssl.SSLCertVerificationError,
+        ConnectionRefusedError,
+        asyncio.TimeoutError,
+        OSError,
+    ],
+)
+async def test_has_v2_api_no_https(mock_product_id, exception):
+    """Test if has_v2_api returns False without a valid HTTPS connection."""
+    mock_product_id.side_effect = exception
 
-    async with ClientSession() as session:
-        result = await has_v2_api("example.com", session)
-        assert result is False
+    assert await has_v2_api("example.com") is False
 
 
-async def test_has_v2_api_false(aresponses, mock_product_id):
-    """Test if has_v2_api returns False for a non-v2 device."""
-    _add_api_response(aresponses, 404)
+async def test_has_v2_api_websession_unused(mock_product_id):
+    """Test if has_v2_api still accepts, but doesn't use, a websession."""
+    session = AsyncMock(spec=ClientSession)
 
-    async with ClientSession() as session:
-        result = await has_v2_api("example.com", session)
-        assert result is False
+    assert await has_v2_api("example.com", session) is True
+    assert not session.mock_calls
+    mock_product_id.assert_awaited_once_with("example.com")
 
+
+@pytest.mark.parametrize(
+    ("product_type", "product_id"),
+    [
+        ("HWE-P1", "p1dongle"),
+        ("HWE-SKT", "energysocket"),
+        ("HWE-KWH1", "energymeter"),
+        ("HWE-KWH3", "energymeter"),
+        ("SDM230-wifi", "energymeter"),
+        ("SDM630-wifi", "energymeter"),
+        ("HWE-BAT", "battery"),
+    ],
+)
+async def test_has_v2_api_product_type(mock_product_id, product_type, product_id):
+    """Test if has_v2_api returns True for a known, supported product type."""
+    mock_product_id.return_value = product_id
+
+    assert await has_v2_api("example.com", product_type=product_type) is True
+    mock_product_id.assert_awaited_once_with("example.com")
+
+
+@pytest.mark.parametrize("product_type", ["HWE-WTR", "HWE-DSP", "HWE-UNKNOWN"])
+async def test_has_v2_api_product_type_unsupported(mock_product_id, product_type):
+    """Test if has_v2_api skips the device for an unsupported product type."""
+    assert await has_v2_api("example.com", product_type=product_type) is False
     mock_product_id.assert_not_awaited()
 
 
-async def test_has_v2_api_exception():
-    """Test if has_v2_api returns False when an exception occurs."""
-    session = AsyncMock()
-    session.get = AsyncMock(side_effect=asyncio.TimeoutError)
+@pytest.mark.parametrize("product_id", ["energysocket", "watermeter", None])
+async def test_has_v2_api_product_type_mismatch(mock_product_id, product_id):
+    """Test if has_v2_api returns False when the device has another product type."""
+    mock_product_id.return_value = product_id
 
-    result = await has_v2_api("example.com", session)
-    assert result is False
+    assert await has_v2_api("example.com", product_type="HWE-P1") is False
 
 
-async def test_has_v2_api_own_session(aresponses, mock_product_id):
-    """Test if has_v2_api opens and closes its own session."""
-    _add_api_response(aresponses, 401)
+async def test_has_v2_api_product_type_no_https(mock_product_id):
+    """Test if has_v2_api returns False for a known type without HTTPS."""
+    mock_product_id.side_effect = ConnectionRefusedError
 
-    result = await has_v2_api("example.com")
-    assert result is True
-
-    mock_product_id.assert_awaited_once_with("example.com")
+    assert await has_v2_api("example.com", product_type="HWE-SKT") is False
 
 
 @pytest.mark.parametrize(
