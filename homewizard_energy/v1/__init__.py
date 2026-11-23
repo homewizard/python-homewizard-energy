@@ -162,7 +162,20 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
-        """Make a request to the API."""
+        """Make a request to the API, one request at a time.
+
+        Devices have very few connection slots, so requests are serialized to
+        keep at most one connection open. The lock is taken per attempt, so it
+        is released during backoff sleeps, and it is taken before the timeout
+        starts, so time spent waiting for the lock does not count towards it.
+        """
+        async with self._lock:
+            return await self._request_unlocked(path, method, data)
+
+    async def _request_unlocked(
+        self, path: str, method: str = METH_GET, data: object = None
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
+        """Make a request to the API. Must be called while holding the lock."""
 
         if self._session is None:
             await self._create_clientsession()
@@ -181,6 +194,9 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
                     json=data,
                     headers=headers,
                 )
+                # Read the full body while holding the lock, so the connection
+                # is back in the pool before the next request starts.
+                await resp.read()
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except TimeoutError as exception:
             raise RequestError(
