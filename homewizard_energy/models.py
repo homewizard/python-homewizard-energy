@@ -102,6 +102,18 @@ class CombinedModels:
                 self.system = System()
             self.system.status_led_brightness_pct = (self.state.brightness / 255) * 100
 
+        ## state.power_on -> system.power_on
+        if self.state is not None and self.state.power_on is not None:
+            if self.system is None:
+                self.system = System()
+            self.system.power_on = self.state.power_on
+
+        ## state.switch_lock -> system.switch_lock
+        if self.state is not None and self.state.switch_lock is not None:
+            if self.system is None:
+                self.system = System()
+            self.system.switch_lock = self.state.switch_lock
+
 
 def get_verification_hostname(model: str, serial_number: str) -> str:
     """Helper method to convert device model and serial to identifier
@@ -595,6 +607,8 @@ class SystemUpdate(UpdateBaseModel):
     cloud_enabled: bool | None = field(default=None)
     status_led_brightness_pct: int | None = field(default=None)
     api_v1_enabled: bool | None = field(default=None)
+    power_on: bool | None = field(default=None)
+    switch_lock: bool | None = field(default=None)
 
 
 @dataclass(kw_only=True)
@@ -609,6 +623,8 @@ class System(BaseModel):
     uptime_s: int | None = field(default=None)
     status_led_brightness_pct: int | None = field(default=None)
     api_v1_enabled: bool | None = field(default=None)
+    power_on: bool | None = field(default=None)
+    switch_lock: bool | None = field(default=None)
 
     @classmethod
     def __post_deserialize__(cls, obj: System) -> System:

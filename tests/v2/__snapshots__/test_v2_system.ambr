@@ -1,15 +1,18 @@
 # serializer version: 1
 # name: test_system[HWE-BAT-fixtures3]
-  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None)
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None, power_on=None, switch_lock=None)
 # ---
 # name: test_system[HWE-KWH1-fixtures1]
-  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None)
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None, power_on=None, switch_lock=None)
 # ---
 # name: test_system[HWE-KWH3-fixtures2]
-  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None)
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=None, power_on=None, switch_lock=None)
 # ---
 # name: test_system[HWE-P1-fixtures0]
-  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=True)
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=False, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=True, power_on=None, switch_lock=None)
+# ---
+# name: test_system[HWE-SKT-fixtures4]
+  System(wifi_strength_pct=46, wifi_ssid='My Wi-Fi', wifi_rssi_db=-77, cloud_enabled=True, uptime_s=356, status_led_brightness_pct=100, api_v1_enabled=True, power_on=True, switch_lock=False)
 # ---
 # name: test_system_update[None-100-None]
   dict({
@@ -49,5 +52,21 @@
   dict({
     'api_v1_enabled': True,
     'cloud_enabled': True,
+  })
+# ---
+# name: test_system_update_power_on_and_switch_lock[False-False]
+  dict({
+    'power_on': False,
+    'switch_lock': False,
+  })
+# ---
+# name: test_system_update_power_on_and_switch_lock[None-False]
+  dict({
+    'switch_lock': False,
+  })
+# ---
+# name: test_system_update_power_on_and_switch_lock[True-None]
+  dict({
+    'power_on': True,
   })
 # ---

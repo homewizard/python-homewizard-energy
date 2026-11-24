@@ -119,18 +119,31 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         cloud_enabled: bool | None = None,
         status_led_brightness_pct: int | None = None,
         api_v1_enabled: bool | None = None,
+        power_on: bool | None = None,
+        switch_lock: bool | None = None,
     ) -> System:
         """Return the system object."""
+
+        if (
+            (power_on is not None or switch_lock is not None)
+            and self._device is not None
+            and self._device.supports_state() is False
+        ):
+            raise UnsupportedError("Setting power_on or switch_lock is not supported")
 
         if (
             cloud_enabled is not None
             or status_led_brightness_pct is not None
             or api_v1_enabled is not None
+            or power_on is not None
+            or switch_lock is not None
         ):
             data = SystemUpdate(
                 cloud_enabled=cloud_enabled,
                 status_led_brightness_pct=status_led_brightness_pct,
                 api_v1_enabled=api_v1_enabled,
+                power_on=power_on,
+                switch_lock=switch_lock,
             ).to_dict()
             status, response = await self._request(
                 "/api/system", method=METH_PUT, data=data
@@ -265,15 +278,26 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
-        """Make a request to the API."""
+        """Make a request to the API, one request at a time.
 
+        Devices have very few connection slots, so requests are serialized to
+        keep at most one connection open. The lock is taken per attempt, so it
+        is released during backoff sleeps, and it is taken before the timeout
+        starts, so time spent waiting for the lock does not count towards it.
+        """
         async with self._lock:
-            if self._session is None:
-                await self._create_clientsession()
+            return await self._request_unlocked(path, method, data)
 
-        async with self._lock:
-            if self._ssl is False:
-                self._ssl = await self._get_ssl_context()
+    async def _request_unlocked(
+        self, path: str, method: str = METH_GET, data: object = None
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
+        """Make a request to the API. Must be called while holding the lock."""
+
+        if self._session is None:
+            await self._create_clientsession()
+
+        if self._ssl is False:
+            self._ssl = await self._get_ssl_context()
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -287,15 +311,17 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         try:
             async with asyncio.timeout(self._request_timeout):
-                async with self._lock:
-                    resp = await self._session.request(
-                        method,
-                        url,
-                        json=data,
-                        headers=headers,
-                        ssl=self._ssl,
-                        server_hostname=self._identifier,
-                    )
+                resp = await self._session.request(
+                    method,
+                    url,
+                    json=data,
+                    headers=headers,
+                    ssl=self._ssl,
+                    server_hostname=self._identifier,
+                )
+                # Read the full body while holding the lock, so the connection
+                # is back in the pool before the next request starts.
+                await resp.read()
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except TimeoutError as exception:
             raise RequestError(

@@ -52,3 +52,18 @@ async def test_combined_remaps_legacy_brightness_to_system(snapshot: SnapshotAss
     combined = CombinedModels(device=device, measurement=None, state=state, system=None)
     assert combined.system.status_led_brightness_pct == state.brightness / 2.55
     assert snapshot == combined
+
+
+@pytest.mark.parametrize(
+    "fixture",
+    ["state_all", "state_power_on", "state_switch_lock", "state_brightness"],
+)
+async def test_combined_remaps_legacy_power_on_and_switch_lock_to_system(
+    fixture: str,
+):
+    """Test CombinedModels model remaps power_on and switch_lock to system."""
+    device = Device.from_dict(json.loads(load_fixtures("HWE-SKT/device.json")))
+    state = State.from_dict(json.loads(load_fixtures(f"HWE-SKT/{fixture}.json")))
+    combined = CombinedModels(device=device, measurement=None, state=state, system=None)
+    assert combined.system.power_on == state.power_on
+    assert combined.system.switch_lock == state.switch_lock

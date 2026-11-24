@@ -68,11 +68,14 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         return telegram
 
     @optional_method
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     async def system(
         self,
         cloud_enabled: bool | None = None,
         status_led_brightness_pct: int | None = None,
         api_v1_enabled: bool | None = None,
+        power_on: bool | None = None,
+        switch_lock: bool | None = None,
     ) -> System:
         """Return the system object."""
 
@@ -80,10 +83,29 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
         if api_v1_enabled is not None:
             raise UnsupportedError("Setting api_v1_enabled is not supported in v1")
 
-        # Legacy: route 'status_led_brightness_pct' to state
-        if status_led_brightness_pct is not None:
-            state = await self.state(brightness=status_led_brightness_pct * 2.55)
-            return System(status_led_brightness_pct=state.brightness / 2.55)
+        # Legacy: route 'status_led_brightness_pct', 'power_on' and 'switch_lock'
+        # to state, as v1 exposes these via the state endpoint
+        if (
+            status_led_brightness_pct is not None
+            or power_on is not None
+            or switch_lock is not None
+        ):
+            state = await self.state(
+                power_on=power_on,
+                switch_lock=switch_lock,
+                brightness=(
+                    status_led_brightness_pct * 2.55
+                    if status_led_brightness_pct is not None
+                    else None
+                ),
+            )
+            return System(
+                status_led_brightness_pct=(
+                    state.brightness / 2.55 if state.brightness is not None else None
+                ),
+                power_on=state.power_on,
+                switch_lock=state.switch_lock,
+            )
 
         if cloud_enabled is not None:
             # Executing the update
@@ -140,7 +162,20 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
     ) -> tuple[HTTPStatus, dict[str, Any] | None]:
-        """Make a request to the API."""
+        """Make a request to the API, one request at a time.
+
+        Devices have very few connection slots, so requests are serialized to
+        keep at most one connection open. The lock is taken per attempt, so it
+        is released during backoff sleeps, and it is taken before the timeout
+        starts, so time spent waiting for the lock does not count towards it.
+        """
+        async with self._lock:
+            return await self._request_unlocked(path, method, data)
+
+    async def _request_unlocked(
+        self, path: str, method: str = METH_GET, data: object = None
+    ) -> tuple[HTTPStatus, dict[str, Any] | None]:
+        """Make a request to the API. Must be called while holding the lock."""
 
         if self._session is None:
             await self._create_clientsession()
@@ -159,6 +194,9 @@ class HomeWizardEnergyV1(HomeWizardEnergy):
                     json=data,
                     headers=headers,
                 )
+                # Read the full body while holding the lock, so the connection
+                # is back in the pool before the next request starts.
+                await resp.read()
                 LOGGER.debug("%s, %s", resp.status, await resp.text("utf-8"))
         except TimeoutError as exception:
             raise RequestError(
