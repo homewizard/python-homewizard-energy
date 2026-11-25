@@ -28,8 +28,8 @@ SUPPORTED_V2_CERTIFICATE_IDS = frozenset(
     MODEL_TO_ID[model] for model in SUPPORTED_V2_MODELS
 )
 
-# Some devices have a certificate without product type, e.g. early batteries
-# with `appliance/generic/<serial>`
+# Development units have a certificate without product type,
+# formatted as `appliance/generic/<serial>`
 GENERIC_CERTIFICATE_ID = "generic"
 
 # Timeout in seconds for connecting to the device and for its response
@@ -113,9 +113,9 @@ async def has_v2_api(
     when it is already known (e.g. from discovery or an existing configuration):
     unsupported models then return False without connecting to the device, and
     a device of another product type at this host returns False as well.
-    Some devices have a generic certificate without product type; those are
-    reported as v2 capable when they serve the v2 API and `product_type`, when
-    passed, is supported.
+    Development units have a generic certificate without product type; those
+    are reported as v2 capable when they serve the v2 API and `product_type`,
+    when passed, is supported.
 
     `websession` is no longer used and only kept for backwards compatibility.
     """
@@ -132,8 +132,9 @@ async def has_v2_api(
         return False
 
     if product_id == GENERIC_CERTIFICATE_ID:
-        # The certificate doesn't tell the product type, so rely on the
-        # `product_type` that passed the check above, or on the API response
+        # The certificate of a development unit doesn't tell the product type,
+        # so rely on the `product_type` that passed the check above, or on the
+        # API response
         return True
 
     if product_type is not None:
