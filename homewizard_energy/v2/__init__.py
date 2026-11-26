@@ -39,6 +39,23 @@ from .cacert import CACERT
 T = TypeVar("T")
 
 
+def create_ssl_context(validate_hostname: bool) -> ssl.SSLContext:
+    """Create an SSL context that validates the certificate of a device.
+
+    The hostname is only validated when `validate_hostname` is set, as it is based
+    on the device identifier. Creating an SSL context has some blocking IO, so
+    call this in the executor.
+    """
+    context = ssl.create_default_context(cadata=CACERT)
+    context.verify_flags = ssl.VERIFY_X509_PARTIAL_CHAIN  # pylint: disable=no-member
+    if validate_hostname:
+        context.hostname_checks_common_name = True
+    else:
+        context.check_hostname = False  # Skip hostname validation
+        context.verify_mode = ssl.CERT_REQUIRED  # Keep SSL verification active
+    return context
+
+
 def authorized_method(
     func: Callable[..., Coroutine[Any, Any, T]],
 ) -> Callable[..., Coroutine[Any, Any, T]]:
@@ -260,19 +277,11 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         Get a clientsession that is tuned for communication with the HomeWizard Energy Device
         """
 
-        def _build_ssl_context() -> ssl.SSLContext:
-            context = ssl.create_default_context(cadata=CACERT)
-            context.verify_flags = ssl.VERIFY_X509_PARTIAL_CHAIN  # pylint: disable=no-member
-            if self._identifier is not None:
-                context.hostname_checks_common_name = True
-            else:
-                context.check_hostname = False  # Skip hostname validation
-                context.verify_mode = ssl.CERT_REQUIRED  # Keep SSL verification active
-            return context
-
         # Creating an SSL context has some blocking IO so need to run it in the executor
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, _build_ssl_context)
+        return await loop.run_in_executor(
+            None, create_ssl_context, self._identifier is not None
+        )
 
     @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(

@@ -32,6 +32,22 @@ MODEL_TO_ID = {
     Model.BATTERY: "battery",
 }
 
+# Models that are supported via the v2 API by this version of the library.
+# Keep in sync with https://api-documentation.homewizard.com/docs/introduction#devices
+# Devices of other models may enable the v2 API (e.g. with beta firmware), but are
+# not reported as v2 capable by `has_v2_api` until they are added here.
+SUPPORTED_V2_MODELS = frozenset(
+    {
+        Model.P1_METER,
+        Model.ENERGY_SOCKET,
+        Model.ENERGY_METER_1_PHASE,
+        Model.ENERGY_METER_3_PHASE,
+        Model.ENERGY_METER_EASTRON_SDM230,
+        Model.ENERGY_METER_EASTRON_SDM630,
+        Model.BATTERY,
+    }
+)
+
 MODEL_TO_NAME = {
     Model.P1_METER: "P1 Meter",
     Model.ENERGY_SOCKET: "Energy Socket",
