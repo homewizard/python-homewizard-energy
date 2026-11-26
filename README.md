@@ -53,6 +53,47 @@ async def main():
 asyncio.run(main())
 ```
 
+### API v2 WebSocket (real-time updates)
+The WebSocket is available on devices that [support it](https://api-documentation.homewizard.com/docs/v2/websocket).
+
+```python
+import asyncio
+from homewizard_energy import (
+    ErrorEvent,
+    HomeWizardEnergyV2,
+    MeasurementEvent,
+    WebSocketTopic,
+)
+
+IP_ADDRESS = "192.168.1.123"
+TOKEN = "your-token"
+
+
+async def main():
+    async with HomeWizardEnergyV2(host=IP_ADDRESS, token=TOKEN) as api:
+        async with api.websocket() as ws:
+            await ws.subscribe(WebSocketTopic.MEASUREMENT)
+
+            # With `reconnect=True`, the connection and the subscriptions are
+            # restored when the connection is lost
+            async for event in ws.events_typed(reconnect=True):
+                if isinstance(event, MeasurementEvent):
+                    print(event.data.power_w)
+                elif isinstance(event, ErrorEvent):
+                    print(f"Device reported an error: {event.message}")
+
+
+asyncio.run(main())
+```
+
+Known topics are received as `DeviceEvent`, `MeasurementEvent`, `SystemEvent` or `BatteriesEvent`, with the same models as the HTTP API. If you prefer the messages as received, use `ws.events()` or `ws.receive()`.
+
+Good to know:
+- The stream ends when you call `ws.close()`.
+- A rejected token raises `UnauthorizedError`, and a device without WebSocket raises `UnsupportedError`. A lost connection raises `WebSocketDisconnectedError`, unless you use `reconnect=True`.
+- To follow the connection state, pass a callback: `api.websocket(on_connection_change=...)`. It is called with `True` or `False`.
+- The WebSocket keeps one connection to the device open, next to the connection for HTTP requests.
+
 # Development and contribution
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 

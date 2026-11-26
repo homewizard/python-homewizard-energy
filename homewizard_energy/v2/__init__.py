@@ -35,6 +35,7 @@ from ..models import (
     Token,
 )
 from .cacert import CACERT
+from .websocket import HomeWizardEnergyWebSocket
 
 T = TypeVar("T")
 
@@ -283,6 +284,12 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             None, create_ssl_context, self._identifier is not None
         )
 
+    async def _get_ssl(self) -> ssl.SSLContext:
+        """Get the SSL context, which is created once and shared with the WebSocket."""
+        if self._ssl is False:
+            self._ssl = await self._get_ssl_context()
+        return self._ssl
+
     @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
@@ -305,8 +312,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         if self._session is None:
             await self._create_clientsession()
 
-        if self._ssl is False:
-            self._ssl = await self._get_ssl_context()
+        ssl_context = await self._get_ssl()
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -325,7 +331,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                     url,
                     json=data,
                     headers=headers,
-                    ssl=self._ssl,
+                    ssl=ssl_context,
                     server_hostname=self._identifier,
                 )
                 # Read the full body while holding the lock, so the connection
@@ -353,6 +359,23 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                 pass
 
         return (resp.status, await resp.text())
+
+    def websocket(
+        self, on_connection_change: Callable[[bool], None] | None = None
+    ) -> HomeWizardEnergyWebSocket:
+        """Create a WebSocket client to receive real-time updates from this device.
+
+        The WebSocket keeps a connection to the device open, next to the one for
+        HTTP requests. It uses the client session that was passed to this API
+        client, or else its own session. Close the WebSocket before closing this
+        API client.
+
+        Args:
+            on_connection_change: Called with `True` when the WebSocket is
+                connected and authorized, and with `False` when the connection
+                is lost or closed.
+        """
+        return HomeWizardEnergyWebSocket(self, on_connection_change)
 
     async def __aenter__(self) -> HomeWizardEnergyV2:
         """Async enter.

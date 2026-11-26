@@ -12,6 +12,13 @@ class RequestError(HomeWizardEnergyException):
     """
 
 
+class WebSocketDisconnectedError(RequestError):
+    """WebSocket connection could not be established, or was lost.
+
+    This error is temporary: connecting again may succeed.
+    """
+
+
 class InvalidUserNameError(HomeWizardEnergyException):
     """Invalid username.
 
