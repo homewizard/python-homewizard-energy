@@ -23,6 +23,7 @@ from aiohttp import (
 
 from ..const import LOGGER
 from ..errors import (
+    HomeWizardEnergyException,
     RequestError,
     ResponseError,
     UnauthorizedError,
@@ -414,10 +415,11 @@ class HomeWizardEnergyWebSocket:
 
         try:
             message = await self._receive(ws, timeout)
-        except WebSocketDisconnectedError as ex:
-            if ex.close_code is not None:
-                # Device closes the connection when it does not accept the token
-                raise UnauthorizedError("Token rejected") from ex
+        except WebSocketDisconnectedError:
+            # Device drops the connection when it does not accept the token.
+            # That looks the same as a connection that is lost for another
+            # reason, so ask the device via HTTP if the token is the problem.
+            await self._raise_if_token_rejected()
             raise
         if message.get("type") == "error":
             error = _error_message(message)
@@ -426,6 +428,16 @@ class HomeWizardEnergyWebSocket:
             raise RequestError(f"WebSocket authorization failed: {error}")
         if message.get("type") != "authorized":
             raise RequestError(f"Expected to be authorized, got: {message.get('type')}")
+
+    async def _raise_if_token_rejected(self) -> None:
+        """Raise UnauthorizedError when the device rejects the token via HTTP."""
+        try:
+            await self._api._request("/api")  # pylint: disable=protected-access
+        except UnauthorizedError:
+            raise
+        except HomeWizardEnergyException:
+            # Device can't be reached, so nothing is known about the token
+            pass
 
     def _get_session(self) -> ClientSession:
         """Return the session to use for the WebSocket."""
@@ -504,13 +516,7 @@ class HomeWizardEnergyWebSocket:
         except (ClientError, OSError, TimeoutError) as ex:
             raise WebSocketDisconnectedError("Failed to receive from WebSocket") from ex
 
-        if msg.type is WSMsgType.CLOSE:
-            raise WebSocketDisconnectedError(
-                f"WebSocket connection closed by device with code {msg.data}",
-                close_code=msg.data,
-            )
-
-        if msg.type in (WSMsgType.CLOSING, WSMsgType.CLOSED):
+        if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
             raise WebSocketDisconnectedError("WebSocket connection closed")
 
         if msg.type is WSMsgType.ERROR:
