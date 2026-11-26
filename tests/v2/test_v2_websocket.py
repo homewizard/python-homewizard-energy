@@ -63,6 +63,8 @@ class FakeDevice:
         self.greeting: dict[str, Any] | None = AUTHORIZATION_REQUESTED
         # Answer to a valid token
         self.authorized: dict[str, Any] = {"type": "authorized"}
+        # Answer to an invalid token, None to close the connection
+        self.unauthorized: dict[str, Any] | None = None
 
         self.attempts = 0
         self.connections: list[web.WebSocketResponse] = []
@@ -100,8 +102,11 @@ class FakeDevice:
         match message["type"], message.get("data"):
             case "authorization", token if token == TOKEN:
                 await ws.send_json(self.authorized)
+            case "authorization", _ if self.unauthorized is None:
+                # This is what a P1 Meter does
+                await ws.close()
             case "authorization", _:
-                await self.send_error(ws, "user:unauthorized")
+                await ws.send_json(self.unauthorized)
             case "subscribe", "*":
                 for topic, data in TOPICS.items():
                     await ws.send_json({"type": topic, "data": data})
@@ -158,6 +163,8 @@ async def device_fixture(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[FakeD
 async def api_fixture() -> AsyncIterator[HomeWizardEnergyV2]:
     """Return an API client with a valid token."""
     async with HomeWizardEnergyV2("example.com", token=TOKEN, timeout=1) as api:
+        # Device information is known, so no HTTP request is needed for it
+        api._device = Device.from_dict(TOPICS["device"])  # pylint: disable=protected-access
         yield api
 
 
@@ -210,35 +217,145 @@ async def test_context_manager(device: FakeDevice, api: HomeWizardEnergyV2):
     assert not ws.connected
 
 
-async def test_connect_uses_token_of_api(device: FakeDevice):
+async def test_connect_uses_token_of_api(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test a token that is set on the API client after creating the WebSocket."""
-    async with HomeWizardEnergyV2("example.com") as api:
-        ws = api.websocket()
-        api._token = TOKEN  # pylint: disable=protected-access
+    api._token = None  # pylint: disable=protected-access
+    ws = api.websocket()
+    api._token = TOKEN  # pylint: disable=protected-access
 
+    await ws.connect()
+
+    assert ws.connected
+    assert device.received == [[{"type": "authorization", "data": TOKEN}]]
+    await ws.close()
+
+
+@pytest.mark.parametrize(
+    "unauthorized",
+    [
+        # Device closes the connection, as a P1 Meter does
+        None,
+        {"type": "error", "data": {"message": "user:unauthorized"}},
+    ],
+)
+async def test_connect_rejected_token(
+    device: FakeDevice, api: HomeWizardEnergyV2, unauthorized: dict[str, Any] | None
+):
+    """Test a token that is rejected by the device."""
+    device.unauthorized = unauthorized
+    api._token = "invalid"  # pylint: disable=protected-access
+    states: list[bool] = []
+    ws = api.websocket(on_connection_change=states.append)
+
+    with pytest.raises(UnauthorizedError, match="Token rejected"):
         await ws.connect()
 
-        assert ws.connected
-        assert device.received == [[{"type": "authorization", "data": TOKEN}]]
-        await ws.close()
-
-
-async def test_connect_rejected_token(device: FakeDevice):
-    """Test a token that is rejected by the device."""
-    states: list[bool] = []
-    async with HomeWizardEnergyV2("example.com", token="invalid") as api:
-        ws = api.websocket(on_connection_change=states.append)
-
-        with pytest.raises(UnauthorizedError, match="Token rejected"):
-            await ws.connect()
-
-        assert not ws.connected
-        assert not states
-        await ws.close()
+    assert not ws.connected
+    assert not states
+    # The session of the WebSocket is closed, without calling close()
+    assert ws._session is None  # pylint: disable=protected-access
 
     async with asyncio.timeout(5):
         while not device.connection.closed:
             await asyncio.sleep(0.01)
+
+
+async def test_connect_rejected_token_in_stream(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that a rejected token is raised with reconnect, instead of retried."""
+    api._token = "invalid"  # pylint: disable=protected-access
+    ws = api.websocket()
+
+    with pytest.raises(UnauthorizedError):
+        async for _ in ws.events(reconnect=True):
+            pass
+
+    assert device.attempts == 1
+
+
+async def test_connect_lost_during_authorization(
+    device: FakeDevice, api: HomeWizardEnergyV2, monkeypatch: pytest.MonkeyPatch
+):
+    """Test a connection that breaks after sending the token, without being closed."""
+
+    async def drop_connection(ws: web.WebSocketResponse, _message: dict[str, Any]):
+        # pylint: disable-next=protected-access
+        ws._req.transport.abort()
+
+    monkeypatch.setattr(device, "_answer", drop_connection)
+    ws = api.websocket()
+
+    # Connecting again may succeed, so this is not a rejected token
+    with pytest.raises(WebSocketDisconnectedError) as ex:
+        await ws.connect()
+
+    assert ex.value.close_code is None
+    assert not ws.connected
+
+
+async def test_connect_unsupported_device(device: FakeDevice, api: HomeWizardEnergyV2):
+    """Test a device that has the v2 API, but no WebSocket."""
+    # pylint: disable-next=protected-access
+    api._device = Device.from_dict(json.loads(load_fixtures("HWE-SKT/device.json")))
+    ws = api.websocket()
+
+    with pytest.raises(UnsupportedError, match="Device has no WebSocket"):
+        await ws.connect()
+
+    with pytest.raises(UnsupportedError):
+        async for _ in ws.events(reconnect=True):
+            pass
+
+    assert not ws.connected
+    # Device is not bothered with a connection
+    assert device.attempts == 0
+
+
+async def test_connect_gets_device_information(
+    device: FakeDevice, api: HomeWizardEnergyV2, monkeypatch: pytest.MonkeyPatch
+):
+    """Test that the device information is requested when it is not known yet."""
+    known_device = api._device  # pylint: disable=protected-access
+    api._device = None  # pylint: disable=protected-access
+    requests = 0
+
+    async def request(*_args, **_kwargs):
+        nonlocal requests
+        requests += 1
+        if requests == 1:
+            raise RequestError("Device is offline")
+        return 200, json.dumps(TOPICS["device"])
+
+    monkeypatch.setattr(api, "_request", request)
+    ws = api.websocket()
+
+    # Device can't be reached, connecting again may succeed
+    with pytest.raises(WebSocketDisconnectedError, match="device information"):
+        await ws.connect()
+    assert device.attempts == 0
+
+    await ws.connect()
+
+    assert ws.connected
+    assert api._device == known_device  # pylint: disable=protected-access
+    await ws.close()
+
+
+async def test_context_manager_closes_on_error(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that nothing is left open when connecting with the context manager fails."""
+    device.status = 503
+    ws = api.websocket()
+
+    with pytest.raises(WebSocketDisconnectedError):
+        async with ws:
+            pytest.fail("Should not connect")
+
+    assert ws._session is None  # pylint: disable=protected-access
+    assert [message async for message in ws.events(reconnect=True)] == []
+    assert device.attempts == 1
 
 
 @pytest.mark.parametrize(
@@ -743,6 +860,7 @@ async def test_provided_session(device: FakeDevice):
     # pylint: disable=protected-access
     async with ClientSession() as session:
         api = HomeWizardEnergyV2("example.com", token=TOKEN, clientsession=session)
+        api._device = Device.from_dict(TOPICS["device"])
         ws = api.websocket()
 
         await ws.connect()

@@ -54,7 +54,7 @@ asyncio.run(main())
 ```
 
 ### API v2 WebSocket (real-time updates)
-The WebSocket is available on devices that [support it](https://api-documentation.homewizard.com/docs/v2/websocket).
+The WebSocket is available on devices that [support it](https://api-documentation.homewizard.com/docs/v2/websocket). Check this with `(await api.device()).supports_websocket()`.
 
 ```python
 import asyncio
@@ -90,7 +90,7 @@ Known topics are received as `DeviceEvent`, `MeasurementEvent`, `SystemEvent` or
 
 Good to know:
 - The stream ends when you call `ws.close()`.
-- A rejected token raises `UnauthorizedError`, and a device without WebSocket raises `UnsupportedError`. A lost connection raises `WebSocketDisconnectedError`, unless you use `reconnect=True`.
+- A rejected token raises `UnauthorizedError`, and a device without WebSocket raises `UnsupportedError`. These are also raised with `reconnect=True`. A lost connection raises `WebSocketDisconnectedError`, unless you use `reconnect=True`.
 - To follow the connection state, pass a callback: `api.websocket(on_connection_change=...)`. It is called with `True` or `False`.
 - The WebSocket keeps one connection to the device open, next to the connection for HTTP requests.
 

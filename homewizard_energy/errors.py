@@ -18,6 +18,17 @@ class WebSocketDisconnectedError(RequestError):
     This error is temporary: connecting again may succeed.
     """
 
+    def __init__(self, message: str, close_code: int | None = None) -> None:
+        """Create the error.
+
+        Args:
+            message: Description of the error.
+            close_code: Code that the device gave for closing the connection,
+                None when the connection ended in another way.
+        """
+        super().__init__(message)
+        self.close_code = close_code
+
 
 class InvalidUserNameError(HomeWizardEnergyException):
     """Invalid username.

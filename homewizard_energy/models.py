@@ -13,7 +13,13 @@ from mashumaro.exceptions import MissingField
 from mashumaro.mixins.orjson import DataClassORJSONMixin
 from mashumaro.types import SerializationStrategy
 
-from .const import LOGGER, MODEL_TO_ID, MODEL_TO_NAME, Model
+from .const import (
+    LOGGER,
+    MODEL_TO_ID,
+    MODEL_TO_NAME,
+    SUPPORTED_WEBSOCKET_MODELS,
+    Model,
+)
 from .utils import get_awesome_version
 
 
@@ -196,6 +202,13 @@ class Device(BaseModel):
             Model.ENERGY_METER_3_PHASE,
             Model.ENERGY_METER_EASTRON_SDM230,
             Model.ENERGY_METER_EASTRON_SDM630,
+        )
+
+    def supports_websocket(self) -> bool:
+        """Return if the device supports real-time updates via the WebSocket."""
+        return (
+            self.api_version.major >= 2
+            and self.product_type in SUPPORTED_WEBSOCKET_MODELS
         )
 
     def supported_battery_modes(self) -> list[Batteries.Mode] | None:

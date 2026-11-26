@@ -194,7 +194,8 @@ class HomeWizardEnergyWebSocket:
 
         Raises:
             UnauthorizedError: No token is set, or the device rejected it.
-            UnsupportedError: The device has no WebSocket.
+            UnsupportedError: The device has no WebSocket, see
+                `Device.supports_websocket()`.
             WebSocketDisconnectedError: The device could not be reached.
             RequestError: The device did not follow the expected flow.
         """
@@ -210,9 +211,7 @@ class HomeWizardEnergyWebSocket:
         self._closed.set()
         async with self._lock:
             await self._disconnect(self._ws)
-            if self._session is not None:
-                await self._session.close()
-                self._session = None
+            await self._close_session()
 
     async def send(self, message_type: str, data: Any = None) -> None:
         """Send a message to the device. Connects first when needed."""
@@ -340,11 +339,30 @@ class HomeWizardEnergyWebSocket:
         if self.connected:
             return
 
+        try:
+            self._ws = await self._open()
+        except BaseException:
+            await self._close_session()
+            raise
+
+        self._report_connected(True)
+
+    async def _open(self) -> ClientWebSocketResponse:
+        """Open a connection, authorize and subscribe."""
         # pylint: disable=protected-access
         api = self._api
         token = api._token
         if token is None:
             raise UnauthorizedError("Token missing")
+
+        try:
+            device = await api.device()
+        except RequestError as ex:
+            raise WebSocketDisconnectedError(
+                f"Unable to get the device information of {api.host}"
+            ) from ex
+        if not device.supports_websocket():
+            raise UnsupportedError("Device has no WebSocket")
 
         session = self._get_session()
         ssl_context = await api._get_ssl()
@@ -380,8 +398,7 @@ class HomeWizardEnergyWebSocket:
             await ws.close()
             raise
 
-        self._ws = ws
-        self._report_connected(True)
+        return ws
 
     async def _authorize(self, ws: ClientWebSocketResponse, token: str) -> None:
         """Wait for the authorization request of the device and answer it."""
@@ -395,7 +412,13 @@ class HomeWizardEnergyWebSocket:
 
         await self._send(ws, "authorization", token)
 
-        message = await self._receive(ws, timeout)
+        try:
+            message = await self._receive(ws, timeout)
+        except WebSocketDisconnectedError as ex:
+            if ex.close_code is not None:
+                # Device closes the connection when it does not accept the token
+                raise UnauthorizedError("Token rejected") from ex
+            raise
         if message.get("type") == "error":
             error = _error_message(message)
             if error == ERROR_UNAUTHORIZED:
@@ -422,6 +445,12 @@ class HomeWizardEnergyWebSocket:
                 connector=TCPConnector(enable_cleanup_closed=True, limit=1)
             )
         return self._session
+
+    async def _close_session(self) -> None:
+        """Close the session, when the WebSocket has its own."""
+        if self._session is not None:
+            await self._session.close()
+            self._session = None
 
     async def _disconnect(self, ws: ClientWebSocketResponse | None) -> None:
         """Close a connection, and forget it when it is the current one."""
@@ -475,7 +504,13 @@ class HomeWizardEnergyWebSocket:
         except (ClientError, OSError, TimeoutError) as ex:
             raise WebSocketDisconnectedError("Failed to receive from WebSocket") from ex
 
-        if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSING, WSMsgType.CLOSED):
+        if msg.type is WSMsgType.CLOSE:
+            raise WebSocketDisconnectedError(
+                f"WebSocket connection closed by device with code {msg.data}",
+                close_code=msg.data,
+            )
+
+        if msg.type in (WSMsgType.CLOSING, WSMsgType.CLOSED):
             raise WebSocketDisconnectedError("WebSocket connection closed")
 
         if msg.type is WSMsgType.ERROR:
@@ -498,7 +533,11 @@ class HomeWizardEnergyWebSocket:
 
     async def __aenter__(self) -> HomeWizardEnergyWebSocket:
         """Connect on enter."""
-        await self.connect()
+        try:
+            await self.connect()
+        except BaseException:
+            await self.close()
+            raise
         return self
 
     async def __aexit__(self, *_exc_info: Any) -> None:
