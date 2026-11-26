@@ -439,6 +439,8 @@ async def test_connect_no_authorization_request(
 @pytest.mark.parametrize(
     ("status", "error"),
     [
+        # Energy Socket with v2 API, but without WebSocket
+        (400, UnsupportedError),
         (404, UnsupportedError),
         (401, UnauthorizedError),
         (500, WebSocketDisconnectedError),
@@ -776,7 +778,8 @@ async def test_events_without_reconnect(device: FakeDevice, api: HomeWizardEnerg
 
 
 @pytest.mark.parametrize(
-    ("status", "error"), [(404, UnsupportedError), (401, UnauthorizedError)]
+    ("status", "error"),
+    [(400, UnsupportedError), (404, UnsupportedError), (401, UnauthorizedError)],
 )
 async def test_events_reconnect_stops_on_permanent_error(
     device: FakeDevice, api: HomeWizardEnergyV2, status: int, error: type[Exception]

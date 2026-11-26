@@ -379,10 +379,11 @@ class HomeWizardEnergyWebSocket:
                     server_hostname=api._identifier,
                 )
         except WSServerHandshakeError as ex:
-            if ex.status == HTTPStatus.NOT_FOUND:
-                raise UnsupportedError("Device has no WebSocket") from ex
             if ex.status == HTTPStatus.UNAUTHORIZED:
                 raise UnauthorizedError("Token rejected") from ex
+            if HTTPStatus(ex.status).is_client_error:
+                # Firmware without WebSocket answers with 400 or 404
+                raise UnsupportedError("Device has no WebSocket") from ex
             raise WebSocketDisconnectedError(
                 f"WebSocket of {api.host} refused the connection: {ex.status}"
             ) from ex
