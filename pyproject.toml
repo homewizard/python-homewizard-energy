@@ -24,7 +24,7 @@ orjson = "^3.10"
 mashumaro = "^3.15"
 awesomeversion = ">=24.6.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 aresponses = "^3.0.0"
 flake8 = "^4.0.1"
 flake8-docstrings = "^1.7.0"
