@@ -467,12 +467,11 @@ class HomeWizardEnergyWebSocket:
 
     async def _disconnect(self, ws: ClientWebSocketResponse | None) -> None:
         """Close a connection, and forget it when it is the current one."""
-        if ws is not None and ws is self._ws:
-            self._ws = None
-        if self._ws is None:
-            self._report_connected(False)
         if ws is not None:
             await ws.close()
+        if ws is self._ws:
+            self._ws = None
+        self._report_connected(self.connected)
 
     def _report_connected(self, connected: bool) -> None:
         """Report a change of the connection state."""

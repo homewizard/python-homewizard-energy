@@ -26,6 +26,7 @@ from homewizard_energy.v2.websocket import (
     BatteriesEvent,
     DeviceEvent,
     ErrorEvent,
+    HomeWizardEnergyWebSocket,
     HomeWizardEnergyWebSocketEvent,
     MeasurementEvent,
     SystemEvent,
@@ -823,6 +824,27 @@ async def test_close_ends_events(device: FakeDevice, api: HomeWizardEnergyV2):
     # A closed WebSocket yields nothing
     assert [message async for message in ws.events(reconnect=True)] == []
     assert device.attempts == 1
+
+
+async def test_close_ends_events_typed(device: FakeDevice, api: HomeWizardEnergyV2):
+    """Test that closing ends the stream of events."""
+    ws = api.websocket()
+    await ws.subscribe(WebSocketTopic.MEASUREMENT)
+
+    events = []
+    async for event in ws.events_typed(reconnect=True):
+        events.append(event)
+        await ws.close()
+
+    assert len(events) == 1
+    assert device.attempts == 1
+
+
+async def test_send_not_connected():
+    """Test sending over a connection that is gone."""
+    with pytest.raises(WebSocketDisconnectedError, match="not connected"):
+        # pylint: disable-next=protected-access
+        await HomeWizardEnergyWebSocket._send(None, "identify")
 
 
 async def test_close_ends_events_while_reconnecting(
