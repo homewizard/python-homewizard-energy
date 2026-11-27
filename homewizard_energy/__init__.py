@@ -7,19 +7,46 @@ from typing import Any
 from aiohttp import ClientSession
 
 from .const import MODEL_TO_ID, SUPPORTED_V2_MODELS
-from .errors import DisabledError, InvalidStateError, RequestError, UnsupportedError
+from .errors import (
+    DisabledError,
+    InvalidStateError,
+    RequestError,
+    UnsupportedError,
+    WebSocketDisconnectedError,
+)
 from .homewizard_energy import HomeWizardEnergy
 from .v1 import HomeWizardEnergyV1
 from .v2 import HomeWizardEnergyV2, create_ssl_context
+from .v2.websocket import (
+    BatteriesEvent,
+    DeviceEvent,
+    ErrorEvent,
+    HomeWizardEnergyWebSocket,
+    HomeWizardEnergyWebSocketEvent,
+    MeasurementEvent,
+    SystemEvent,
+    WebSocketCallback,
+    WebSocketTopic,
+)
 
 __all__ = [
     "DisabledError",
     "HomeWizardEnergy",
     "HomeWizardEnergyV1",
     "HomeWizardEnergyV2",
+    "HomeWizardEnergyWebSocket",
+    "HomeWizardEnergyWebSocketEvent",
+    "DeviceEvent",
+    "MeasurementEvent",
+    "SystemEvent",
+    "BatteriesEvent",
+    "ErrorEvent",
+    "WebSocketCallback",
+    "WebSocketTopic",
     "InvalidStateError",
     "RequestError",
     "UnsupportedError",
+    "WebSocketDisconnectedError",
 ]
 
 # Product type identifiers as used in the device certificate,

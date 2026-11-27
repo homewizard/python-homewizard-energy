@@ -69,6 +69,23 @@ async def test_device_support_functions(
 
 
 @pytest.mark.parametrize(
+    ("model", "supports_websocket"),
+    [
+        ("HWE-P1", True),
+        ("HWE-KWH1", True),
+        ("HWE-KWH3", True),
+        ("HWE-BAT", True),
+        # The WebSocket of the Energy Socket is in development
+        ("HWE-SKT", False),
+    ],
+)
+async def test_device_supports_websocket(model: str, supports_websocket: bool):
+    """Test Device model supports_websocket function."""
+    device = Device.from_dict(json.loads(load_fixtures(f"{model}/device.json")))
+    assert device.supports_websocket() == supports_websocket
+
+
+@pytest.mark.parametrize(
     "product_type,api_version,expected_modes",
     [  # Devices that do not support batteries
         (Model.ENERGY_SOCKET, "2.2.0", None),

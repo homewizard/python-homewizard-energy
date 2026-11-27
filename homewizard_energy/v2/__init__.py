@@ -35,6 +35,7 @@ from ..models import (
     Token,
 )
 from .cacert import CACERT
+from .websocket import HomeWizardEnergyWebSocket
 
 T = TypeVar("T")
 
@@ -77,6 +78,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
     _ssl: ssl.SSLContext | bool = False
     _identifier: str | None = None
+    _websocket: HomeWizardEnergyWebSocket | None = None
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
@@ -283,6 +285,12 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
             None, create_ssl_context, self._identifier is not None
         )
 
+    async def _get_ssl(self) -> ssl.SSLContext:
+        """Get the SSL context, which is created once and shared with the WebSocket."""
+        if self._ssl is False:
+            self._ssl = await self._get_ssl_context()
+        return self._ssl
+
     @backoff.on_exception(backoff.expo, RequestError, max_tries=3, logger=None)
     async def _request(
         self, path: str, method: str = METH_GET, data: object = None
@@ -305,8 +313,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
         if self._session is None:
             await self._create_clientsession()
 
-        if self._ssl is False:
-            self._ssl = await self._get_ssl_context()
+        ssl_context = await self._get_ssl()
 
         # Construct request
         url = f"https://{self.host}{path}"
@@ -325,7 +332,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                     url,
                     json=data,
                     headers=headers,
-                    ssl=self._ssl,
+                    ssl=ssl_context,
                     server_hostname=self._identifier,
                 )
                 # Read the full body while holding the lock, so the connection
@@ -353,6 +360,36 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
                 pass
 
         return (resp.status, await resp.text())
+
+    @property
+    def token(self) -> str | None:
+        """Return the token that is used for this device."""
+        return self._token
+
+    @property
+    def request_timeout(self) -> int:
+        """Return the timeout in seconds for requests to this device."""
+        return self._request_timeout
+
+    @property
+    def websocket(self) -> HomeWizardEnergyWebSocket:
+        """Return the WebSocket client to receive real-time updates from this device.
+
+        The client is created on first use, and does not connect by itself. The
+        WebSocket keeps a connection to the device open, next to the one for
+        HTTP requests. It uses the client session that was passed to this API
+        client, or else its own session. It is closed together with this API
+        client.
+        """
+        if self._websocket is None:
+            self._websocket = HomeWizardEnergyWebSocket(self)
+        return self._websocket
+
+    async def close(self) -> None:
+        """Close the WebSocket and the client session."""
+        if self._websocket is not None:
+            await self._websocket.close()
+        await super().close()
 
     async def __aenter__(self) -> HomeWizardEnergyV2:
         """Async enter.
