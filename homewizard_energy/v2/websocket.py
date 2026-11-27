@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import random
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import suppress
 from dataclasses import dataclass
 from enum import StrEnum
@@ -115,6 +116,9 @@ class ErrorEvent(HomeWizardEnergyWebSocketEvent):
         return self.data
 
 
+# Called for each message of a topic. May be a coroutine function.
+WebSocketCallback = Callable[[HomeWizardEnergyWebSocketEvent], Awaitable[None] | None]
+
 _EVENTS: dict[str, tuple[type[HomeWizardEnergyWebSocketEvent], type]] = {
     WebSocketTopic.DEVICE: (DeviceEvent, Device),
     WebSocketTopic.MEASUREMENT: (MeasurementEvent, Measurement),
@@ -154,30 +158,29 @@ def _to_event(raw: dict[str, Any]) -> HomeWizardEnergyWebSocketEvent:
 class HomeWizardEnergyWebSocket:
     """Receive real-time updates from a HomeWizard Energy device.
 
-    Create this object with `HomeWizardEnergyV2.websocket()`.
+    Get this object with `HomeWizardEnergyV2.websocket`.
+
+    Messages can be received in two ways. Either pass a callback to
+    `subscribe()`, or iterate over `events()` or `events_typed()`. Use one of
+    the two, not both at the same time.
     """
 
-    def __init__(
-        self,
-        api: HomeWizardEnergyV2,
-        on_connection_change: Callable[[bool], None] | None = None,
-    ) -> None:
+    def __init__(self, api: HomeWizardEnergyV2) -> None:
         """Create the WebSocket client.
 
         Args:
             api: API client of the device. Host, token, identifier and timeout
                 are taken from this client. A client session that was passed to
                 the API client is used for the WebSocket as well.
-            on_connection_change: Called with `True` when the WebSocket is
-                connected and authorized, and with `False` when the connection
-                is lost or closed.
         """
         self._api = api
-        self._on_connection_change = on_connection_change
 
         self._session: ClientSession | None = None
         self._ws: ClientWebSocketResponse | None = None
         self._subscriptions: set[str] = set()
+        self._callbacks: list[tuple[str, WebSocketCallback]] = []
+        self._connection_callbacks: list[Callable[[bool], None]] = []
+        self._listener: asyncio.Task[None] | None = None
         self._reported_connected = False
 
         self._lock = asyncio.Lock()
@@ -188,10 +191,32 @@ class HomeWizardEnergyWebSocket:
         """Return True when the WebSocket is connected and authorized."""
         return self._ws is not None and not self._ws.closed
 
+    def on_connection_change(
+        self, callback: Callable[[bool], None]
+    ) -> Callable[[], None]:
+        """Follow the connection state.
+
+        Args:
+            callback: Called with `True` when the WebSocket is connected and
+                authorized, and with `False` when the connection is lost or
+                closed.
+
+        Returns:
+            Function that removes the callback.
+        """
+        self._connection_callbacks.append(callback)
+
+        def remove() -> None:
+            with suppress(ValueError):
+                self._connection_callbacks.remove(callback)
+
+        return remove
+
     async def connect(self) -> None:
         """Connect, authorize and subscribe to the topics subscribed to earlier.
 
-        Does nothing when already connected.
+        Does nothing when already connected. Starts calling the callbacks that
+        were passed to `subscribe()`.
 
         Raises:
             UnauthorizedError: No token is set, or the device rejected it.
@@ -203,39 +228,75 @@ class HomeWizardEnergyWebSocket:
         async with self._lock:
             self._closed.clear()
             await self._connect()
+        self._start_listener()
 
     async def close(self) -> None:
         """Close the WebSocket.
 
-        This also ends `events()` and `events_typed()`.
+        This also ends `events()` and `events_typed()`, and no callbacks are
+        called anymore. Subscriptions and callbacks are kept, and are used again
+        after `connect()`.
         """
         self._closed.set()
         async with self._lock:
             await self._disconnect(self._ws)
             await self._close_session()
 
+        listener, self._listener = self._listener, None
+        # A callback may close the WebSocket, and can't wait for itself
+        if listener is not None and listener is not asyncio.current_task():
+            await listener
+
     async def send(self, message_type: str, data: Any = None) -> None:
         """Send a message to the device. Connects first when needed."""
         await self.connect()
         await self._send(self._ws, message_type, data)
 
-    async def subscribe(self, topic: str | WebSocketTopic) -> None:
+    async def subscribe(
+        self, topic: str | WebSocketTopic, callback: WebSocketCallback | None = None
+    ) -> Callable[[], None]:
         """Subscribe to a topic. Connects first when needed.
 
         The subscription is restored after a reconnect.
+
+        Args:
+            topic: Topic to subscribe to.
+            callback: Called with the event for each message of this topic, or
+                for all messages when the topic is `WebSocketTopic.ALL`. May be
+                a coroutine function. With a callback, messages are received in
+                the background and the connection is restored when it is lost,
+                so there is no need to iterate over `events()`.
+
+        Returns:
+            Function that removes the callback. The device stays subscribed
+            until `unsubscribe()` is called.
         """
         topic = str(topic)
-        self._subscriptions.add(topic)
-        if self.connected:
-            await self._send(self._ws, "subscribe", topic)
-        else:
+        entry = (topic, callback) if callback is not None else None
+        if entry is not None:
+            self._callbacks.append(entry)
+
+        def remove() -> None:
+            with suppress(ValueError):
+                self._callbacks.remove(entry)
+
+        try:
+            self._subscriptions.add(topic)
+            if self.connected:
+                await self._send(self._ws, "subscribe", topic)
             # Connecting subscribes to all topics
             await self.connect()
+        except BaseException:
+            remove()
+            raise
+
+        return remove
 
     async def unsubscribe(self, topic: str | WebSocketTopic) -> None:
-        """Unsubscribe from a topic."""
+        """Unsubscribe from a topic, and remove its callbacks."""
         topic = str(topic)
         self._subscriptions.discard(topic)
+        self._callbacks = [entry for entry in self._callbacks if entry[0] != topic]
         if self.connected:
             await self._send(self._ws, "unsubscribe", topic)
 
@@ -327,6 +388,40 @@ class HomeWizardEnergyWebSocket:
         async for message in self.events(reconnect=reconnect):
             yield _to_event(message)
 
+    def _start_listener(self) -> None:
+        """Receive messages in the background, when there are callbacks."""
+        if not self._callbacks:
+            return
+        if self._listener is None or self._listener.done():
+            self._listener = asyncio.create_task(self._listen())
+
+    async def _listen(self) -> None:
+        """Receive messages and pass them to the callbacks."""
+        try:
+            async for event in self.events_typed(reconnect=True):
+                if isinstance(event, ErrorEvent):
+                    LOGGER.warning(
+                        "WebSocket of %s reported an error: %s",
+                        self._api.host,
+                        event.message,
+                    )
+                await self._dispatch(event)
+        except HomeWizardEnergyException as ex:
+            # Not an error that goes away by connecting again
+            LOGGER.error("WebSocket of %s stopped: %s", self._api.host, ex)
+
+    async def _dispatch(self, event: HomeWizardEnergyWebSocketEvent) -> None:
+        """Pass an event to the callbacks of its topic."""
+        for topic, callback in list(self._callbacks):
+            if topic not in (event.type, WebSocketTopic.ALL):
+                continue
+            try:
+                result = callback(event)
+                if inspect.isawaitable(result):
+                    await result
+            except Exception:  # pylint: disable=broad-exception-caught
+                LOGGER.exception("Error in WebSocket callback for '%s'", topic)
+
     async def _connect_unless_closed(self) -> ClientWebSocketResponse | None:
         """Connect, unless `close()` was called in the meantime."""
         async with self._lock:
@@ -352,7 +447,7 @@ class HomeWizardEnergyWebSocket:
         """Open a connection, authorize and subscribe."""
         # pylint: disable=protected-access
         api = self._api
-        token = api._token
+        token = api.token
         if token is None:
             raise UnauthorizedError("Token missing")
 
@@ -371,7 +466,7 @@ class HomeWizardEnergyWebSocket:
         LOGGER.debug("Connecting to WebSocket: %s", url)
 
         try:
-            async with asyncio.timeout(api._request_timeout):
+            async with asyncio.timeout(api.request_timeout):
                 ws = await session.ws_connect(
                     url,
                     ssl=ssl_context,
@@ -404,7 +499,7 @@ class HomeWizardEnergyWebSocket:
 
     async def _authorize(self, ws: ClientWebSocketResponse, token: str) -> None:
         """Wait for the authorization request of the device and answer it."""
-        timeout = self._api._request_timeout  # pylint: disable=protected-access
+        timeout = self._api.request_timeout
 
         message = await self._receive(ws, timeout)
         if message.get("type") != "authorization_requested":
@@ -479,12 +574,11 @@ class HomeWizardEnergyWebSocket:
             return
         self._reported_connected = connected
 
-        if self._on_connection_change is None:
-            return
-        try:
-            self._on_connection_change(connected)
-        except Exception:  # pylint: disable=broad-exception-caught
-            LOGGER.exception("Error in WebSocket connection change callback")
+        for callback in list(self._connection_callbacks):
+            try:
+                callback(connected)
+            except Exception:  # pylint: disable=broad-exception-caught
+                LOGGER.exception("Error in WebSocket connection change callback")
 
     @staticmethod
     async def _send(

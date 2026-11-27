@@ -25,6 +25,7 @@ from .v2.websocket import (
     HomeWizardEnergyWebSocketEvent,
     MeasurementEvent,
     SystemEvent,
+    WebSocketCallback,
     WebSocketTopic,
 )
 
@@ -40,6 +41,7 @@ __all__ = [
     "SystemEvent",
     "BatteriesEvent",
     "ErrorEvent",
+    "WebSocketCallback",
     "WebSocketTopic",
     "InvalidStateError",
     "RequestError",

@@ -78,6 +78,7 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
     _ssl: ssl.SSLContext | bool = False
     _identifier: str | None = None
+    _websocket: HomeWizardEnergyWebSocket | None = None
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-positional-arguments
@@ -360,22 +361,35 @@ class HomeWizardEnergyV2(HomeWizardEnergy):
 
         return (resp.status, await resp.text())
 
-    def websocket(
-        self, on_connection_change: Callable[[bool], None] | None = None
-    ) -> HomeWizardEnergyWebSocket:
-        """Create a WebSocket client to receive real-time updates from this device.
+    @property
+    def token(self) -> str | None:
+        """Return the token that is used for this device."""
+        return self._token
 
-        The WebSocket keeps a connection to the device open, next to the one for
+    @property
+    def request_timeout(self) -> int:
+        """Return the timeout in seconds for requests to this device."""
+        return self._request_timeout
+
+    @property
+    def websocket(self) -> HomeWizardEnergyWebSocket:
+        """Return the WebSocket client to receive real-time updates from this device.
+
+        The client is created on first use, and does not connect by itself. The
+        WebSocket keeps a connection to the device open, next to the one for
         HTTP requests. It uses the client session that was passed to this API
-        client, or else its own session. Close the WebSocket before closing this
-        API client.
-
-        Args:
-            on_connection_change: Called with `True` when the WebSocket is
-                connected and authorized, and with `False` when the connection
-                is lost or closed.
+        client, or else its own session. It is closed together with this API
+        client.
         """
-        return HomeWizardEnergyWebSocket(self, on_connection_change)
+        if self._websocket is None:
+            self._websocket = HomeWizardEnergyWebSocket(self)
+        return self._websocket
+
+    async def close(self) -> None:
+        """Close the WebSocket and the client session."""
+        if self._websocket is not None:
+            await self._websocket.close()
+        await super().close()
 
     async def __aenter__(self) -> HomeWizardEnergyV2:
         """Async enter.

@@ -172,7 +172,7 @@ async def api_fixture() -> AsyncIterator[HomeWizardEnergyV2]:
 async def test_connect_requires_token():
     """Test connecting without token."""
     async with HomeWizardEnergyV2("example.com") as api:
-        ws = api.websocket()
+        ws = api.websocket
 
         with pytest.raises(UnauthorizedError, match="Token missing"):
             await ws.connect()
@@ -185,7 +185,8 @@ async def test_connect_authorizes_with_token(
 ):
     """Test the authorization flow."""
     states: list[bool] = []
-    ws = api.websocket(on_connection_change=states.append)
+    ws = api.websocket
+    ws.on_connection_change(states.append)
     assert not ws.connected
 
     await ws.connect()
@@ -211,7 +212,7 @@ async def test_connect_authorizes_with_token(
 
 async def test_context_manager(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test connecting and closing with the context manager."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         assert ws.connected
         assert device.attempts == 1
 
@@ -221,7 +222,7 @@ async def test_context_manager(device: FakeDevice, api: HomeWizardEnergyV2):
 async def test_connect_uses_token_of_api(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test a token that is set on the API client after creating the WebSocket."""
     api._token = None  # pylint: disable=protected-access
-    ws = api.websocket()
+    ws = api.websocket
     api._token = TOKEN  # pylint: disable=protected-access
 
     await ws.connect()
@@ -266,7 +267,8 @@ async def test_connect_rejected_token(
     device.unauthorized = unauthorized
     api._token = "invalid"  # pylint: disable=protected-access
     states: list[bool] = []
-    ws = api.websocket(on_connection_change=states.append)
+    ws = api.websocket
+    ws.on_connection_change(states.append)
 
     with pytest.raises(UnauthorizedError, match="Token rejected"):
         await ws.connect()
@@ -285,7 +287,7 @@ async def test_connect_rejected_token_in_stream(
 ):
     """Test that a rejected token is raised with reconnect, instead of retried."""
     api._token = "invalid"  # pylint: disable=protected-access
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(UnauthorizedError):
         async for _ in ws.events(reconnect=True):
@@ -313,7 +315,7 @@ async def test_connect_lost_during_authorization(
 
     monkeypatch.setattr(api, "_request", request)
     api._token = "valid-but-connection-drops"  # pylint: disable=protected-access
-    ws = api.websocket()
+    ws = api.websocket
 
     # The token is not rejected via HTTP, so connecting again may succeed
     with pytest.raises(WebSocketDisconnectedError):
@@ -328,7 +330,7 @@ async def test_connect_unsupported_device(device: FakeDevice, api: HomeWizardEne
     """Test a device that has the v2 API, but no WebSocket."""
     # pylint: disable-next=protected-access
     api._device = Device.from_dict(json.loads(load_fixtures("HWE-SKT/device.json")))
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(UnsupportedError, match="Device has no WebSocket"):
         await ws.connect()
@@ -358,7 +360,7 @@ async def test_connect_gets_device_information(
         return 200, json.dumps(TOPICS["device"])
 
     monkeypatch.setattr(api, "_request", request)
-    ws = api.websocket()
+    ws = api.websocket
 
     # Device can't be reached, connecting again may succeed
     with pytest.raises(WebSocketDisconnectedError, match="device information"):
@@ -377,7 +379,7 @@ async def test_context_manager_closes_on_error(
 ):
     """Test that nothing is left open when connecting with the context manager fails."""
     device.status = 503
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(WebSocketDisconnectedError):
         async with ws:
@@ -411,7 +413,7 @@ async def test_connect_unexpected_flow(
     """Test a device that does not follow the authorization flow."""
     device.greeting = greeting
     device.authorized = authorized
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(RequestError, match=error) as ex:
         await ws.connect()
@@ -428,7 +430,7 @@ async def test_connect_no_authorization_request(
     """Test a device that never asks for authorization."""
     api._request_timeout = 0.05  # pylint: disable=protected-access
     device.greeting = None
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(WebSocketDisconnectedError):
         await ws.connect()
@@ -452,7 +454,7 @@ async def test_connect_refused(
 ):
     """Test a device that does not accept the WebSocket connection."""
     device.status = status
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(error):
         await ws.connect()
@@ -470,7 +472,7 @@ async def test_connect_unreachable(
         raise ClientConnectionError
 
     monkeypatch.setattr(ClientSession, "ws_connect", ws_connect)
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(WebSocketDisconnectedError, match="Unable to connect"):
         await ws.connect()
@@ -480,7 +482,7 @@ async def test_connect_unreachable(
 
 async def test_commands(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test the messages that are sent for each command."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.subscribe(WebSocketTopic.MEASUREMENT)
         await ws.subscribe("system")
         await ws.unsubscribe(WebSocketTopic.MEASUREMENT)
@@ -510,7 +512,7 @@ async def test_commands_connect_when_needed(
     device: FakeDevice, api: HomeWizardEnergyV2
 ):
     """Test that commands connect first."""
-    ws = api.websocket()
+    ws = api.websocket
 
     # Not connected, so nothing to unsubscribe from
     await ws.unsubscribe(WebSocketTopic.SYSTEM)
@@ -536,7 +538,7 @@ async def test_commands_connect_when_needed(
 
 async def test_events(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test receiving messages as received."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.subscribe(WebSocketTopic.MEASUREMENT)
 
         messages = []
@@ -555,7 +557,7 @@ async def test_events(device: FakeDevice, api: HomeWizardEnergyV2):
 
 async def test_events_typed(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test receiving messages as events."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.subscribe(WebSocketTopic.ALL)
 
         events = []
@@ -587,7 +589,7 @@ async def test_events_typed(device: FakeDevice, api: HomeWizardEnergyV2):
 
 async def test_receive_typed(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test receiving a single event."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.request(WebSocketTopic.SYSTEM)
 
         event = await ws.receive_typed()
@@ -601,7 +603,7 @@ async def test_events_typed_undecodable(
     device: FakeDevice, api: HomeWizardEnergyV2, caplog: pytest.LogCaptureFixture
 ):
     """Test a message of a known topic that does not fit the model."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await device.connection.send_json({"type": "device", "data": {"a": 1}})
         await device.connection.send_json({"type": "measurement", "data": "text"})
 
@@ -621,7 +623,7 @@ async def test_events_error_does_not_end_stream(
     device: FakeDevice, api: HomeWizardEnergyV2
 ):
     """Test that an error of the device is an event, and the stream continues."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.subscribe("bogus")
         await ws.subscribe(WebSocketTopic.MEASUREMENT)
 
@@ -641,7 +643,7 @@ async def test_events_ignores_invalid_messages(
     device: FakeDevice, api: HomeWizardEnergyV2, caplog: pytest.LogCaptureFixture
 ):
     """Test that messages that are not a JSON object are skipped."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await device.connection.send_str("not json")
         await device.connection.send_str('["a list"]')
         await device.connection.send_bytes(b"binary")
@@ -668,7 +670,7 @@ async def test_receive_invalid_message(
     device: FakeDevice, api: HomeWizardEnergyV2, send, error: str
 ):
     """Test receiving a single message that is not a JSON object."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await send(device.connection)
 
         with pytest.raises(ResponseError, match=error):
@@ -680,7 +682,7 @@ async def test_receive_invalid_message(
 
 async def test_receive_not_connected(api: HomeWizardEnergyV2):
     """Test receiving without connection."""
-    ws = api.websocket()
+    ws = api.websocket
 
     with pytest.raises(WebSocketDisconnectedError, match="not connected"):
         await ws.receive()
@@ -689,7 +691,8 @@ async def test_receive_not_connected(api: HomeWizardEnergyV2):
 async def test_receive_connection_lost(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test receiving while the device closes the connection."""
     states: list[bool] = []
-    ws = api.websocket(on_connection_change=states.append)
+    ws = api.websocket
+    ws.on_connection_change(states.append)
     await ws.connect()
 
     await device.connection.close()
@@ -707,7 +710,8 @@ async def test_events_reconnect_restores_subscriptions(
 ):
     """Test that the subscriptions are sent again after a reconnect."""
     states: list[bool] = []
-    ws = api.websocket(on_connection_change=states.append)
+    ws = api.websocket
+    ws.on_connection_change(states.append)
     await ws.subscribe(WebSocketTopic.MEASUREMENT)
     await ws.subscribe(WebSocketTopic.SYSTEM)
     await ws.subscribe(WebSocketTopic.DEVICE)
@@ -745,7 +749,7 @@ async def test_events_reconnect_while_unreachable(
 ):
     """Test that connecting is tried again until the device is back."""
     device.status = 503
-    ws = api.websocket()
+    ws = api.websocket
 
     async def restore_device():
         await device.wait_for(attempts=3)
@@ -766,7 +770,7 @@ async def test_events_reconnect_while_unreachable(
 
 async def test_events_without_reconnect(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test that a lost connection is raised without reconnect."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.subscribe(WebSocketTopic.MEASUREMENT)
 
         with pytest.raises(WebSocketDisconnectedError):
@@ -786,7 +790,7 @@ async def test_events_reconnect_stops_on_permanent_error(
     device: FakeDevice, api: HomeWizardEnergyV2, status: int, error: type[Exception]
 ):
     """Test that an error that will not go away is raised, also with reconnect."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
         await ws.subscribe(WebSocketTopic.MEASUREMENT)
 
         with pytest.raises(error):
@@ -800,7 +804,7 @@ async def test_events_reconnect_stops_on_permanent_error(
 
 async def test_close_ends_events(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test that closing ends the stream, without connecting again."""
-    ws = api.websocket()
+    ws = api.websocket
     await ws.subscribe(WebSocketTopic.MEASUREMENT)
     received = asyncio.Event()
 
@@ -828,7 +832,7 @@ async def test_close_ends_events(device: FakeDevice, api: HomeWizardEnergyV2):
 
 async def test_close_ends_events_typed(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test that closing ends the stream of events."""
-    ws = api.websocket()
+    ws = api.websocket
     await ws.subscribe(WebSocketTopic.MEASUREMENT)
 
     events = []
@@ -853,7 +857,7 @@ async def test_close_ends_events_while_reconnecting(
     """Test that closing ends the stream while waiting to connect again."""
     monkeypatch.setattr(websocket_module, "MAX_RECONNECT_BACKOFF", 30)
     device.status = 503
-    ws = api.websocket()
+    ws = api.websocket
 
     async def consume() -> list[dict[str, Any]]:
         return [message async for message in ws.events(reconnect=True)]
@@ -873,7 +877,7 @@ async def test_close_while_events_starts_connecting(
     device: FakeDevice, api: HomeWizardEnergyV2
 ):
     """Test that the stream does not connect when closed in the meantime."""
-    ws = api.websocket()
+    ws = api.websocket
 
     async def consume() -> list[dict[str, Any]]:
         return [message async for message in ws.events(reconnect=True)]
@@ -894,7 +898,7 @@ async def test_own_session(device: FakeDevice, api: HomeWizardEnergyV2):
     """Test that the WebSocket does not take the only connection of the API client."""
     # pylint: disable=protected-access
     await api._create_clientsession()
-    ws = api.websocket()
+    ws = api.websocket
 
     await ws.connect()
 
@@ -915,7 +919,7 @@ async def test_provided_session(device: FakeDevice):
     async with ClientSession() as session:
         api = HomeWizardEnergyV2("example.com", token=TOKEN, clientsession=session)
         api._device = Device.from_dict(TOPICS["device"])
-        ws = api.websocket()
+        ws = api.websocket
 
         await ws.connect()
 
@@ -936,7 +940,7 @@ async def test_send_failure(
     device: FakeDevice, api: HomeWizardEnergyV2, monkeypatch: pytest.MonkeyPatch
 ):
     """Test a connection that breaks while sending."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
 
         async def send_json(*_args, **_kwargs):
             raise ConnectionResetError
@@ -953,7 +957,7 @@ async def test_connection_error_frame(
     device: FakeDevice, api: HomeWizardEnergyV2, monkeypatch: pytest.MonkeyPatch
 ):
     """Test a connection that fails, for example when the device stops answering pings."""
-    async with api.websocket() as ws:
+    async with api.websocket as ws:
 
         async def receive(*_args, **_kwargs):
             return type("Message", (), {"type": WSMsgType.ERROR, "data": "timeout"})
@@ -976,8 +980,223 @@ async def test_connection_change_callback_error(
     def on_connection_change(_connected: bool) -> None:
         raise ValueError("Oops")
 
-    async with api.websocket(on_connection_change=on_connection_change) as ws:
+    remove = api.websocket.on_connection_change(on_connection_change)
+    async with api.websocket as ws:
         assert ws.connected
+        assert "Error in WebSocket connection change callback" in caplog.text
 
-    assert "Error in WebSocket connection change callback" in caplog.text
+        # Callback is not called anymore after removing it
+        caplog.clear()
+        remove()
+        remove()
+
+    assert "Error in WebSocket connection change callback" not in caplog.text
     assert device.attempts == 1
+
+
+async def wait_until(condition) -> None:
+    """Wait until a condition is true."""
+    async with asyncio.timeout(5):
+        while not condition():
+            await asyncio.sleep(0.01)
+
+
+async def test_websocket_of_api_client(device: FakeDevice):
+    """Test that the API client has one WebSocket, and closes it."""
+    api = HomeWizardEnergyV2("example.com", token=TOKEN, timeout=3)
+    api._device = Device.from_dict(TOPICS["device"])  # pylint: disable=protected-access
+    assert api.token == TOKEN
+    assert api.request_timeout == 3
+
+    ws = api.websocket
+    assert api.websocket is ws
+
+    await ws.connect()
+    assert ws.connected
+
+    await api.close()
+    assert not ws.connected
+    assert device.attempts == 1
+
+
+async def test_subscribe_with_callback(device: FakeDevice, api: HomeWizardEnergyV2):
+    """Test that callbacks are called for the messages of their topic."""
+    measurements: list[HomeWizardEnergyWebSocketEvent] = []
+    systems: list[HomeWizardEnergyWebSocketEvent] = []
+    everything: list[HomeWizardEnergyWebSocketEvent] = []
+
+    async def on_system(event: HomeWizardEnergyWebSocketEvent) -> None:
+        systems.append(event)
+
+    ws = api.websocket
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, measurements.append)
+    await ws.subscribe(WebSocketTopic.SYSTEM, on_system)
+    await ws.subscribe(WebSocketTopic.ALL, everything.append)
+
+    # Measurement and system, and then all topics
+    await wait_until(lambda: len(everything) == 2 + len(TOPICS))
+
+    assert [type(event) for event in measurements] == [MeasurementEvent] * 2
+    assert [type(event) for event in systems] == [SystemEvent] * 2
+    assert measurements[0].data.power_w == TOPICS["measurement"]["power_w"]
+    assert device.attempts == 1
+
+    await ws.close()
+
+
+async def test_subscribe_callback_is_removed(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that a callback is not called after removing it."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+    removed: list[HomeWizardEnergyWebSocketEvent] = []
+
+    ws = api.websocket
+    remove = await ws.subscribe(WebSocketTopic.MEASUREMENT, removed.append)
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 2)
+    assert len(removed) == 2
+
+    remove()
+    remove()
+    await ws.request(WebSocketTopic.MEASUREMENT)
+    await wait_until(lambda: len(events) == 3)
+    assert len(removed) == 2
+
+    # Without callback there is nothing to remove
+    remove = await ws.subscribe(WebSocketTopic.SYSTEM)
+    remove()
+
+    await ws.unsubscribe(WebSocketTopic.MEASUREMENT)
+    await ws.request(WebSocketTopic.MEASUREMENT)
+    await ws.request(WebSocketTopic.SYSTEM)
+    await wait_until(lambda: device.received[0][-1] == {"type": "system"})
+    await asyncio.sleep(0.05)
+    assert len(events) == 3
+
+    await ws.close()
+
+
+async def test_subscribe_callback_errors(
+    device: FakeDevice, api: HomeWizardEnergyV2, caplog: pytest.LogCaptureFixture
+):
+    """Test that a failing callback, or an error of the device, changes nothing."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+
+    def failing(_event: HomeWizardEnergyWebSocketEvent) -> None:
+        raise ValueError("Oops")
+
+    ws = api.websocket
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, failing)
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 2)
+    assert "Error in WebSocket callback for 'measurement'" in caplog.text
+
+    await ws.send("nonsense")
+    await ws.request(WebSocketTopic.MEASUREMENT)
+    await wait_until(lambda: len(events) == 3)
+    assert "reported an error: request:unknown-type" in caplog.text
+    assert device.attempts == 1
+
+    await ws.close()
+
+
+async def test_subscribe_callback_survives_reconnect(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that callbacks are called again after the connection was lost."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+    states: list[bool] = []
+
+    ws = api.websocket
+    ws.on_connection_change(states.append)
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 1)
+
+    await device.connection.close()
+    await wait_until(lambda: len(events) == 2)
+
+    assert states == [True, False, True]
+    assert device.received[1][1:] == [{"type": "subscribe", "data": "measurement"}]
+
+    await ws.close()
+    assert states == [True, False, True, False]
+
+
+async def test_subscribe_callback_after_close(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that callbacks are kept when the WebSocket is closed and connected."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+
+    ws = api.websocket
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 1)
+
+    await ws.close()
+    await ws.connect()
+    await wait_until(lambda: len(events) == 2)
+    assert device.attempts == 2
+
+    await ws.close()
+
+
+async def test_subscribe_callback_closes_websocket(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that a callback can close the WebSocket."""
+    ws = api.websocket
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+
+    async def close(event: HomeWizardEnergyWebSocketEvent) -> None:
+        events.append(event)
+        await ws.close()
+
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, close)
+    await wait_until(lambda: len(events) == 1 and not ws.connected)
+    await asyncio.sleep(0.05)
+
+    assert len(events) == 1
+    assert device.attempts == 1
+
+
+async def test_subscribe_callback_stops_on_permanent_error(
+    device: FakeDevice, api: HomeWizardEnergyV2, caplog: pytest.LogCaptureFixture
+):
+    """Test that receiving stops when connecting again can't succeed."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+    states: list[bool] = []
+
+    ws = api.websocket
+    ws.on_connection_change(states.append)
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 1)
+
+    # Firmware without WebSocket
+    device.status = 404
+    await device.connection.close()
+    await wait_until(lambda: "stopped: Device has no WebSocket" in caplog.text)
+
+    assert states == [True, False]
+    assert device.attempts == 2
+
+    await ws.close()
+
+
+async def test_subscribe_callback_not_kept_on_failure(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that the callback is forgotten when subscribing fails."""
+    device.status = 404
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+
+    ws = api.websocket
+    with pytest.raises(UnsupportedError):
+        await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+
+    device.status = None
+    await ws.connect()
+    await asyncio.sleep(0.05)
+    assert not events
+
+    await ws.close()
