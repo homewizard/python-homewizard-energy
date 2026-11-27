@@ -107,13 +107,13 @@ async def main():
         unsubscribe()
 ```
 
-The callback may also be a coroutine function. Use either callbacks or iteration, not both at the same time.
+The callback may also be a coroutine function. Use either callbacks or iteration. Using both at the same time raises a `RuntimeError`.
 
 Good to know:
 - `api.websocket` always returns the same WebSocket client. It is closed together with the API client.
 - The stream ends, and callbacks stop, when you call `ws.close()`.
 - A rejected token raises `UnauthorizedError`, and a device without WebSocket raises `UnsupportedError`. These are also raised with `reconnect=True`. A lost connection raises `WebSocketDisconnectedError`, unless you use `reconnect=True`.
-- With callbacks, an error that does not go away by connecting again is logged, and receiving stops. `ws.connected` is then `False`.
+- With callbacks, there is nothing to raise an error to. Use `ws.on_error(callback)` to get the error when receiving stops, for example an `UnauthorizedError` for a token that was removed. A lost connection is restored and is not reported there.
 - To follow the connection state, use `ws.on_connection_change(callback)`. The callback is called with `True` or `False`.
 - The WebSocket keeps one connection to the device open, next to the connection for HTTP requests.
 

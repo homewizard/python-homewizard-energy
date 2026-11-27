@@ -1167,18 +1167,37 @@ async def test_subscribe_callback_stops_on_permanent_error(
     events: list[HomeWizardEnergyWebSocketEvent] = []
     states: list[bool] = []
 
+    errors: list[Exception] = []
+
+    def failing(_error: Exception) -> None:
+        raise ValueError("Oops")
+
     ws = api.websocket
     ws.on_connection_change(states.append)
+    remove_failing = ws.on_error(failing)
+    remove = ws.on_error(errors.append)
     await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
     await wait_until(lambda: len(events) == 1)
 
     # Firmware without WebSocket
     device.status = 404
     await device.connection.close()
-    await wait_until(lambda: "stopped: Device has no WebSocket" in caplog.text)
+    await wait_until(lambda: len(errors) == 1)
 
+    assert isinstance(errors[0], UnsupportedError)
+    assert "stopped: Device has no WebSocket" in caplog.text
+    assert "Error in WebSocket error callback" in caplog.text
     assert states == [True, False]
     assert device.attempts == 2
+
+    # Receiving starts again when asked for, and removed callbacks are not called
+    remove()
+    remove_failing()
+    remove()
+    await ws.close()
+    with pytest.raises(UnsupportedError):
+        await ws.connect()
+    assert len(errors) == 1
 
     await ws.close()
 
@@ -1198,5 +1217,76 @@ async def test_subscribe_callback_not_kept_on_failure(
     await ws.connect()
     await asyncio.sleep(0.05)
     assert not events
+
+    await ws.close()
+
+
+async def test_subscribe_callback_rejected_token(
+    device: FakeDevice, api: HomeWizardEnergyV2, http_status: list[int]
+):
+    """Test that a token that got rejected is reported."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+    errors: list[Exception] = []
+
+    ws = api.websocket
+    ws.on_error(errors.append)
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 1)
+
+    # Token is removed from the device
+    api._token = "other"  # pylint: disable=protected-access
+    await device.connection.close()
+    await wait_until(lambda: len(errors) == 1)
+
+    assert isinstance(errors[0], UnauthorizedError)
+    assert http_status == [401]
+    assert not ws.connected
+
+    await ws.close()
+
+
+async def test_callbacks_and_iterating_are_exclusive(
+    device: FakeDevice, api: HomeWizardEnergyV2
+):
+    """Test that messages can't be received in two ways at the same time."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+
+    ws = api.websocket
+    await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    await wait_until(lambda: len(events) == 1)
+
+    with pytest.raises(RuntimeError, match="passed to the callbacks"):
+        await ws.receive()
+    with pytest.raises(RuntimeError, match="passed to the callbacks"):
+        async for _ in ws.events():
+            pass
+
+    # Callbacks are not affected
+    await ws.request(WebSocketTopic.MEASUREMENT)
+    await wait_until(lambda: len(events) == 2)
+    assert device.attempts == 1
+
+    await ws.close()
+
+
+async def test_callback_while_iterating(device: FakeDevice, api: HomeWizardEnergyV2):
+    """Test that a callback is refused while waiting for a message."""
+    events: list[HomeWizardEnergyWebSocketEvent] = []
+
+    ws = api.websocket
+    await ws.connect()
+    waiting = asyncio.create_task(ws.receive())
+    await asyncio.sleep(0.05)
+
+    with pytest.raises(RuntimeError, match="use one of the two"):
+        await ws.subscribe(WebSocketTopic.MEASUREMENT, events.append)
+    with pytest.raises(RuntimeError, match="Already waiting"):
+        await ws.receive()
+
+    # Subscribing without callback is fine, and the message is received
+    await ws.subscribe(WebSocketTopic.MEASUREMENT)
+    assert (await waiting)["type"] == "measurement"
+    assert not events
+    assert device.attempts == 1
 
     await ws.close()

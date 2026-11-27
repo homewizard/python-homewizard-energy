@@ -162,7 +162,7 @@ class HomeWizardEnergyWebSocket:
 
     Messages can be received in two ways. Either pass a callback to
     `subscribe()`, or iterate over `events()` or `events_typed()`. Use one of
-    the two, not both at the same time.
+    the two. Using both at the same time raises a `RuntimeError`.
     """
 
     def __init__(self, api: HomeWizardEnergyV2) -> None:
@@ -181,6 +181,8 @@ class HomeWizardEnergyWebSocket:
         self._callbacks: list[tuple[str, WebSocketCallback]] = []
         self._connection_callbacks: list[Callable[[bool], None]] = []
         self._listener: asyncio.Task[None] | None = None
+        self._error_callbacks: list[Callable[[Exception], None]] = []
+        self._receiving = False
         self._reported_connected = False
 
         self._lock = asyncio.Lock()
@@ -190,6 +192,29 @@ class HomeWizardEnergyWebSocket:
     def connected(self) -> bool:
         """Return True when the WebSocket is connected and authorized."""
         return self._ws is not None and not self._ws.closed
+
+    def on_error(self, callback: Callable[[Exception], None]) -> Callable[[], None]:
+        """Get informed when receiving for the callbacks stops because of an error.
+
+        Only used when a callback was passed to `subscribe()`. A lost
+        connection is restored and is not reported here, so this is an error
+        that does not go away by connecting again, such as an
+        `UnauthorizedError` for a rejected token. No callbacks are called
+        anymore until `connect()` or `subscribe()` is called again.
+
+        Args:
+            callback: Called with the error.
+
+        Returns:
+            Function that removes the callback.
+        """
+        self._error_callbacks.append(callback)
+
+        def remove() -> None:
+            with suppress(ValueError):
+                self._error_callbacks.remove(callback)
+
+        return remove
 
     def on_connection_change(
         self, callback: Callable[[bool], None]
@@ -270,8 +295,17 @@ class HomeWizardEnergyWebSocket:
         Returns:
             Function that removes the callback. The device stays subscribed
             until `unsubscribe()` is called.
+
+        Raises:
+            RuntimeError: A callback is passed while `events()`,
+                `events_typed()` or `receive()` is waiting for a message.
         """
         topic = str(topic)
+        if callback is not None and self._receiving and not self._listening:
+            raise RuntimeError(
+                "Can't use a callback while iterating over the messages of the "
+                "WebSocket, use one of the two"
+            )
         entry = (topic, callback) if callback is not None else None
         if entry is not None:
             self._callbacks.append(entry)
@@ -317,7 +351,7 @@ class HomeWizardEnergyWebSocket:
         """
         ws = self._ws
         try:
-            return await self._receive(ws)
+            return await self._next(ws)
         except WebSocketDisconnectedError:
             await self._disconnect(ws)
             raise
@@ -347,7 +381,7 @@ class HomeWizardEnergyWebSocket:
                     if ws is None:
                         return
                 try:
-                    message = await self._receive(ws)
+                    message = await self._next(ws)
                 except ResponseError as ex:
                     LOGGER.warning("Ignoring WebSocket message: %s", ex)
                     continue
@@ -388,11 +422,14 @@ class HomeWizardEnergyWebSocket:
         async for message in self.events(reconnect=reconnect):
             yield _to_event(message)
 
+    @property
+    def _listening(self) -> bool:
+        """Return True when messages are received in the background."""
+        return self._listener is not None and not self._listener.done()
+
     def _start_listener(self) -> None:
         """Receive messages in the background, when there are callbacks."""
-        if not self._callbacks:
-            return
-        if self._listener is None or self._listener.done():
+        if self._callbacks and not self._listening and not self._receiving:
             self._listener = asyncio.create_task(self._listen())
 
     async def _listen(self) -> None:
@@ -406,9 +443,30 @@ class HomeWizardEnergyWebSocket:
                         event.message,
                     )
                 await self._dispatch(event)
-        except HomeWizardEnergyException as ex:
+        except Exception as ex:  # pylint: disable=broad-exception-caught
             # Not an error that goes away by connecting again
             LOGGER.error("WebSocket of %s stopped: %s", self._api.host, ex)
+            for callback in list(self._error_callbacks):
+                try:
+                    callback(ex)
+                except Exception:  # pylint: disable=broad-exception-caught
+                    LOGGER.exception("Error in WebSocket error callback")
+
+    async def _next(self, ws: ClientWebSocketResponse | None) -> dict[str, Any]:
+        """Receive a message, as the only one that is receiving."""
+        if self._listening and asyncio.current_task() is not self._listener:
+            raise RuntimeError(
+                "Messages of the WebSocket are passed to the callbacks, so they "
+                "can't be received in another way at the same time"
+            )
+        if self._receiving:
+            raise RuntimeError("Already waiting for a message of the WebSocket")
+
+        self._receiving = True
+        try:
+            return await self._receive(ws)
+        finally:
+            self._receiving = False
 
     async def _dispatch(self, event: HomeWizardEnergyWebSocketEvent) -> None:
         """Pass an event to the callbacks of its topic."""
