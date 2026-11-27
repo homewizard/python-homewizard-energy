@@ -36,9 +36,11 @@ from ..models import Batteries, Device, Measurement, System
 if TYPE_CHECKING:
     from . import HomeWizardEnergyV2
 
-# Interval in seconds for sending a ping to the device. The connection is
-# considered lost when the device does not answer within half this interval.
-HEARTBEAT_INTERVAL = 30
+# Time in seconds without any message from the device, after which a ping is
+# sent. The connection is considered lost when the device does not answer
+# within half this time. Devices need up to 10 seconds to answer, and a
+# measurement can take 10 seconds to arrive, so do not make this shorter.
+HEARTBEAT_INTERVAL = 20
 
 # Longest time in seconds to wait between two attempts to reconnect
 MAX_RECONNECT_BACKOFF = 30
